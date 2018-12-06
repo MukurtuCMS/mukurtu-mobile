@@ -11,20 +11,20 @@ import {
   TouchableHighlight,
   Alert
 } from 'react-native';
-import { WebBrowser } from 'expo';
-import {userAuth} from '../services/userAuth';
+import { connect } from 'react-redux';
+import { addPlace } from '../actions/place';
+import { addUser } from '../actions/user';
 
-import { MonoText } from '../components/StyledText';
-
-export default class LoginScreen extends React.Component {
+class LoginScreen extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
       name: false,
       password: false,
-      url: false,
+      url: 'http://mukurtucms.kanopi.cloud',
       error: false,
+      places: 'b',
     }
   }
 
@@ -54,16 +54,9 @@ export default class LoginScreen extends React.Component {
 
     fetch('http://mukurtucms.kanopi.cloud/services/session/token')
       .then((response) => {
-        //Alert.alert("my json" + responseJson.movies);
-/*        Alert.alert(
-          "Get response",
-          "Movies query-> " +JSON.stringify(response)
-        )*/
         let Token = response._bodyText;
-        Alert.alert(
-          "Get response",
-          Token
-        )
+        console.log('Cookie: ' + this.props.places);
+
         let data = {
           method: 'POST',
           body: JSON.stringify({
@@ -73,18 +66,19 @@ export default class LoginScreen extends React.Component {
           headers: {
             'Accept':       'application/json',
             'Content-Type': 'application/json',
-            'X-CSRF-Token': Token
+            'X-CSRF-Token': Token,
+            'Cookie': this.props.places
           }
         };
 
         fetch('http://mukurtucms.kanopi.cloud/app/user/login.json', data)
           .then((response) => response.json())
           .then((responseJson) => {
-            Alert.alert(
-              "Get response",
-              "Movies query-> " +JSON.stringify(responseJson)
-            )
-            this.props.navigation.navigate('Settings');
+
+            this.props.add(responseJson.session_name + '=' + responseJson.sessid);
+            this.props.addUserProp(responseJson);
+            this.props.navigation.navigate('Settings')
+
           })
           .catch((error) => {
             console.error(error);
@@ -105,7 +99,6 @@ export default class LoginScreen extends React.Component {
       <View style={styles.container}>
         <View style={styles.inputContainer}>
           {showError}
-          <Image style={styles.inputIcon} source={{uri: 'https://png.icons8.com/message/ultraviolet/50/3498db'}}/>
           <TextInput style={styles.inputs}
                      placeholder="Email"
                      keyboardType="email-address"
@@ -114,7 +107,6 @@ export default class LoginScreen extends React.Component {
         </View>
 
         <View style={styles.inputContainer}>
-          <Image style={styles.inputIcon} source={{uri: 'https://png.icons8.com/key-2/ultraviolet/50/3498db'}}/>
           <TextInput style={styles.inputs}
                      placeholder="Password"
                      secureTextEntry={true}
@@ -123,7 +115,6 @@ export default class LoginScreen extends React.Component {
         </View>
 
         <View style={styles.inputContainer}>
-          <Image style={styles.inputIcon} source={{uri: 'https://png.icons8.com/key-2/ultraviolet/50/3498db'}}/>
           <TextInput style={styles.inputs}
                      placeholder="Url"
                      underlineColorAndroid='transparent'
@@ -192,3 +183,24 @@ const styles = StyleSheet.create({
     color: 'white',
   }
 });
+
+const mapStateToProps = state => {
+  return {
+    places: state.places.places,
+    user: state.user.user
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    add: (name) => {
+      dispatch(addPlace(name))
+    },
+    addUserProp: (name) => {
+      dispatch(addUser(name))
+    }
+  }
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen)

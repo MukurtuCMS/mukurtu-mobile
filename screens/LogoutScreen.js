@@ -11,12 +11,11 @@ import {
   TouchableHighlight,
   Alert
 } from 'react-native';
-import { WebBrowser } from 'expo';
-import {userAuth} from '../services/userAuth';
+import { connect } from 'react-redux';
+import { addPlace } from '../actions/place';
+import { addUser } from '../actions/user';
 
-import { MonoText } from '../components/StyledText';
-
-export default class LogoutScreen extends React.Component {
+class LogoutScreen extends React.Component {
 
   constructor(props) {
     super(props);
@@ -63,7 +62,7 @@ export default class LogoutScreen extends React.Component {
 
     return (
       <View style={styles.container}>
-
+        <Text>username: {this.props.user.user.name}</Text>
         <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.onClickListener('login')}>
           <Text style={styles.loginText}>Logout</Text>
         </TouchableHighlight>
@@ -118,3 +117,24 @@ const styles = StyleSheet.create({
     color: 'white',
   }
 });
+
+const mapStateToProps = state => {
+  return {
+    places: state.places.places,
+    user: state.user.user
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    add: (name) => {
+      dispatch(addPlace(name))
+    },
+    addUserProp: (name) => {
+      dispatch(addUser(name))
+    }
+  }
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(LogoutScreen)

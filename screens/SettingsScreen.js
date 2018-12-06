@@ -1,9 +1,9 @@
 import React from 'react';
-import { SettingsOverview } from '../components/SettingsOverview';
+import SettingsOverview from '../components/SettingsOverview';
 
 export default class SettingsScreen extends React.Component {
   static navigationOptions = {
-    title: 'app.json',
+    title: 'Settings',
   };
 
   render() {

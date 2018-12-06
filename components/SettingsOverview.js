@@ -9,13 +9,16 @@ import {
   Alert,
 } from 'react-native';
 import SettingsList from 'react-native-settings-list';
+import { connect } from 'react-redux';
+import { addPlace } from '../actions/place';
+import { addUser } from '../actions/user';
 
-export class SettingsOverview extends React.Component {
+class SettingsOverview extends React.Component {
   constructor(){
     super();
     this.onValueChange = this.onValueChange.bind(this);
     this.componentActive = this.componentActive.bind(this);
-    this.state = {switchValue: false, loggedIn: false, token: false, user: []};
+    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: ''};
   }
 
   componentDidMount(){
@@ -25,34 +28,27 @@ export class SettingsOverview extends React.Component {
   componentActive(){
     fetch('http://mukurtucms.kanopi.cloud/services/session/token')
       .then((response) => {
-        //Alert.alert("my json" + responseJson.movies);
-        /*        Alert.alert(
-         "Get response",
-         "Movies query-> " +JSON.stringify(response)
-         )*/
         let Token = response._bodyText;
-                    Alert.alert(
-         "Get response",
-         JSON.stringify(Token)
-         )
         this.setState({token: Token});
         let data = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-Token': 'fjatg8GacpUYxAK01g0OrcTlUrCAnblVaNa3sbECJpc',
+            'X-CSRF-Token': this.props.user.token,
             'Cache-Control': 'no-cache',
-            'Postman-Token': '04751bd0-9bab-ba1b-b0ac-472d3c4577f9'
+            'Cookie': this.props.user.session_name + '=' + this.props.user.sessid
           }
         };
 
         fetch('http://mukurtucms.kanopi.cloud/app/system/connect', data)
-          .then((response) => {
+          .then((response) => response.json())
+          .then((responseJson) => {
             //Alert.alert("my json" + responseJson.movies);
-            Alert.alert(
-              "Get response",
-              JSON.stringify(response)
-            )
+            console.log('SESS ID: ' + JSON.stringify(responseJson.sessid));
+            console.log('SESS Name: ' + JSON.stringify(responseJson.session_name));
+            console.log('Current Status' + JSON.stringify(responseJson));
+            var session = responseJson.session_name + '=' + responseJson.sessid;
+            this.props.add(responseJson.session_name + '=' + responseJson.sessid);
 /*            if (response.user.uid === 0) {
               this.setState({loggedIn: false});
             } else {
@@ -70,16 +66,16 @@ export class SettingsOverview extends React.Component {
 
   render() {
     const { navigation } = this.props;
-
+console.log('USERR: ' + JSON.stringify(this.props.user.user.uid));
     var bgColor = '#DCE3F4';
     return (
       <View style={{backgroundColor:'#EFEFF4',flex:1}}>
         <View style={{backgroundColor:'#EFEFF4',flex:1}}>
           <SettingsList borderColor='#c8c7cc' defaultItemSize={50}>
-            {this.state.loggedIn ?
+            {parseInt(this.props.user.user.uid) > 0 ?
               <SettingsList.Item
                 title='Log Out'
-                titleInfo={this.state.user.user.name}
+                titleInfo={this.props.user.user.name}
                 titleInfoStyle={styles.titleInfoStyle}
                 onPress={() =>
                   this.props.navigation.navigate('Logout')
@@ -96,55 +92,12 @@ export class SettingsOverview extends React.Component {
               />
             }
             <SettingsList.Item
-              hasSwitch={true}
-              switchState={this.state.switchValue}
-              switchOnValueChange={this.onValueChange}
-              hasNavArrow={false}
-              title='Airplane Mode'
+              title='Help'
+              onPress={() => this.props.navigation.navigate('Help')}
             />
             <SettingsList.Item
-              title='Wi-Fi'
-              titleInfo='Bill Wi The Science Fi'
-              titleInfoStyle={styles.titleInfoStyle}
-              onPress={() => Alert.alert('Route to Wifi Page')}
-            />
-            <SettingsList.Item
-              title='Blutooth'
-              titleInfo='Off'
-              titleInfoStyle={styles.titleInfoStyle}
-              onPress={() => Alert.alert('Route to Blutooth Page')}
-            />
-            <SettingsList.Item
-              title='Cellular'
-              onPress={() => Alert.alert('Route To Cellular Page')}
-            />
-            <SettingsList.Item
-              title='Personal Hotspot'
-              titleInfo='Off'
-              titleInfoStyle={styles.titleInfoStyle}
-              onPress={() => Alert.alert('Route To Hotspot Page')}
-            />
-            <SettingsList.Header headerStyle={{marginTop:15}}/>
-            <SettingsList.Item
-              title='Notifications'
-              onPress={() => Alert.alert('Route To Notifications Page')}
-            />
-            <SettingsList.Item
-              title='Control Center'
-              onPress={() => Alert.alert('Route To Control Center Page')}
-            />
-            <SettingsList.Item
-              title='Do Not Disturb'
-              onPress={() => Alert.alert('Route To Do Not Disturb Page')}
-            />
-            <SettingsList.Header headerStyle={{marginTop:15}}/>
-            <SettingsList.Item
-              title='General'
-              onPress={() => Alert.alert('Route To General Page')}
-            />
-            <SettingsList.Item
-              title='Display & Brightness'
-              onPress={() => Alert.alert('Route To Display Page')}
+              title='About'
+              onPress={() => this.props.navigation.navigate('About')}
             />
           </SettingsList>
         </View>
@@ -173,3 +126,23 @@ const styles = StyleSheet.create({
     color: '#8e8e93'
   }
 });
+
+const mapStateToProps = state => {
+  return {
+    places: state.places.places,
+    user: state.user.user
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    add: (name) => {
+      dispatch(addPlace(name))
+    },
+    addUserProp: (name) => {
+      dispatch(addUser(name))
+    }
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SettingsOverview)

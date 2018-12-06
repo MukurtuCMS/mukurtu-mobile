@@ -4,10 +4,13 @@ import { createStackNavigator, createBottomTabNavigator } from 'react-navigation
 
 import TabBarIcon from '../components/TabBarIcon';
 import HomeScreen from '../screens/HomeScreen';
-import LinksScreen from '../screens/LinksScreen';
+import CreateContentScreen from '../screens/CreateContentScreen';
+import CreateContentFormScreen from '../screens/CreateContentFormScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import LogoutScreen from '../screens/LogoutScreen';
+import HelpScreen from '../screens/HelpScreen';
+import AboutScreen from '../screens/AboutScreen';
 
 const HomeStack = createStackNavigator({
   Home: HomeScreen,
@@ -27,12 +30,13 @@ HomeStack.navigationOptions = {
   ),
 };
 
-const LinksStack = createStackNavigator({
-  Links: LinksScreen,
+const CreateContentStack = createStackNavigator({
+  Links: CreateContentScreen,
+  CreateContentForm: CreateContentFormScreen
 });
 
-LinksStack.navigationOptions = {
-  tabBarLabel: 'Links',
+CreateContentStack.navigationOptions = {
+  tabBarLabel: 'Create Content',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
@@ -44,7 +48,9 @@ LinksStack.navigationOptions = {
 const SettingsStack = createStackNavigator({
   Settings: SettingsScreen,
   Login: LoginScreen,
-  Logout: LogoutScreen
+  Logout: LogoutScreen,
+  Help: HelpScreen,
+  About: AboutScreen
 });
 
 SettingsStack.navigationOptions = {
@@ -62,6 +68,6 @@ SettingsStack.navigationOptions = {
 
 export default createBottomTabNavigator({
   HomeStack,
-  LinksStack,
+  CreateContentStack,
   SettingsStack,
 });

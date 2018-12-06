@@ -1,0 +1,12 @@
+export default ArticleForm = {
+  "type": "object",
+  "properties": {
+  "name": {
+    "type": "string"
+  },
+  "surname": {
+    "type": "string"
+  }
+},
+  "required": ["name", "surname"]
+}
