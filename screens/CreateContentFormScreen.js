@@ -17,6 +17,7 @@ import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
 import transform from 'tcomb-json-schema';
 import t from 'tcomb-form-native';
+import ImageFactory from 'react-native-image-picker-form';
 import DigitalHeritageForm from '../endpoints/DigitalHeritage';
 
 class CreateContentFormScreen extends React.Component {

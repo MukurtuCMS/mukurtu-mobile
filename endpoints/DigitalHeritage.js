@@ -1,3 +1,5 @@
+import ImageFactory from 'react-native-image-picker-form'
+
 export default DigitalHeritage = [{
   "type": "tab",
   "label": "Mukurtu Essentials",
@@ -40,6 +42,18 @@ export default DigitalHeritage = [{
     fields: {
       "General": {
         label: "Categories"
+      },
+      "Media Assets": {
+        config: {
+          title: 'Select image',
+          options: ['Open camera', 'Select from gallery', 'Cancel'],
+          // Used on Android to style BottomSheet
+          style: {
+            titleFontFamily: 'Roboto'
+          }
+        },
+        error: 'No image provided',
+        factory: ImageFactory
       }
     }
   }

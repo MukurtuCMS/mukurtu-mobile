@@ -17,6 +17,8 @@
     "expo": "^31.0.2",
     "react": "16.5.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-31.0.0.tar.gz",
+    "react-native-image-crop-picker": "^0.21.3",
+    "react-native-image-picker-form": "^0.2.5",
     "react-native-settings-list": "^1.8.0",
     "react-navigation": "^2.18.2",
     "react-redux": "^5.1.1",
