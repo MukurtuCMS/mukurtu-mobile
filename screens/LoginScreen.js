@@ -14,6 +14,9 @@ import {
 import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
+import { SQLite } from 'expo';
+
+const db = SQLite.openDatabase('db.db');
 
 class LoginScreen extends React.Component {
 
@@ -55,7 +58,7 @@ class LoginScreen extends React.Component {
     fetch('http://mukurtucms.kanopi.cloud/services/session/token')
       .then((response) => {
         let Token = response._bodyText;
-        console.log('Cookie: ' + this.props.places);
+        // console.log('Cookie: ' + this.props.places);
 
         let data = {
           method: 'POST',
@@ -70,10 +73,36 @@ class LoginScreen extends React.Component {
             'Cookie': this.props.places
           }
         };
-
         fetch('http://mukurtucms.kanopi.cloud/app/user/login.json', data)
           .then((response) => response.json())
           .then((responseJson) => {
+           //  db.transaction(
+           //   tx => {
+           //     tx.executeSql('delete from auth;');
+           //   }
+           // );
+           db.transaction(
+            tx => {
+              tx.executeSql('delete from auth;',
+              );
+            }
+          );
+            db.transaction(
+             tx => {
+               tx.executeSql('insert into auth (token, cookie) values (?, ?)',
+                 [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
+                 (success) => console.log(success),
+                 (success, error) => console.log(' ')
+               );
+               console.log(responseJson);
+               // tx.executeSql(
+               //   `select * from auth;`,
+               //   '',
+               //   (_, { rows: { _array } }) => console.log(_array),
+               //   (tx, error) => console.log(error)
+               // );
+             }
+           );
 
             this.props.add(responseJson.session_name + '=' + responseJson.sessid);
             this.props.addUserProp(responseJson);
@@ -81,11 +110,11 @@ class LoginScreen extends React.Component {
 
           })
           .catch((error) => {
-            console.error(error);
+            // console.error(error);
           });
       })
       .catch((error) => {
-        console.error(error);
+        // console.error(error);
       });
   }
 

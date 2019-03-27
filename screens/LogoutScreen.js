@@ -14,6 +14,9 @@ import {
 import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
+import { WebBrowser, SQLite } from 'expo';
+
+const db = SQLite.openDatabase('db.db');
 
 class LogoutScreen extends React.Component {
 
@@ -21,41 +24,49 @@ class LogoutScreen extends React.Component {
     super(props);
   }
 
-  onClickListener = (viewId) => {
+  getToken(array) {
+    if (array === undefined || array.length < 1) {
+      return false;
+    }
+    const token = array[0].token;
+    const cookie = array[0].cookie;
+    let data = {
+      method: 'POST',
+      headers: {
+        'Accept':       'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': token,
+        'Cache-Control': 'no-cache',
+        'Cookie': cookie
+      }
+    };
+    console.log(data);
+    fetch('http://mukurtucms.kanopi.cloud/app/user/logout')
+    .then((response) => response.json())
+    .then((responseJson) => {
 
-    fetch('http://mukurtucms.kanopi.cloud/services/session/token')
-      .then((response) => {
-        //Alert.alert("my json" + responseJson.movies);
-/*        Alert.alert(
-          "Get response",
-          "Movies query-> " +JSON.stringify(response)
-        )*/
-        let Token = response._bodyText;
-        let data = {
-          method: 'POST',
-          headers: {
-            'Accept':       'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': Token
-          }
-        };
-
-        fetch('http://mukurtucms.kanopi.cloud/app/user/logout', data)
-          .then((response) => response.json())
-          .then((responseJson) => {
-            //Alert.alert("my json" + responseJson.movies);
-            Alert.alert(
-              JSON.stringify(responseJson)
-            );
-            this.props.navigation.navigate('Settings');
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+        db.transaction(
+         tx => {
+           tx.executeSql('delete from auth;',
+           );
+         }
+       );
       })
       .catch((error) => {
         console.error(error);
       });
+  }
+
+  onClickListener = (viewId) => {
+    let _array = [];
+    db.transaction(tx => {
+      tx.executeSql(
+        `select * from auth limit 1;`,
+        '',
+        (_, { rows: { _array } }) => this.getToken(_array)
+      );
+    });
+
   }
 
   render() {

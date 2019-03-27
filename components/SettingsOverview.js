@@ -44,9 +44,9 @@ class SettingsOverview extends React.Component {
           .then((response) => response.json())
           .then((responseJson) => {
             //Alert.alert("my json" + responseJson.movies);
-            console.log('SESS ID: ' + JSON.stringify(responseJson.sessid));
-            console.log('SESS Name: ' + JSON.stringify(responseJson.session_name));
-            console.log('Current Status' + JSON.stringify(responseJson));
+            // console.log('SESS ID: ' + JSON.stringify(responseJson.sessid));
+            // console.log('SESS Name: ' + JSON.stringify(responseJson.session_name));
+            // console.log('Current Status' + JSON.stringify(responseJson));
             var session = responseJson.session_name + '=' + responseJson.sessid;
             this.props.add(responseJson.session_name + '=' + responseJson.sessid);
 /*            if (response.user.uid === 0) {
@@ -66,7 +66,7 @@ class SettingsOverview extends React.Component {
 
   render() {
     const { navigation } = this.props;
-console.log('USERR: ' + JSON.stringify(this.props.user.user.uid));
+// console.log('USERR: ' + JSON.stringify(this.props.user.user.uid));
     var bgColor = '#DCE3F4';
     return (
       <View style={{backgroundColor:'#EFEFF4',flex:1}}>

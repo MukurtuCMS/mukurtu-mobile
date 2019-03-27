@@ -7,35 +7,176 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
+  Button
 } from 'react-native';
-import { WebBrowser } from 'expo';
-
+import { WebBrowser, SQLite } from 'expo';
+import axios from 'axios';
+import { FontAwesome } from '@expo/vector-icons';
 import { MonoText } from '../components/StyledText';
 
+const db = SQLite.openDatabase('db.db');
+
 export default class HomeScreen extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      contentList: [],
+      result: null
+    }
+  }
+
   static navigationOptions = {
     header: null,
   };
 
+  componentDidMount() {
+    this.props.navigation.addListener('willFocus', this.componentActive);
+    // @todo: Remove this as only for testing
+    // this.props.navigation.navigate('Offline');
+  }
+
+  componentActive = () => {
+    this.createNodesTable();
+    this.createTokenTable();
+    this.update();
+  }
+
+  createTokenTable() {
+    db.transaction(tx => {
+      tx.executeSql(
+        'create table if not exists auth (id integer primary key, token text, cookie text);'
+      );
+    });
+  }
+
+  createNodesTable() {
+    db.transaction(tx => {
+      tx.executeSql(
+        'create table if not exists nodes (nid integer primary key, title text, entity text);'
+      );
+    });
+  }
+
+  update() {
+    db.transaction(tx => {
+      tx.executeSql(
+        'select * from auth limit 1;',
+        '',
+        (_, { rows: { _array } }) => this.getToken(_array)
+      );
+    });
+  }
+
+  alertNotLoggedIn() {
+    Alert.alert(
+      'Connection Issue',
+      'We are having trouble reaching the servers.',
+      [
+        {text: 'Continue Offline', onPress: () => this.props.navigation.navigate('Offline')},
+        {text: 'Log In', onPress: () => this.props.navigation.navigate('Login')},
+      ],
+      { cancelable: false }
+    )
+  }
+
+  getToken(array) {
+    if (array === undefined || array.length < 1) {
+      this.alertNotLoggedIn();
+      return false;
+    }
+    const token = array[0].token;
+    const cookie = array[0].cookie;
+    let data = {
+      method: 'POST',
+      headers: {
+        'Accept':       'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': token,
+        'Cookie': cookie
+      }
+    };
+    axios.post('http://mukurtucms.kanopi.cloud/app/system/connect', {}, {headers: data.headers})
+      .then((responseJson) => {
+        if (responseJson.data.user.uid === 0) {
+          this.alertNotLoggedIn();
+        }
+        data.method = 'GET';
+        fetch('http://mukurtucms.kanopi.cloud/app/node.json?parameters[type]=digital_heritage&pagesize=10&options[entity_load]=true', data)
+          .then((response) => response.json())
+          .then((responseJson) => {
+            this.setState({contentList: responseJson});
+
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      })
+      .catch((error) => {
+        console.error(error);
+        this.alertNotLoggedIn();
+      });
+  }
+
+  _handlePressButtonAsync = async () => {
+    let result = await WebBrowser.openBrowserAsync('http://mukurtucms.kanopi.cloud/digital-heritage');
+    this.setState({ result });
+  };
+
+  saveNode(nid) {
+    const nodes = this.state.contentList;
+    for (var i = 0; i < this.state.contentList.length; i++) {
+      if (nodes[i].nid === nid) {
+        const node = nodes[i];
+        db.transaction(
+         tx => {
+           tx.executeSql('insert into nodes (nid, title, entity) values (?, ?, ?)',
+             [node.nid, node.title, node],
+             (success) => console.log(success),
+             (success, error) => console.log(' ')
+           );
+         }
+       );
+      }
+    }
+  }
+
   render() {
+    const list = [
+      {
+        name: 'Digital Heritage Item 1',
+        description: "This is my item text. This is my item textarea I need words to fill in. This is my item text. This is my item textarea I need words to fill in."
+      },
+      {
+        name: 'Digital Heritage Item 2',
+        description: "This is my item text. This is my item textarea I need words to fill in. This is my item text. This is my item textarea I need words to fill in."
+      }
+    ];
+
+    let i = 0;
+
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.welcomeContainer}>
-            <Image
-              source={
-                __DEV__
-                  ? require('../assets/images/robot-dev.png')
-                  : require('../assets/images/robot-prod.png')
-              }
-              style={styles.welcomeImage}
+          <View style={styles.header}>
+          <Button
+              style={styles.headerButton}
+              title="Browse Digital Heritage"
+              onPress={this._handlePressButtonAsync}
             />
           </View>
 
           <View style={styles.getStartedContainer}>
 
-            <Text style={styles.getStartedText}>Mukurtu Mobile</Text>
-
+            {
+              this.state.contentList.map((l) => (
+                <View key={i++} style={styles.listWrapper}>
+                  <Text style={styles.listTextHeader}>{l.title}</Text>
+                  <FontAwesome name="star" size={25} style={styles.star} onPress={() => this.saveNode(l.nid)} />
+                  <Text style={styles.listTextBody}>{(l.body.und) ? l.body.und[0].value : ''}</Text>
+                </View>
+              ))
+            }
           </View>
 
         </ScrollView>
@@ -79,6 +220,34 @@ export default class HomeScreen extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  listTextHeader: {
+    fontSize: 24,
+    flex: 1
+  },
+  listTextBody: {
+    width: '100%'
+  },
+  listWrapper: {
+    textAlign: 'left',
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap'
+  },
+  star: {
+    color: '#e0e0e0',
+    width: 50,
+    paddingLeft: 10
+  },
+  header: {
+    height: 50,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    paddingTop: 7,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomWidth: 1
+  },
+  headerButton: {
+    marginTop: 5,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -108,6 +277,7 @@ const styles = StyleSheet.create({
   getStartedContainer: {
     alignItems: 'center',
     marginHorizontal: 50,
+    marginTop: 20
   },
   homeScreenFilename: {
     marginVertical: 7,

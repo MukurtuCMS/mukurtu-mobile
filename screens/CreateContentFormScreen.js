@@ -19,6 +19,7 @@ import transform from 'tcomb-json-schema';
 import t from 'tcomb-form-native';
 import ImageFactory from 'react-native-image-picker-form';
 import DigitalHeritageForm from '../endpoints/DigitalHeritage';
+import { FileSystem } from 'expo';
 
 class CreateContentFormScreen extends React.Component {
   static navigationOptions = {
@@ -28,6 +29,7 @@ class CreateContentFormScreen extends React.Component {
   constructor(){
     super();
     this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: ''};
+    this.onPress = this.onPress.bind(this);
   }
 
   componentDidMount(){
@@ -35,6 +37,30 @@ class CreateContentFormScreen extends React.Component {
   }
 
   componentActive(){
+  }
+
+  onPress = async () => {
+    var value = this.refs.form.getValue();
+    console.warn(value.File);
+    // console.log(value);
+    console.log(value);
+    if (value) { // if validation fails, value will be null
+      let fileObject = {};
+      try {
+        /*      const info = await FileSystem.getInfoAsync(result.uri);
+         // this.setState({ data: info });
+         console.warn('info', info);*/
+        const content = await FileSystem.readAsStringAsync(value.File, {
+          encoding: FileSystem.EncodingTypes.Base64,
+        });
+        console.log(content);
+        fileObject.blob = content;
+        // this.setState({ data: content });
+      } catch (e) {
+        console.warn(e.message);
+      }
+      this.setState({value: fileObject});
+    }
   }
 
   render() {

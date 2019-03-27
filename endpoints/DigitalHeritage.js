@@ -1,4 +1,6 @@
-import ImageFactory from 'react-native-image-picker-form'
+// import ImageFactory from 'react-native-image-picker-form';
+// import FilesNotSanitized from 'tcomb-form-native-builder-components/lib/factories/files';
+import DocumentPickerFactory from '../components/File.js';
 
 export default DigitalHeritage = [{
   "type": "tab",
@@ -12,7 +14,10 @@ export default DigitalHeritage = [{
       "Summary": {
         "type": "string"
       },
-      "Media Assets": {
+/*      "Media Assets": {
+        "type": "string"
+      },*/
+      "File": {
         "type": "string"
       },
       "Communities and Protocols": {
@@ -43,18 +48,12 @@ export default DigitalHeritage = [{
       "General": {
         label: "Categories"
       },
-      "Media Assets": {
-        config: {
-          title: 'Select image',
-          options: ['Open camera', 'Select from gallery', 'Cancel'],
-          // Used on Android to style BottomSheet
-          style: {
-            titleFontFamily: 'Roboto'
-          }
-        },
-        error: 'No image provided',
-        factory: ImageFactory
+      "File": {
+        factory: DocumentPickerFactory
       }
+/*      "File": {
+        factory: FilesNotSanitized
+      }*/
     }
   }
 }];
