@@ -25,6 +25,10 @@ export default class OfflineScreen extends React.Component {
   };
 
   componentDidMount() {
+    this.props.navigation.addListener('willFocus', this.componentActive);
+  }
+
+  componentActive = () => {
     console.log('yes');
     db.transaction(tx => {
       tx.executeSql(
@@ -36,6 +40,7 @@ export default class OfflineScreen extends React.Component {
   }
 
   updateNodes(array) {
+    console.log(array.length);
     this.setState({nodes: array});
   }
 

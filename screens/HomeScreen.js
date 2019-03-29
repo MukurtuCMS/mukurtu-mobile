@@ -22,7 +22,10 @@ export default class HomeScreen extends React.Component {
     super(props);
     this.state = {
       contentList: [],
-      result: null
+      result: null,
+      webUrl: '',
+      syncUpdated: [],
+      removeNodes: []
     }
   }
 
@@ -32,13 +35,12 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount() {
     this.props.navigation.addListener('willFocus', this.componentActive);
-    // @todo: Remove this as only for testing
-    // this.props.navigation.navigate('Offline');
   }
 
   componentActive = () => {
     this.createNodesTable();
     this.createTokenTable();
+    this.createSyncTable();
     this.update();
   }
 
@@ -46,6 +48,14 @@ export default class HomeScreen extends React.Component {
     db.transaction(tx => {
       tx.executeSql(
         'create table if not exists auth (id integer primary key, token text, cookie text);'
+      );
+    });
+  }
+
+  createSyncTable() {
+    db.transaction(tx => {
+      tx.executeSql(
+        'create table if not exists sync (id integer primary key, last integer);'
       );
     });
   }
@@ -87,6 +97,15 @@ export default class HomeScreen extends React.Component {
     }
     const token = array[0].token;
     const cookie = array[0].cookie;
+
+    // get last updated time
+    db.transaction(tx => {
+      tx.executeSql(
+        'select * from sync limit 1;',
+        '',
+        (_, { rows: { _array } }) => this.setState({ syncUpdated: _array })
+      );
+    });
     let data = {
       method: 'POST',
       headers: {
@@ -100,13 +119,30 @@ export default class HomeScreen extends React.Component {
       .then((responseJson) => {
         if (responseJson.data.user.uid === 0) {
           this.alertNotLoggedIn();
+          return false;
         }
         data.method = 'GET';
-        fetch('http://mukurtucms.kanopi.cloud/app/node.json?parameters[type]=digital_heritage&pagesize=10&options[entity_load]=true', data)
+        fetch('http://mukurtucms.kanopi.cloud/app/one-time-login/retrieve', data)
           .then((response) => response.json())
           .then((responseJson) => {
-            this.setState({contentList: responseJson});
+            // this.setState({webUrl: responseJson.login_link});
+            this.setState({webUrl: 'http://mukurtucms.kanopi.cloud/'});
+          })
+          .catch((error) => {
+            console.error(error);
+          });
 
+        fetch('http://mukurtucms.kanopi.cloud/app/synced-nodes/retrieve', data)
+          .then((response) => response.json())
+          .then((responseJson) => {
+            this.buildRemovalNids(responseJson.digital_heritage);
+            for (const [nid, timestamp] of Object.entries(responseJson.digital_heritage)) {
+              // @todo don't update all nodes but starring a node does not save
+              // if (timestamp > this.state.syncUpdated) {
+                this.saveNode(nid, data);
+                this.updateSync();
+              // }
+            }
           })
           .catch((error) => {
             console.error(error);
@@ -119,24 +155,92 @@ export default class HomeScreen extends React.Component {
   }
 
   _handlePressButtonAsync = async () => {
-    let result = await WebBrowser.openBrowserAsync('http://mukurtucms.kanopi.cloud/digital-heritage');
-    this.setState({ result });
+    if (this.state.webUrl.length > 0) {
+      let result = await WebBrowser.openBrowserAsync(this.state.webUrl);
+      this.setState({ result });
+    } else {
+      this.alertNotLoggedIn();
+    }
   };
 
-  saveNode(nid) {
-    const nodes = this.state.contentList;
-    for (var i = 0; i < this.state.contentList.length; i++) {
-      if (nodes[i].nid === nid) {
-        const node = nodes[i];
+  saveNode(nid, data) {
+    fetch('http://mukurtucms.kanopi.cloud/app/node/' + nid + '.json', data)
+      .then((response) => response.json())
+      .then((node) => {
+        console.log(node.title)
+        db.transaction(tx => {
+          tx.executeSql(
+            'delete from nodes where nid = ?;',
+            [node.nid],
+            (_, { rows: { _array } }) => console.log(_array)
+          );
+        });
+
         db.transaction(
          tx => {
            tx.executeSql('insert into nodes (nid, title, entity) values (?, ?, ?)',
              [node.nid, node.title, node],
-             (success) => console.log(success),
+             (success) => success,
              (success, error) => console.log(' ')
            );
          }
        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  updateSync() {
+    const time = new Date().getTime()
+    db.transaction(
+       tx => {
+         tx.executeSql('delete from sync;',
+         );
+       }
+     );
+    db.transaction(
+     tx => {
+       tx.executeSql('insert into sync (id, last) values (?, ?)',
+         [1, time],
+         (success) => success,
+         (success, error) => console.log(' ')
+       );
+     }
+   );
+  }
+
+  buildRemovalNids(nids) {
+    db.transaction(tx => {
+      tx.executeSql(
+        'select nid from nodes;',
+        '',
+        (_, { rows: { _array } }) => this.removeNids(_array, nids)
+      );
+    });
+  }
+
+  removeNids(currentNids, newNids) {
+    const db2 = SQLite.openDatabase('db.db');
+    console.log(currentNids);
+    console.log(newNids);
+    for (var i = 0; i < currentNids.length; i++) {
+      var currentlyStarred = false;
+      for (const [nid, timestamp] of Object.entries(newNids)) {
+        if (currentNids[i].nid == nid) {
+          currentlyStarred = true;
+        }
+      }
+      if (!(currentlyStarred)) {
+        var currentNid = currentNids[i].nid;
+        console.log('removing' + currentNid);
+        db2.transaction(tx => {
+          tx.executeSql(
+            'delete from nodes where nid = ?;',
+            [currentNid],
+            (_, { rows: { _array } }) => console.log(_array)
+          );
+        });
       }
     }
   }

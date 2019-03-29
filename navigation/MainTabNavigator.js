@@ -51,8 +51,7 @@ const SettingsStack = createStackNavigator({
   Login: LoginScreen,
   Logout: LogoutScreen,
   Help: HelpScreen,
-  About: AboutScreen,
-  Offline: OfflineScreen
+  About: AboutScreen
 });
 
 SettingsStack.navigationOptions = {
@@ -68,8 +67,23 @@ SettingsStack.navigationOptions = {
   }
 };
 
+const OfflineStack = createStackNavigator({
+  Offline: OfflineScreen
+});
+
+OfflineStack.navigationOptions = {
+  tabBarLabel: 'Offline',
+  tabBarIcon: ({ focused }) => (
+    <TabBarIcon
+      focused={focused}
+      name={Platform.OS === 'ios' ? 'ios-options' : 'md-options'}
+    />
+  )
+};
+
 export default createBottomTabNavigator({
   HomeStack,
   CreateContentStack,
   SettingsStack,
+  OfflineStack
 });
