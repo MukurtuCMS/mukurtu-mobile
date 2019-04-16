@@ -11,10 +11,11 @@ import {
   TouchableHighlight,
   Alert
 } from 'react-native';
-import { connect } from 'react-redux';
-import { addPlace } from '../actions/place';
-import { addUser } from '../actions/user';
-import { WebBrowser, SQLite } from 'expo';
+import {connect} from 'react-redux';
+import {addPlace} from '../actions/place';
+import {addUser} from '../actions/user';
+import {WebBrowser, SQLite} from 'expo';
+
 
 const db = SQLite.openDatabase('db.db');
 
@@ -22,6 +23,20 @@ class LogoutScreen extends React.Component {
 
   constructor(props) {
     super(props);
+    this.handleLoginClick = this.handleLoginClick.bind(this);
+    this.handleLogoutClick = this.handleLogoutClick.bind(this);
+    // We can't get to this screen unless we're logged in
+    // although it might be better to check before we set state, just in case.
+    this.state = {isLoggedIn: true};
+  }
+
+  handleLogoutClick(viewId) {
+    // We'll probably abstract the getToken method at some point, so adding an extra function layer here
+    this.getToken(viewId);
+  }
+
+  handleLoginClick() {
+    this.props.navigation.navigate('Login');
   }
 
   getToken(array) {
@@ -33,52 +48,55 @@ class LogoutScreen extends React.Component {
     let data = {
       method: 'POST',
       headers: {
-        'Accept':       'application/json',
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-CSRF-Token': token,
         'Cache-Control': 'no-cache',
         'Cookie': cookie
       }
     };
-    console.log(data);
     fetch('http://mukurtucms.kanopi.cloud/app/user/logout')
-    .then((response) => response.json())
-    .then((responseJson) => {
+        .then((response) => response.json())
+        .then((responseJson) => {
 
-        db.transaction(
-         tx => {
-           tx.executeSql('delete from auth;',
-           );
-         }
-       );
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+          db.transaction(
+              tx => {
+                tx.executeSql('delete from auth;',
+                );
+              }
+          );
+        })
+        .then(this.setState({isLoggedIn: false}))
+        .catch((error) => {
+          console.error(error);
+        });
   }
 
-  onClickListener = (viewId) => {
-    let _array = [];
-    db.transaction(tx => {
-      tx.executeSql(
-        `select * from auth limit 1;`,
-        '',
-        (_, { rows: { _array } }) => this.getToken(_array)
-      );
-    });
-
-  }
 
   render() {
 
+    const isLoggedIn = this.state.isLoggedIn;
+    if (isLoggedIn) {
+      return (
+          <View style={styles.container}>
+            <Text>You Are Logged in as {this.props.user.user.name}</Text>
+            <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
+                                onPress={() => this.handleLogoutClick('login')}>
+              <Text style={styles.loginText}>Log Out</Text>
+            </TouchableHighlight>
+          </View>
+      )
+    }
     return (
-      <View style={styles.container}>
-        <Text>username: {this.props.user.user.name}</Text>
-        <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.onClickListener('login')}>
-          <Text style={styles.loginText}>Logout</Text>
-        </TouchableHighlight>
-      </View>
-    );
+        <View style={styles.container}>
+          <Text>You Have Been Logged Out</Text>
+          <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
+                              onPress={() => this.handleLoginClick()}>
+            <Text style={styles.loginText}>Log In</Text>
+          </TouchableHighlight>
+        </View>
+    )
+
   }
 }
 
@@ -92,34 +110,34 @@ const styles = StyleSheet.create({
   inputContainer: {
     borderBottomColor: '#F5FCFF',
     backgroundColor: '#FFFFFF',
-    borderRadius:30,
+    borderRadius: 30,
     borderBottomWidth: 1,
-    width:250,
-    height:45,
-    marginBottom:20,
+    width: 250,
+    height: 45,
+    marginBottom: 20,
     flexDirection: 'row',
-    alignItems:'center'
+    alignItems: 'center'
   },
-  inputs:{
-    height:45,
-    marginLeft:16,
+  inputs: {
+    height: 45,
+    marginLeft: 16,
     borderBottomColor: '#FFFFFF',
-    flex:1,
+    flex: 1,
   },
-  inputIcon:{
-    width:30,
-    height:30,
-    marginLeft:15,
+  inputIcon: {
+    width: 30,
+    height: 30,
+    marginLeft: 15,
     justifyContent: 'center'
   },
   buttonContainer: {
-    height:45,
+    height: 45,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom:20,
-    width:250,
-    borderRadius:30,
+    marginBottom: 20,
+    width: 250,
+    borderRadius: 30,
   },
   loginButton: {
     backgroundColor: "#00b5ec",
