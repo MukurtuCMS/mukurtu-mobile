@@ -14,6 +14,7 @@ import { WebBrowser, SQLite } from 'expo';
 import axios from 'axios';
 import { FontAwesome } from '@expo/vector-icons';
 import { MonoText } from '../components/StyledText';
+import JSONTree from 'react-native-json-tree'
 
 const db = SQLite.openDatabase('db.db');
 
@@ -129,7 +130,7 @@ export default class HomeScreen extends React.Component {
             this.setState({webUrl: 'http://mukurtucms.kanopi.cloud/'});
           })
           .catch((error) => {
-            console.error(error);
+            // console.error(error);
           });
 
         fetch('http://mukurtucms.kanopi.cloud/app/synced-nodes/retrieve', data)
@@ -147,6 +148,15 @@ export default class HomeScreen extends React.Component {
           .catch((error) => {
             console.error(error);
           });
+
+        fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/dictionary_word', data)
+            .then((response) => response.json())
+            .then((responseJson) => {
+              this.setState({json: responseJson});
+            })
+            .catch((error) => {
+              // console.error(error);
+            });
       })
       .catch((error) => {
         console.error(error);
@@ -167,12 +177,10 @@ export default class HomeScreen extends React.Component {
     fetch('http://mukurtucms.kanopi.cloud/app/node/' + nid + '.json', data)
       .then((response) => response.json())
       .then((node) => {
-        console.log(node.title)
         db.transaction(tx => {
           tx.executeSql(
             'delete from nodes where nid = ?;',
-            [node.nid],
-            (_, { rows: { _array } }) => console.log(_array)
+            [node.nid]
           );
         });
 
@@ -187,7 +195,7 @@ export default class HomeScreen extends React.Component {
        );
       })
       .catch((error) => {
-        console.error(error);
+        // console.error(error);
       });
   }
 
@@ -222,8 +230,6 @@ export default class HomeScreen extends React.Component {
 
   removeNids(currentNids, newNids) {
     const db2 = SQLite.openDatabase('db.db');
-    console.log(currentNids);
-    console.log(newNids);
     for (var i = 0; i < currentNids.length; i++) {
       var currentlyStarred = false;
       for (const [nid, timestamp] of Object.entries(newNids)) {
@@ -233,7 +239,6 @@ export default class HomeScreen extends React.Component {
       }
       if (!(currentlyStarred)) {
         var currentNid = currentNids[i].nid;
-        console.log('removing' + currentNid);
         db2.transaction(tx => {
           tx.executeSql(
             'delete from nodes where nid = ?;',
