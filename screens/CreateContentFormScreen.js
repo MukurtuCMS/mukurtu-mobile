@@ -27,9 +27,9 @@ import axios from "axios";
 const db = SQLite.openDatabase('db.db');
 
 class CreateContentFormScreen extends React.Component {
-  static navigationOptions = {
-    title: 'Create Article',
-  };
+  static navigationOptions = ({ navigation }) => ({
+    title: 'Create ' + `${navigation.getParam('contentTypeLabel')}`,
+  });
 
   constructor(){
     super();
@@ -52,6 +52,8 @@ class CreateContentFormScreen extends React.Component {
   }
 
   getType(array) {
+    const contentType = this.props.navigation.getParam('contentType');
+
     if (array === undefined || array.length < 1) {
       this.alertNotLoggedIn();
       return false;
@@ -68,7 +70,7 @@ class CreateContentFormScreen extends React.Component {
         'Cookie': cookie
       }
     };
-    fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/dictionary_word', data)
+    fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + contentType, data)
         .then((response) => response.json())
         .then((responseJson) => {
           this.setState({form: responseJson});
@@ -80,9 +82,7 @@ class CreateContentFormScreen extends React.Component {
 
   onPress = async () => {
     var value = this.refs.form.getValue();
-    console.warn(value.File);
     // console.log(value);
-    console.log(value);
     if (value) { // if validation fails, value will be null
       let fileObject = {};
       try {
@@ -92,7 +92,6 @@ class CreateContentFormScreen extends React.Component {
         const content = await FileSystem.readAsStringAsync(value.File, {
           encoding: FileSystem.EncodingTypes.Base64,
         });
-        console.log(content);
         fileObject.blob = content;
         // this.setState({ data: content });
       } catch (e) {
@@ -122,7 +121,6 @@ class CreateContentFormScreen extends React.Component {
     let nodeForm = [];
     const formObject = Object.entries(this.state.form).length;
     if (formObject > 0) {
-      console.log('yes');
       nodeForm = <FormComponent form={this.state.form} />
     }
 

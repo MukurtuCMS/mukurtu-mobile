@@ -42,7 +42,7 @@ export default class FormComponent extends React.Component {
                     if (fieldArray['#type'] === undefined) {
                         fieldArray = field['und'][0];
 
-                        if (fieldArray['#type'] === undefined) {
+                        if (fieldArray && fieldArray['#type'] === undefined) {
                             if (fieldArray['nid'] !== undefined) {
                                 fieldArray = field['und'][0]['nid'];
                             }

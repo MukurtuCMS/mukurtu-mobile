@@ -14,17 +14,21 @@ import SettingsList from 'react-native-settings-list';
 import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
+import axios from "axios";
+import { WebBrowser, SQLite } from 'expo';
+
+const db = SQLite.openDatabase('db.db');
 
 class CreateContentScreen extends React.Component {
   static navigationOptions = {
-    title: 'Create Content',
+    title: 'Create Content'
   };
 
   constructor(){
     super();
     this.onValueChange = this.onValueChange.bind(this);
     this.componentActive = this.componentActive.bind(this);
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: ''};
+    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: ''}
   }
 
   componentDidMount(){
@@ -32,6 +36,57 @@ class CreateContentScreen extends React.Component {
   }
 
   componentActive(){
+    this.update();
+  }
+
+  update() {
+    db.transaction(tx => {
+      tx.executeSql(
+          'select * from auth limit 1;',
+          '',
+          (_, { rows: { _array } }) => this.getToken(_array)
+      );
+    });
+  }
+
+  getToken(array) {
+    if (array === undefined || array.length < 1) {
+      this.alertNotLoggedIn();
+      return false;
+    }
+    const token = array[0].token;
+    const cookie = array[0].cookie;
+
+    let data = {
+      method: 'POST',
+      headers: {
+        'Accept':       'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': token,
+        'Cookie': cookie
+      }
+    };
+    axios.post('http://mukurtucms.kanopi.cloud/app/system/connect', {}, {headers: data.headers})
+        .then((responseJson) => {
+          if (responseJson.data.user.uid === 0) {
+            this.alertNotLoggedIn();
+            return false;
+          }
+          data.method = 'GET';
+
+          fetch('http://mukurtucms.kanopi.cloud/app/creatable-types/retrieve', data)
+              .then((response) => response.json())
+              .then((responseJson) => {
+                this.setState({contentTypes: responseJson});
+              })
+              .catch((error) => {
+                // console.error(error);
+              });
+        })
+        .catch((error) => {
+          console.error(error);
+          this.alertNotLoggedIn();
+        });
   }
 
   render() {
@@ -39,17 +94,24 @@ class CreateContentScreen extends React.Component {
     var bgColor = '#DCE3F4';
 
     let list = [];
-    for (var i in ContentTypes) {
-      list.push(
-        <SettingsList.Item
-          key={i}
-          title={ContentTypes[i]['label']}
-          titleInfoStyle={styles.titleInfoStyle}
-          onPress={() =>
-            this.props.navigation.navigate('CreateContentForm')
-          }
-        />
-      )
+    const contentTypes = this.state.contentTypes;
+    // check that content types is not empty
+    if (!(Object.entries(contentTypes).length === 0) && contentTypes.constructor === Object) {
+      for (const [machineName, TypeObject] of Object.entries(this.state.contentTypes)) {
+        list.push(
+            <SettingsList.Item
+                key={machineName}
+                title={this.state.contentTypes[machineName].label}
+                titleInfoStyle={styles.titleInfoStyle}
+                onPress={() =>
+                    this.props.navigation.navigate('CreateContentForm', {
+                      contentType: machineName,
+                      contentTypeLabel: TypeObject.label
+                    })
+                }
+            />
+        )
+      }
     }
     return (
       <View style={{backgroundColor:'#EFEFF4',flex:1}}>
