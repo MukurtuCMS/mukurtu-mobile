@@ -14,9 +14,14 @@ import {
 import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
-import { SQLite } from 'expo';
+import {SQLite, WebBrowser} from 'expo';
+
+
 
 const db = SQLite.openDatabase('db.db');
+
+// We'll be replacing this at some point with a dynamic variable
+const siteUrl = 'http://mukurtucms.kanopi.cloud';
 
 class LoginScreen extends React.Component {
 
@@ -25,7 +30,7 @@ class LoginScreen extends React.Component {
     this.state = {
       name: false,
       password: false,
-      url: 'http://mukurtucms.kanopi.cloud',
+      url: siteUrl,
       error: false,
       places: 'b',
     }
@@ -51,14 +56,57 @@ class LoginScreen extends React.Component {
           })
         }
       });*/
-    var name = this.state.name.toLowerCase().trim();
-    var pass = this.state.password.toLowerCase().trim();
-    var url = this.state.url.toLowerCase().trim();
+    if(this.state.name !== false) {
+      var name = this.state.name.toLowerCase().trim();
+    }
+    if(this.state.password !== false) {
+      var pass = this.state.password.toLowerCase().trim();
+    }
+    if(this.state.url !== false) {
+      var url = this.state.url.toLowerCase().trim();
+    }
 
-    fetch('http://mukurtucms.kanopi.cloud/services/session/token')
+    fetch(siteUrl + '/services/session/token')
       .then((response) => {
         let Token = response._bodyText;
-        // console.log('Cookie: ' + this.props.places);
+
+
+        // Check to see if we're logged in already.
+        fetch(siteUrl, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept':       'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': Token,
+            'Cookie': this.props.places
+          }
+        })
+            .then(function(response) {
+              // When the page is loaded convert it to text
+              return response.text()
+            })
+            .then(function(html) {
+
+              // Might be better to use a dom parser
+              if(html.includes(' logged-in')) {
+                // If logged in, the app simply switches to the mobile browser tab, user will be on whatever page they were on last.
+                // siteUrl is temporary
+                let result = WebBrowser.openBrowserAsync(siteUrl);
+
+              } else {
+                // If not logged in, the app hits the mobile-browser-login endpoint, no params passed.
+                // The endpoint provides a link w/token which functions very similarly to the one-time-login link
+                // except it doesn't do a redirect to the password reset page when the user logs in
+                console.log('logged out');
+              }
+
+
+            })
+            .catch(function(err) {
+              console.log('Failed to fetch page: ', err);
+            });
+
 
         let data = {
           method: 'POST',
@@ -73,8 +121,10 @@ class LoginScreen extends React.Component {
             'Cookie': this.props.places
           }
         };
+
         fetch('http://mukurtucms.kanopi.cloud/app/user/login.json', data)
           .then((response) => response.json())
+            .then(console.log(response.json()))
           .then((responseJson) => {
            //  db.transaction(
            //   tx => {
@@ -91,16 +141,13 @@ class LoginScreen extends React.Component {
              tx => {
                tx.executeSql('insert into auth (token, cookie) values (?, ?)',
                  [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
-                 (success) => console.log(success),
+                 (success) => {
+
+
+                 },
+
                  (success, error) => console.log(' ')
                );
-               console.log(responseJson);
-               // tx.executeSql(
-               //   `select * from auth;`,
-               //   '',
-               //   (_, { rows: { _array } }) => console.log(_array),
-               //   (tx, error) => console.log(error)
-               // );
              }
            );
 
@@ -109,6 +156,7 @@ class LoginScreen extends React.Component {
             this.props.navigation.navigate('Settings')
 
           })
+
           .catch((error) => {
             // console.error(error);
           });
@@ -120,10 +168,13 @@ class LoginScreen extends React.Component {
 
   render() {
 
+
+
     let showError = [];
     if (this.state.error.length > 0) {
       showError = <Text>{this.state.error}</Text>
     }
+
     return (
       <View style={styles.container}>
         <View style={styles.inputContainer}>
