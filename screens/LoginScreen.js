@@ -21,7 +21,7 @@ import {SQLite, WebBrowser} from 'expo';
 const db = SQLite.openDatabase('db.db');
 
 // We'll be replacing this at some point with a dynamic variable
-const siteUrl = 'http://mukurtucms.kanopi.cloud';
+const siteUrl = 'http://mukurtu.lndo.site:8080';
 
 class LoginScreen extends React.Component {
 
@@ -122,7 +122,7 @@ class LoginScreen extends React.Component {
           }
         };
 
-        fetch('http://mukurtucms.kanopi.cloud/app/user/login.json', data)
+        fetch(siteUrl + '/app/user/login.json', data)
           .then((response) => response.json())
             .then(console.log(response.json()))
           .then((responseJson) => {

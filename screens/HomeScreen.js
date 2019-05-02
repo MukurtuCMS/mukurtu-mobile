@@ -8,14 +8,17 @@ import {
   TouchableOpacity,
   View,
   Alert,
-  Button
+  Button,
+  Linking
 } from 'react-native';
-import { WebBrowser, SQLite } from 'expo';
+import {WebBrowser, SQLite} from 'expo';
 import axios from 'axios';
-import { FontAwesome } from '@expo/vector-icons';
-import { MonoText } from '../components/StyledText';
+import {FontAwesome} from '@expo/vector-icons';
+import {MonoText} from '../components/StyledText';
 
 const db = SQLite.openDatabase('db.db');
+
+const siteUrl = 'http://mukurtu.lndo.site:8080';
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
@@ -23,10 +26,15 @@ export default class HomeScreen extends React.Component {
     this.state = {
       contentList: [],
       result: null,
-      webUrl: '',
+      webUrl: siteUrl,
       syncUpdated: [],
-      removeNodes: []
+      removeNodes: [],
+      redirectUrl: null,
+      loggedIn: false,
+      token: null,
+      cookie: null
     }
+
   }
 
   static navigationOptions = {
@@ -34,6 +42,7 @@ export default class HomeScreen extends React.Component {
   };
 
   componentDidMount() {
+    Linking.addEventListener('url', this._handleURL);
     this.props.navigation.addListener('willFocus', this.componentActive);
   }
 
@@ -47,7 +56,7 @@ export default class HomeScreen extends React.Component {
   createTokenTable() {
     db.transaction(tx => {
       tx.executeSql(
-        'create table if not exists auth (id integer primary key, token text, cookie text);'
+          'create table if not exists auth (id integer primary key, token text, cookie text);'
       );
     });
   }
@@ -55,7 +64,7 @@ export default class HomeScreen extends React.Component {
   createSyncTable() {
     db.transaction(tx => {
       tx.executeSql(
-        'create table if not exists sync (id integer primary key, last integer);'
+          'create table if not exists sync (id integer primary key, last integer);'
       );
     });
   }
@@ -63,7 +72,7 @@ export default class HomeScreen extends React.Component {
   createNodesTable() {
     db.transaction(tx => {
       tx.executeSql(
-        'create table if not exists nodes (nid integer primary key, title text, entity text);'
+          'create table if not exists nodes (nid integer primary key, title text, entity text);'
       );
     });
   }
@@ -71,22 +80,25 @@ export default class HomeScreen extends React.Component {
   update() {
     db.transaction(tx => {
       tx.executeSql(
-        'select * from auth limit 1;',
-        '',
-        (_, { rows: { _array } }) => this.getToken(_array)
+          'select * from auth limit 1;',
+          '',
+          (_, {rows: {_array}}) => this.getToken(_array)
       );
     });
   }
 
   alertNotLoggedIn() {
     Alert.alert(
-      'Connection Issue',
-      'We are having trouble reaching the servers.',
-      [
-        {text: 'Continue Offline', onPress: () => this.props.navigation.navigate('Offline')},
-        {text: 'Log In', onPress: () => this.props.navigation.navigate('Login')},
-      ],
-      { cancelable: false }
+        'Connection Issue',
+        'We are having trouble reaching the servers.',
+        [
+          {
+            text: 'Continue Offline',
+            style: 'cancel',
+          },
+          {text: 'Log In', onPress: () => this.props.navigation.navigate('Login')},
+        ],
+        {cancelable: true}
     )
   }
 
@@ -95,135 +107,207 @@ export default class HomeScreen extends React.Component {
       this.alertNotLoggedIn();
       return false;
     }
+
     const token = array[0].token;
     const cookie = array[0].cookie;
+
+    // Save cookie and token so we can use them to check login status
+    this.setState({
+      cookie: cookie,
+      token: token
+    });
+
 
     // get last updated time
     db.transaction(tx => {
       tx.executeSql(
-        'select * from sync limit 1;',
-        '',
-        (_, { rows: { _array } }) => this.setState({ syncUpdated: _array })
+          'select * from sync limit 1;',
+          '',
+          (_, {rows: {_array}}) => this.setState({syncUpdated: _array})
       );
     });
     let data = {
       method: 'POST',
       headers: {
-        'Accept':       'application/json',
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-CSRF-Token': token,
         'Cookie': cookie
       }
     };
-    axios.post('http://mukurtucms.kanopi.cloud/app/system/connect', {}, {headers: data.headers})
-      .then((responseJson) => {
-        if (responseJson.data.user.uid === 0) {
-          this.alertNotLoggedIn();
-          return false;
-        }
-        data.method = 'GET';
-        fetch('http://mukurtucms.kanopi.cloud/app/one-time-login/retrieve', data)
-          .then((response) => response.json())
-          .then((responseJson) => {
-            // this.setState({webUrl: responseJson.login_link});
-            this.setState({webUrl: 'http://mukurtucms.kanopi.cloud/'});
-          })
-          .catch((error) => {
-            console.error(error);
-          });
 
-        fetch('http://mukurtucms.kanopi.cloud/app/synced-nodes/retrieve', data)
-          .then((response) => response.json())
-          .then((responseJson) => {
-            this.buildRemovalNids(responseJson.digital_heritage);
-            for (const [nid, timestamp] of Object.entries(responseJson.digital_heritage)) {
-              // @todo don't update all nodes but starring a node does not save
-              // if (timestamp > this.state.syncUpdated) {
-                this.saveNode(nid, data);
-                this.updateSync();
-              // }
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      })
-      .catch((error) => {
-        console.error(error);
-        this.alertNotLoggedIn();
-      });
+
+    axios.post(siteUrl + '/app/system/connect', {}, {headers: data.headers})
+        .then((responseJson) => {
+          if (responseJson.data.user.uid === 0) {
+            this.setState({loggedIn: false});
+
+            this.alertNotLoggedIn();
+            return false;
+          }
+          this.setState({loggedIn: true});
+          data.method = 'GET';
+
+
+          // fetch(siteUrl + '/app/synced-nodes/retrieve', data)
+          //     .then((response) => response.json())
+          //     .then((responseJson) => {
+          //       console.log(responseJson.digital_heritage);
+          //       if (typeof responseJson.digital_heritage === 'object') {
+          //         this.buildRemovalNids(responseJson.digital_heritage);
+          //         for (const [nid, timestamp] of Object.entries(responseJson.digital_heritage)) {
+          //           // @todo don't update all nodes but starring a node does not save
+          //           // if (timestamp > this.state.syncUpdated) {
+          //           this.saveNode(nid, data);
+          //           this.updateSync();
+          //           // }
+          //         }
+          //       }
+          //     })
+          //     .catch((error) => {
+          //       console.error(error);
+          //     });
+        })
+        .catch((error) => {
+          console.error(error);
+          this.alertNotLoggedIn();
+        });
   }
 
-  _handlePressButtonAsync = async () => {
-    if (this.state.webUrl.length > 0) {
-      let result = await WebBrowser.openBrowserAsync(this.state.webUrl);
-      this.setState({ result });
+  _handleURL(event) {
+    console.log('zzzz');
+  //   console.log(event.url);
+  }
+
+  /**
+   * Handler for button that switches to browser
+   * @param event
+   * @returns {Promise<void>}
+   * @private
+   */
+  _handlePressButtonAsync = async (url) => {
+
+    if (this.state.loggedIn === true) {
+
+      // If we're logged in to app, when browser tab is opened,
+      // first we check the homepage for a body class to see if the user is already logged in
+      fetch(siteUrl, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': this.state.token,
+        }
+      })
+          .then((response) => {
+            // When the page is loaded convert it to text
+            return response.text()
+          })
+          .then((html) => {
+            // Might be better to use a dom parser
+            if (html.includes(' logged-in')) {
+              // Switch to last browser tab, if we have it
+              let result = WebBrowser.openBrowserAsync();
+            } else {
+              // // If we're not logged in in the browser, get one time login link and then use it
+              let data = {
+                method: 'GET',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  'X-CSRF-Token': this.state.token,
+                  'Cookie': this.state.cookie
+                }
+              };
+
+              fetch(siteUrl + '/app/one-time-login/retrieve', data)
+                  .then((response) => response.text())
+                  .then((responseText) => {
+
+                    // Get just the URL from the response text
+                    responseText = responseText.replace('["', '');
+                    responseText = responseText.replace('"]', '');
+
+                    let result = WebBrowser.openBrowserAsync(responseText);
+                  })
+                  .catch((error) => {
+                    console.error(error);
+                  });
+
+
+            }
+
+          })
+          .catch(function (err) {
+            console.log('Failed to fetch page: ', err);
+          });
+
     } else {
-      this.alertNotLoggedIn();
+      // If we're not logged into app, just go to homepage
+      let result = WebBrowser.openBrowserAsync(siteUrl);
     }
   };
 
   saveNode(nid, data) {
-    fetch('http://mukurtucms.kanopi.cloud/app/node/' + nid + '.json', data)
-      .then((response) => response.json())
-      .then((node) => {
-        console.log(node.title)
-        db.transaction(tx => {
-          tx.executeSql(
-            'delete from nodes where nid = ?;',
-            [node.nid],
-            (_, { rows: { _array } }) => console.log(_array)
-          );
-        });
+    fetch(siteUrl + '/app/node/' + nid + '.json', data)
+        .then((response) => response.json())
+        .then((node) => {
+          console.log(node.title)
+          db.transaction(tx => {
+            tx.executeSql(
+                'delete from nodes where nid = ?;',
+                [node.nid],
+                (_, {rows: {_array}}) => console.log(_array)
+            );
+          });
 
-        db.transaction(
-         tx => {
-           tx.executeSql('insert into nodes (nid, title, entity) values (?, ?, ?)',
-             [node.nid, node.title, node],
-             (success) => success,
-             (success, error) => console.log(' ')
-           );
-         }
-       );
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+          db.transaction(
+              tx => {
+                tx.executeSql('insert into nodes (nid, title, entity) values (?, ?, ?)',
+                    [node.nid, node.title, node],
+                    (success) => success,
+                    (success, error) => console.log(' ')
+                );
+              }
+          );
+        })
+        .catch((error) => {
+          console.error(error);
+        });
   }
 
   updateSync() {
     const time = new Date().getTime()
     db.transaction(
-       tx => {
-         tx.executeSql('delete from sync;',
-         );
-       }
-     );
+        tx => {
+          tx.executeSql('delete from sync;',
+          );
+        }
+    );
     db.transaction(
-     tx => {
-       tx.executeSql('insert into sync (id, last) values (?, ?)',
-         [1, time],
-         (success) => success,
-         (success, error) => console.log(' ')
-       );
-     }
-   );
+        tx => {
+          tx.executeSql('insert into sync (id, last) values (?, ?)',
+              [1, time],
+              (success) => success,
+              (success, error) => console.log(' ')
+          );
+        }
+    );
   }
 
   buildRemovalNids(nids) {
     db.transaction(tx => {
       tx.executeSql(
-        'select nid from nodes;',
-        '',
-        (_, { rows: { _array } }) => this.removeNids(_array, nids)
+          'select nid from nodes;',
+          '',
+          (_, {rows: {_array}}) => this.removeNids(_array, nids)
       );
     });
   }
 
   removeNids(currentNids, newNids) {
     const db2 = SQLite.openDatabase('db.db');
-    console.log(currentNids);
-    console.log(newNids);
     for (var i = 0; i < currentNids.length; i++) {
       var currentlyStarred = false;
       for (const [nid, timestamp] of Object.entries(newNids)) {
@@ -236,9 +320,9 @@ export default class HomeScreen extends React.Component {
         console.log('removing' + currentNid);
         db2.transaction(tx => {
           tx.executeSql(
-            'delete from nodes where nid = ?;',
-            [currentNid],
-            (_, { rows: { _array } }) => console.log(_array)
+              'delete from nodes where nid = ?;',
+              [currentNid],
+              (_, {rows: {_array}}) => console.log(_array)
           );
         });
       }
@@ -260,54 +344,54 @@ export default class HomeScreen extends React.Component {
     let i = 0;
 
     return (
-      <View style={styles.container}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.header}>
-          <Button
-              style={styles.headerButton}
-              title="Browse Digital Heritage"
-              onPress={this._handlePressButtonAsync}
-            />
-          </View>
+        <View style={styles.container}>
+          <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <View style={styles.header}>
+              <Button
+                  style={styles.headerButton}
+                  title="Browse Digital Heritage"
+                  onPress={this._handlePressButtonAsync}
+              />
+            </View>
 
-          <View style={styles.getStartedContainer}>
+            <View style={styles.getStartedContainer}>
 
-            {
-              this.state.contentList.map((l) => (
-                <View key={i++} style={styles.listWrapper}>
-                  <Text style={styles.listTextHeader}>{l.title}</Text>
-                  <FontAwesome name="star" size={25} style={styles.star} onPress={() => this.saveNode(l.nid)} />
-                  <Text style={styles.listTextBody}>{(l.body.und) ? l.body.und[0].value : ''}</Text>
-                </View>
-              ))
-            }
-          </View>
+              {
+                this.state.contentList.map((l) => (
+                    <View key={i++} style={styles.listWrapper}>
+                      <Text style={styles.listTextHeader}>{l.title}</Text>
+                      <FontAwesome name="star" size={25} style={styles.star} onPress={() => this.saveNode(l.nid)}/>
+                      <Text style={styles.listTextBody}>{(l.body.und) ? l.body.und[0].value : ''}</Text>
+                    </View>
+                ))
+              }
+            </View>
 
-        </ScrollView>
+          </ScrollView>
 
-      </View>
+        </View>
     );
   }
 
   _maybeRenderDevelopmentModeWarning() {
     if (__DEV__) {
       const learnMoreButton = (
-        <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
-          Learn more
-        </Text>
+          <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
+            Learn more
+          </Text>
       );
 
       return (
-        <Text style={styles.developmentModeText}>
-          Development mode is enabled, your app will be slower but you can use useful development
-          tools. {learnMoreButton}
-        </Text>
+          <Text style={styles.developmentModeText}>
+            Development mode is enabled, your app will be slower but you can use useful development
+            tools. {learnMoreButton}
+          </Text>
       );
     } else {
       return (
-        <Text style={styles.developmentModeText}>
-          You are not in development mode, your app will run at full speed.
-        </Text>
+          <Text style={styles.developmentModeText}>
+            You are not in development mode, your app will run at full speed.
+          </Text>
       );
     }
   }
@@ -318,7 +402,7 @@ export default class HomeScreen extends React.Component {
 
   _handleHelpPress = () => {
     WebBrowser.openBrowserAsync(
-      'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
+        'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
     );
   };
 }
@@ -408,7 +492,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: 'black',
-        shadowOffset: { height: -3 },
+        shadowOffset: {height: -3},
         shadowOpacity: 0.1,
         shadowRadius: 3,
       },
