@@ -19,7 +19,6 @@ import {MonoText} from '../components/StyledText';
 const db = SQLite.openDatabase('db.db');
 
 
-
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
@@ -177,7 +176,6 @@ export default class HomeScreen extends React.Component {
   }
 
 
-
   /**
    * Handler for button that switches to browser
    * @param event
@@ -213,7 +211,6 @@ export default class HomeScreen extends React.Component {
               responseText = responseText.replace('"]', '');
 
 
-
               let result = WebBrowser.openBrowserAsync(responseText);
             })
             .catch((error) => {
@@ -224,11 +221,11 @@ export default class HomeScreen extends React.Component {
     } else {
       // If user is not logged into app but is logged into browser, hit logout page with redirect to homepage
       // That way login status stays in sync
-      if(isLoggedInBrowser) {
+      if (isLoggedInBrowser) {
         let result = WebBrowser.openBrowserAsync(url);
       } else {
         // If user not logged into app, and we're not logged into the browser, go to the homepage
-        let result = WebBrowser.openBrowserAsync(url  + '/user/logout?destination=' + url);
+        let result = WebBrowser.openBrowserAsync(url + '/user/logout?destination=' + url);
       }
     }
   };
@@ -346,7 +343,7 @@ export default class HomeScreen extends React.Component {
   }
 
   render() {
-    const { navigation, screenProps } = this.props;
+    const {navigation, screenProps} = this.props;
     let siteUrl = this.props.screenProps.siteUrl;
 
     const list = [
