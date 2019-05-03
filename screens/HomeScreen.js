@@ -18,7 +18,7 @@ import {MonoText} from '../components/StyledText';
 
 const db = SQLite.openDatabase('db.db');
 
-const siteUrl = 'http://mukurtu.lndo.site:8080';
+const siteUrl = 'http://mukurtu.lndo.site:8000/';
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
@@ -42,7 +42,6 @@ export default class HomeScreen extends React.Component {
   };
 
   componentDidMount() {
-    Linking.addEventListener('url', this._handleURL);
     this.props.navigation.addListener('willFocus', this.componentActive);
   }
 
@@ -174,10 +173,7 @@ export default class HomeScreen extends React.Component {
         });
   }
 
-  _handleURL(event) {
-    console.log('zzzz');
-  //   console.log(event.url);
-  }
+
 
   /**
    * Handler for button that switches to browser
@@ -187,67 +183,80 @@ export default class HomeScreen extends React.Component {
    */
   _handlePressButtonAsync = async (url) => {
 
+    let isLoggedInBrowser = this._checkBrowserLoginStatus();
     if (this.state.loggedIn === true) {
 
-      // If we're logged in to app, when browser tab is opened,
-      // first we check the homepage for a body class to see if the user is already logged in
-      fetch(siteUrl, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': this.state.token,
-        }
-      })
-          .then((response) => {
-            // When the page is loaded convert it to text
-            return response.text()
-          })
-          .then((html) => {
-            // Might be better to use a dom parser
-            if (html.includes(' logged-in')) {
-              // Switch to last browser tab, if we have it
-              let result = WebBrowser.openBrowserAsync();
-            } else {
-              // // If we're not logged in in the browser, get one time login link and then use it
-              let data = {
-                method: 'GET',
-                headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json',
-                  'X-CSRF-Token': this.state.token,
-                  'Cookie': this.state.cookie
-                }
-              };
+      if (isLoggedInBrowser) {
+        let result = WebBrowser.openBrowserAsync();
+      } else {
+        // // If we're not logged in in the browser, get one time login link and then use it
+        let data = {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': this.state.token,
+            'Cookie': this.state.cookie
+          }
+        };
 
-              fetch(siteUrl + '/app/one-time-login/retrieve', data)
-                  .then((response) => response.text())
-                  .then((responseText) => {
+        fetch(siteUrl + '/app/one-time-login/retrieve', data)
+            .then((response) => response.text())
+            .then((responseText) => {
 
-                    // Get just the URL from the response text
-                    responseText = responseText.replace('["', '');
-                    responseText = responseText.replace('"]', '');
+              // Get just the URL from the response text
+              responseText = responseText.replace('["', '');
+              responseText = responseText.replace('"]', '');
 
-                    let result = WebBrowser.openBrowserAsync(responseText);
-                  })
-                  .catch((error) => {
-                    console.error(error);
-                  });
-
-
-            }
-
-          })
-          .catch(function (err) {
-            console.log('Failed to fetch page: ', err);
-          });
+              let result = WebBrowser.openBrowserAsync(responseText);
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+      }
 
     } else {
-      // If we're not logged into app, just go to homepage
-      let result = WebBrowser.openBrowserAsync(siteUrl);
+      // If user is not logged into app but is logged into browser, hit logout page with redirect to homepage
+      // That way login status stays in sync
+      if(isLoggedInBrowser) {
+        let result = WebBrowser.openBrowserAsync(siteUrl + '/user/logout?destination=' + siteUrl);
+      } else {
+        // If user not logged into app, and we're not logged into the browser, go to the homepage
+        let result = WebBrowser.openBrowserAsync(siteUrl);
+      }
     }
   };
+
+  /**
+   * Checks browser login status by fetching the homepage HTML and checking for logged-in class
+   * @returns {boolean}
+   * @private
+   */
+  _checkBrowserLoginStatus() {
+    let loggedIn = false;
+    fetch(siteUrl, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': this.state.token,
+      }
+    })
+        .then((response) => {
+          // When the page is loaded convert it to text
+          return response.text()
+        })
+        .then((html) => {
+          // Might be better to use a dom parser
+          loggedIn = html.includes(' logged-in');
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+
+    return loggedIn;
+  }
 
   saveNode(nid, data) {
     fetch(siteUrl + '/app/node/' + nid + '.json', data)

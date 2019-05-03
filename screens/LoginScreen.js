@@ -21,7 +21,7 @@ import {SQLite, WebBrowser} from 'expo';
 const db = SQLite.openDatabase('db.db');
 
 // We'll be replacing this at some point with a dynamic variable
-const siteUrl = 'http://mukurtu.lndo.site:8080';
+const siteUrl = 'http://mukurtu.lndo.site:8000/';
 
 class LoginScreen extends React.Component {
 
@@ -69,44 +69,6 @@ class LoginScreen extends React.Component {
     fetch(siteUrl + '/services/session/token')
       .then((response) => {
         let Token = response._bodyText;
-
-
-        // Check to see if we're logged in already.
-        fetch(siteUrl, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept':       'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': Token,
-            'Cookie': this.props.places
-          }
-        })
-            .then(function(response) {
-              // When the page is loaded convert it to text
-              return response.text()
-            })
-            .then(function(html) {
-
-              // Might be better to use a dom parser
-              if(html.includes(' logged-in')) {
-                // If logged in, the app simply switches to the mobile browser tab, user will be on whatever page they were on last.
-                // siteUrl is temporary
-                let result = WebBrowser.openBrowserAsync(siteUrl);
-
-              } else {
-                // If not logged in, the app hits the mobile-browser-login endpoint, no params passed.
-                // The endpoint provides a link w/token which functions very similarly to the one-time-login link
-                // except it doesn't do a redirect to the password reset page when the user logs in
-                console.log('logged out');
-              }
-
-
-            })
-            .catch(function(err) {
-              console.log('Failed to fetch page: ', err);
-            });
-
 
         let data = {
           method: 'POST',
