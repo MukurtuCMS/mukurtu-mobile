@@ -18,7 +18,7 @@ import {MonoText} from '../components/StyledText';
 
 const db = SQLite.openDatabase('db.db');
 
-const siteUrl = 'http://mukurtu.lndo.site:8000/';
+
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
@@ -26,7 +26,6 @@ export default class HomeScreen extends React.Component {
     this.state = {
       contentList: [],
       result: null,
-      webUrl: siteUrl,
       syncUpdated: [],
       removeNodes: [],
       redirectUrl: null,
@@ -86,7 +85,11 @@ export default class HomeScreen extends React.Component {
     });
   }
 
+
   alertNotLoggedIn() {
+    // This is done inline in some places,
+    // But setting it here as well as a catch to ensure state is updated.
+    this.setState({loggedIn: false});
     Alert.alert(
         'Connection Issue',
         'We are having trouble reaching the servers.',
@@ -103,6 +106,7 @@ export default class HomeScreen extends React.Component {
 
   getToken(array) {
     if (array === undefined || array.length < 1) {
+
       this.alertNotLoggedIn();
       return false;
     }
@@ -136,11 +140,9 @@ export default class HomeScreen extends React.Component {
     };
 
 
-    axios.post(siteUrl + '/app/system/connect', {}, {headers: data.headers})
+    axios.post(this.props.screenProps.siteUrl + '/app/system/connect', {}, {headers: data.headers})
         .then((responseJson) => {
           if (responseJson.data.user.uid === 0) {
-            this.setState({loggedIn: false});
-
             this.alertNotLoggedIn();
             return false;
           }
@@ -169,6 +171,7 @@ export default class HomeScreen extends React.Component {
         })
         .catch((error) => {
           console.error(error);
+          this.setState({loggedIn: false})
           this.alertNotLoggedIn();
         });
   }
@@ -183,11 +186,12 @@ export default class HomeScreen extends React.Component {
    */
   _handlePressButtonAsync = async (url) => {
 
-    let isLoggedInBrowser = this._checkBrowserLoginStatus();
+    let isLoggedInBrowser = this._checkBrowserLoginStatus(url);
+
     if (this.state.loggedIn === true) {
 
       if (isLoggedInBrowser) {
-        let result = WebBrowser.openBrowserAsync();
+        let result = WebBrowser.openBrowserAsync(url);
       } else {
         // // If we're not logged in in the browser, get one time login link and then use it
         let data = {
@@ -200,13 +204,15 @@ export default class HomeScreen extends React.Component {
           }
         };
 
-        fetch(siteUrl + '/app/one-time-login/retrieve', data)
+        fetch(url + '/app/one-time-login/retrieve', data)
             .then((response) => response.text())
             .then((responseText) => {
 
               // Get just the URL from the response text
               responseText = responseText.replace('["', '');
               responseText = responseText.replace('"]', '');
+
+
 
               let result = WebBrowser.openBrowserAsync(responseText);
             })
@@ -219,10 +225,10 @@ export default class HomeScreen extends React.Component {
       // If user is not logged into app but is logged into browser, hit logout page with redirect to homepage
       // That way login status stays in sync
       if(isLoggedInBrowser) {
-        let result = WebBrowser.openBrowserAsync(siteUrl + '/user/logout?destination=' + siteUrl);
+        let result = WebBrowser.openBrowserAsync(url);
       } else {
         // If user not logged into app, and we're not logged into the browser, go to the homepage
-        let result = WebBrowser.openBrowserAsync(siteUrl);
+        let result = WebBrowser.openBrowserAsync(url  + '/user/logout?destination=' + url);
       }
     }
   };
@@ -232,9 +238,10 @@ export default class HomeScreen extends React.Component {
    * @returns {boolean}
    * @private
    */
-  _checkBrowserLoginStatus() {
+  _checkBrowserLoginStatus(url) {
     let loggedIn = false;
-    fetch(siteUrl, {
+
+    fetch(url, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -259,7 +266,7 @@ export default class HomeScreen extends React.Component {
   }
 
   saveNode(nid, data) {
-    fetch(siteUrl + '/app/node/' + nid + '.json', data)
+    fetch(this.props.screenProps.siteUrl + '/app/node/' + nid + '.json', data)
         .then((response) => response.json())
         .then((node) => {
           console.log(node.title)
@@ -339,6 +346,9 @@ export default class HomeScreen extends React.Component {
   }
 
   render() {
+    const { navigation, screenProps } = this.props;
+    let siteUrl = this.props.screenProps.siteUrl;
+
     const list = [
       {
         name: 'Digital Heritage Item 1',
@@ -359,7 +369,7 @@ export default class HomeScreen extends React.Component {
               <Button
                   style={styles.headerButton}
                   title="Browse Digital Heritage"
-                  onPress={this._handlePressButtonAsync}
+                  onPress={() => this._handlePressButtonAsync(siteUrl)}
               />
             </View>
 

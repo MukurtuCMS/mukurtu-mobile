@@ -19,13 +19,15 @@ import {WebBrowser, SQLite} from 'expo';
 
 const db = SQLite.openDatabase('db.db');
 
-// We'll be replacing this at some point with a dynamic variable
-const siteUrl = 'http://mukurtu.lndo.site:8080';
+
 
 class LogoutScreen extends React.Component {
 
     constructor(props) {
         super(props);
+        // // Pass props down from App.js, since we're not using Redux
+        // const { navigation, screenProps } = this.props;
+        // const siteUrl = screenProps.siteUrl;
         this.handleLoginClick = this.handleLoginClick.bind(this);
         this.handleLogoutClick = this.handleLogoutClick.bind(this);
         // We can't get to this screen unless we're logged in
@@ -60,12 +62,9 @@ class LogoutScreen extends React.Component {
             }
         };
         // Log out of app
-        fetch(siteUrl + '/app/user/logout', data)
+        fetch(this.props.screenProps.siteUrl + '/app/user/logout', data)
             .then((response) => response.json())
             .then((responseJson) => {
-                console.log('response');
-                console.log(responseJson);
-
                 db.transaction(
                     tx => {
                         tx.executeSql('delete from auth;',
@@ -79,22 +78,6 @@ class LogoutScreen extends React.Component {
                 console.error(error);
             });
 
-        // Log out of browser
-        fetch(siteUrl + '/user/logout', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache',
-                'X-CSRF-Token': token,
-                'Cookie': cookie
-            }
-        })
-            .then((response) => console.log(response))
-            .catch((error) => {
-                console.error(error);
-            });
 
     }
 

@@ -20,17 +20,19 @@ import {SQLite, WebBrowser} from 'expo';
 
 const db = SQLite.openDatabase('db.db');
 
-// We'll be replacing this at some point with a dynamic variable
-const siteUrl = 'http://mukurtu.lndo.site:8000/';
 
 class LoginScreen extends React.Component {
 
   constructor(props) {
     super(props);
+    // Pass props down from App.js, since we're not using Redux
+    const { navigation, screenProps } = this.props;
+    const siteUrl = screenProps.siteUrl;
+    this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
     this.state = {
       name: false,
       password: false,
-      url: siteUrl,
+      siteUrl: siteUrl,
       error: false,
       places: 'b',
     }
@@ -64,9 +66,10 @@ class LoginScreen extends React.Component {
     }
     if(this.state.url !== false) {
       var url = this.state.url.toLowerCase().trim();
+      this._handleSiteUrlUpdate(url);
     }
 
-    fetch(siteUrl + '/services/session/token')
+    fetch(this.state.url + '/services/session/token')
       .then((response) => {
         let Token = response._bodyText;
 
@@ -84,9 +87,8 @@ class LoginScreen extends React.Component {
           }
         };
 
-        fetch(siteUrl + '/app/user/login.json', data)
+        fetch(this.state.url + '/app/user/login.json', data)
           .then((response) => response.json())
-            .then(console.log(response.json()))
           .then((responseJson) => {
            //  db.transaction(
            //   tx => {
@@ -130,8 +132,6 @@ class LoginScreen extends React.Component {
 
   render() {
 
-
-
     let showError = [];
     if (this.state.error.length > 0) {
       showError = <Text>{this.state.error}</Text>
@@ -160,7 +160,7 @@ class LoginScreen extends React.Component {
           <TextInput style={styles.inputs}
                      placeholder="Url"
                      underlineColorAndroid='transparent'
-                     onChangeText={(url) => this.setState({url})}/>
+                      onChangeText={(url) => this.setState({url})} />
         </View>
 
         <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.onClickListener('login')}>

@@ -13,7 +13,7 @@ import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
 
-const siteUrl = 'http://mukurtu.lndo.site:8080/';
+const siteUrl = 'http://mukurtu.lndo.site:8000/';
 class SettingsOverview extends React.Component {
   constructor(){
     super();
