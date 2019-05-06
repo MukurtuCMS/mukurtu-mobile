@@ -21,7 +21,6 @@ import ImageFactory from 'react-native-image-picker-form';
 import DigitalHeritageForm from '../endpoints/DigitalHeritage';
 import {FileSystem, SQLite} from 'expo';
 import FormComponent from '../components/FormAPI/Form'
-import JSONTree from "react-native-json-tree";
 import axios from "axios";
 import weightSort from 'weight-sort';
 

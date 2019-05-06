@@ -222,10 +222,10 @@ export default class HomeScreen extends React.Component {
       // If user is not logged into app but is logged into browser, hit logout page with redirect to homepage
       // That way login status stays in sync
       if (isLoggedInBrowser) {
-        let result = WebBrowser.openBrowserAsync(url);
+        let result = WebBrowser.openBrowserAsync(url + '/user/logout?destination=' + url);
       } else {
         // If user not logged into app, and we're not logged into the browser, go to the homepage
-        let result = WebBrowser.openBrowserAsync(url + '/user/logout?destination=' + url);
+        let result = WebBrowser.openBrowserAsync(url);
       }
     }
   };

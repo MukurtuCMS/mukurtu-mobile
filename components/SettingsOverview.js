@@ -13,10 +13,11 @@ import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
 
-const siteUrl = 'http://mukurtu.lndo.site:8000/';
+
 class SettingsOverview extends React.Component {
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
+    const { navigation, screenProps } = this.props;
     this.onValueChange = this.onValueChange.bind(this);
     this.componentActive = this.componentActive.bind(this);
     this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: ''};
@@ -27,7 +28,7 @@ class SettingsOverview extends React.Component {
   }
 
   componentActive(){
-    fetch(siteUrl + '/services/session/token')
+    fetch(this.props.screenProps.siteUrl  + '/services/session/token')
       .then((response) => {
         let Token = response._bodyText;
         this.setState({token: Token});
@@ -41,7 +42,7 @@ class SettingsOverview extends React.Component {
           }
         };
 
-        fetch(siteUrl + '/app/system/connect', data)
+        fetch(this.props.screenProps.siteUrl + '/app/system/connect', data)
           .then((response) => response.json())
           .then((responseJson) => {
             //Alert.alert("my json" + responseJson.movies);
