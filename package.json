@@ -28,7 +28,8 @@
     "redux": "^4.0.1",
     "tcomb-form-native": "^0.6.20",
     "tcomb-form-native-builder-components": "0.0.19",
-    "tcomb-json-schema": "^0.3.2"
+    "tcomb-json-schema": "^0.3.2",
+    "weight-sort": "^1.3.0"
   },
   "devDependencies": {
     "babel-preset-expo": "^5.0.0",
