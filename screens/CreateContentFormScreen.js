@@ -23,6 +23,7 @@ import {FileSystem, SQLite} from 'expo';
 import FormComponent from '../components/FormAPI/Form'
 import JSONTree from "react-native-json-tree";
 import axios from "axios";
+import weightSort from 'weight-sort';
 
 const db = SQLite.openDatabase('db.db');
 
@@ -73,6 +74,13 @@ class CreateContentFormScreen extends React.Component {
     fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + contentType, data)
         .then((response) => response.json())
         .then((responseJson) => {
+          let form = responseJson;
+          let groups = {};
+
+          for (const [machineName, groupObject] of Object.entries(form['#groups'])) {
+
+          }
+
           this.setState({form: responseJson});
         })
         .catch((error) => {
@@ -119,15 +127,59 @@ class CreateContentFormScreen extends React.Component {
     }
 
     let nodeForm = [];
+    let sortedNodeForm = [];
     const formObject = Object.entries(this.state.form).length;
     if (formObject > 0) {
-      nodeForm = <FormComponent form={this.state.form} />
+
+      // we need to order the form by groups and fields
+      let sortedNodeForm = [];
+      let sortGroups = [];
+      let groups = this.state.form['#groups']['group_tabs'].children;
+      for (var i = 0; i < groups.length; i++) {
+        var group = groups[i];
+        sortGroups.push({'name': group, 'weight': this.state.form['#groups'][group]['weight']});
+      }
+      sortGroups = weightSort(sortGroups);
+      for (var i = 0; i < sortGroups.length; i++) {
+        var group = sortGroups[i]['name'];
+        sortedNodeForm.push(this.state.form['#groups'][group]);
+      };
+
+      // now we need to sort the children fields for all groups
+      for (var i = 0; i < sortedNodeForm.length; i++) {
+        let group = sortedNodeForm[i]['group_name'];
+        let fields = sortedNodeForm[i].children;
+        let sortFields = [];
+        sortedNodeForm[i]['childrenFields'] = []
+        for (var k = 0; k < fields.length; k++) {
+          var field = fields[k];
+          try {
+            sortFields.push({'name': field, 'weight': this.state.form[field]['#weight']});
+          } catch(e) {
+            // console.log(field);
+          }
+        }
+        sortFields = weightSort(sortFields);
+        for (var k = 0; k < sortFields.length; k++) {
+          var fieldArray = this.state.form[field];
+          var field = sortFields[k]['name'];
+
+          try {
+            fieldArray['machine_name'] = field;
+          } catch(e) {
+            console.log(field);
+          }
+          sortedNodeForm[i]['childrenFields'].push(fieldArray);
+        };
+      }
+
+
+      nodeForm = <FormComponent form={sortedNodeForm} />
     }
 
     return (
       <View style={{backgroundColor:'#EFEFF4',flex:1, padding: '5%'}}>
         <ScrollView style={{backgroundColor:'#EFEFF4',flex:1}}>
-          <JSONTree data={this.state.form} />
           { nodeForm }
         </ScrollView>
       </View>
