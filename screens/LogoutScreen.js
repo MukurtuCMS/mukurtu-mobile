@@ -19,10 +19,14 @@ import {WebBrowser, SQLite} from 'expo';
 
 const db = SQLite.openDatabase('db.db');
 
+
 class LogoutScreen extends React.Component {
 
   constructor(props) {
     super(props);
+    // // Pass props down from App.js, since we're not using Redux
+    // const { navigation, screenProps } = this.props;
+    // const siteUrl = screenProps.siteUrl;
     this.handleLoginClick = this.handleLoginClick.bind(this);
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
     // We can't get to this screen unless we're logged in
@@ -33,6 +37,7 @@ class LogoutScreen extends React.Component {
   handleLogoutClick(viewId) {
     // We'll probably abstract the getToken method at some point, so adding an extra function layer here
     this.getToken(viewId);
+    //
   }
 
   handleLoginClick() {
@@ -55,10 +60,10 @@ class LogoutScreen extends React.Component {
         'Cookie': cookie
       }
     };
-    fetch('http://mukurtucms.kanopi.cloud/app/user/logout')
+    // Log out of app
+    fetch(this.props.screenProps.siteUrl + '/app/user/logout', data)
         .then((response) => response.json())
         .then((responseJson) => {
-
           db.transaction(
               tx => {
                 tx.executeSql('delete from auth;',
@@ -66,10 +71,13 @@ class LogoutScreen extends React.Component {
               }
           );
         })
+
         .then(this.setState({isLoggedIn: false}))
         .catch((error) => {
           console.error(error);
         });
+
+
   }
 
 

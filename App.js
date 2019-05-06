@@ -9,11 +9,25 @@ import configureStore from './store';
 const store = configureStore()
 
 export default class App extends React.Component {
-  state = {
-    isLoadingComplete: false,
-  };
+
+
+  constructor(props) {
+    super(props);
+    this._handleSiteUrlUpdate = this._handleSiteUrlUpdate.bind(this);
+    this.state = {
+      isLoadingComplete: false,
+      // This is the base siteUrl for testing purposes. When logging in user can set a new URL
+      // This URL won't currently return the correct one time login link
+      siteUrl: 'http://mukurtucms.kanopi.cloud/',
+    };
+  }
 
   render() {
+    let screenProps = {
+          siteUrl: this.state.siteUrl,
+          _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
+        };
+
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
       return (
         <Provider store={store}>
@@ -28,8 +42,8 @@ export default class App extends React.Component {
       return (
         <Provider store={store}>
           <View style={styles.container}>
-            {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-            <AppNavigator />
+            {/*{Platform.OS === 'ios' && <StatusBar barStyle="default" />}*/}
+            <AppNavigator screenProps={screenProps} />
           </View>
         </Provider>
       );
@@ -61,6 +75,11 @@ export default class App extends React.Component {
   _handleFinishLoading = () => {
     this.setState({ isLoadingComplete: true });
   };
+
+  _handleSiteUrlUpdate = (url) => {
+    this.setState({ siteUrl: url });
+  };
+
 }
 
 const styles = StyleSheet.create({

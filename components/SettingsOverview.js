@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
 
+const siteUrl = 'http://mukurtu.lndo.site:8000/';
 class SettingsOverview extends React.Component {
   constructor(){
     super();
@@ -26,7 +27,7 @@ class SettingsOverview extends React.Component {
   }
 
   componentActive(){
-    fetch('http://mukurtucms.kanopi.cloud/services/session/token')
+    fetch(siteUrl + '/services/session/token')
       .then((response) => {
         let Token = response._bodyText;
         this.setState({token: Token});
@@ -34,13 +35,13 @@ class SettingsOverview extends React.Component {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-Token': this.props.user.token,
+            // 'X-CSRF-Token': this.props.user.token,
             'Cache-Control': 'no-cache',
-            'Cookie': this.props.user.session_name + '=' + this.props.user.sessid
+            // 'Cookie': this.props.user.session_name + '=' + this.props.user.sessid
           }
         };
 
-        fetch('http://mukurtucms.kanopi.cloud/app/system/connect', data)
+        fetch(siteUrl + '/app/system/connect', data)
           .then((response) => response.json())
           .then((responseJson) => {
             //Alert.alert("my json" + responseJson.movies);
@@ -72,7 +73,7 @@ class SettingsOverview extends React.Component {
       <View style={{backgroundColor:'#EFEFF4',flex:1}}>
         <View style={{backgroundColor:'#EFEFF4',flex:1}}>
           <SettingsList borderColor='#c8c7cc' defaultItemSize={50}>
-            {parseInt(this.props.user.user.uid) > 0 ?
+            {(this.props.user.user && parseInt(this.props.user.user.uid) > 0) ?
               <SettingsList.Item
                 title='Log Out'
                 titleInfo={this.props.user.user.name}

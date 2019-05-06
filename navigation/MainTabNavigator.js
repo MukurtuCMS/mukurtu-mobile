@@ -14,7 +14,7 @@ import AboutScreen from '../screens/AboutScreen';
 import OfflineScreen from '../screens/OfflineScreen';
 
 const HomeStack = createStackNavigator({
-  Home: HomeScreen,
+  Home: { screen: HomeScreen },
 });
 
 HomeStack.navigationOptions = {
@@ -48,7 +48,7 @@ CreateContentStack.navigationOptions = {
 
 const SettingsStack = createStackNavigator({
   Settings: SettingsScreen,
-  Login: LoginScreen,
+  Login: { screen: LoginScreen },
   Logout: LogoutScreen,
   Help: HelpScreen,
   About: AboutScreen

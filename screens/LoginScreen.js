@@ -14,18 +14,25 @@ import {
 import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
-import { SQLite } from 'expo';
+import {SQLite, WebBrowser} from 'expo';
+
+
 
 const db = SQLite.openDatabase('db.db');
+
 
 class LoginScreen extends React.Component {
 
   constructor(props) {
     super(props);
+    // Pass props down from App.js, since we're not using Redux
+    const { navigation, screenProps } = this.props;
+    const siteUrl = screenProps.siteUrl;
+    this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
     this.state = {
       name: false,
       password: false,
-      url: 'http://mukurtucms.kanopi.cloud',
+      siteUrl: siteUrl,
       error: false,
       places: 'b',
     }
@@ -51,14 +58,20 @@ class LoginScreen extends React.Component {
           })
         }
       });*/
-    var name = this.state.name.toLowerCase().trim();
-    var pass = this.state.password.toLowerCase().trim();
-    var url = this.state.url.toLowerCase().trim();
+    if(this.state.name !== false) {
+      var name = this.state.name.toLowerCase().trim();
+    }
+    if(this.state.password !== false) {
+      var pass = this.state.password.toLowerCase().trim();
+    }
+    if(this.state.url !== false) {
+      var url = this.state.url.toLowerCase().trim();
+      this._handleSiteUrlUpdate(url);
+    }
 
-    fetch('http://mukurtucms.kanopi.cloud/services/session/token')
+    fetch(this.state.url + '/services/session/token')
       .then((response) => {
         let Token = response._bodyText;
-        // console.log('Cookie: ' + this.props.places);
 
         let data = {
           method: 'POST',
@@ -73,7 +86,8 @@ class LoginScreen extends React.Component {
             'Cookie': this.props.places
           }
         };
-        fetch('http://mukurtucms.kanopi.cloud/app/user/login.json', data)
+
+        fetch(this.state.url + '/app/user/login.json', data)
           .then((response) => response.json())
           .then((responseJson) => {
            //  db.transaction(
@@ -91,16 +105,13 @@ class LoginScreen extends React.Component {
              tx => {
                tx.executeSql('insert into auth (token, cookie) values (?, ?)',
                  [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
-                 (success) => console.log(success),
+                 (success) => {
+
+
+                 },
+
                  (success, error) => console.log(' ')
                );
-               console.log(responseJson);
-               // tx.executeSql(
-               //   `select * from auth;`,
-               //   '',
-               //   (_, { rows: { _array } }) => console.log(_array),
-               //   (tx, error) => console.log(error)
-               // );
              }
            );
 
@@ -109,6 +120,7 @@ class LoginScreen extends React.Component {
             this.props.navigation.navigate('Settings')
 
           })
+
           .catch((error) => {
             // console.error(error);
           });
@@ -124,6 +136,7 @@ class LoginScreen extends React.Component {
     if (this.state.error.length > 0) {
       showError = <Text>{this.state.error}</Text>
     }
+
     return (
       <View style={styles.container}>
         <View style={styles.inputContainer}>
@@ -147,7 +160,7 @@ class LoginScreen extends React.Component {
           <TextInput style={styles.inputs}
                      placeholder="Url"
                      underlineColorAndroid='transparent'
-                     onChangeText={(url) => this.setState({url})}/>
+                      onChangeText={(url) => this.setState({url})} />
         </View>
 
         <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.onClickListener('login')}>
