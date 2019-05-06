@@ -47,7 +47,7 @@ CreateContentStack.navigationOptions = {
 };
 
 const SettingsStack = createStackNavigator({
-  Settings: SettingsScreen,
+  Settings: { screen: SettingsScreen },
   Login: { screen: LoginScreen },
   Logout: LogoutScreen,
   Help: HelpScreen,
