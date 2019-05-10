@@ -23,6 +23,7 @@ import {FileSystem, SQLite} from 'expo';
 import FormComponent from '../components/FormAPI/Form'
 import axios from "axios";
 import weightSort from 'weight-sort';
+import JSONTree from "react-native-json-tree";
 
 const db = SQLite.openDatabase('db.db');
 
@@ -33,7 +34,7 @@ class CreateContentFormScreen extends React.Component {
 
   constructor(){
     super();
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: []};
+    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: ''};
     this.onPress = this.onPress.bind(this);
   }
 
@@ -80,7 +81,7 @@ class CreateContentFormScreen extends React.Component {
 
           }
 
-          this.setState({form: responseJson});
+          this.setState({form: responseJson, oldForm: responseJson});
         })
         .catch((error) => {
           // console.error(error);
@@ -155,13 +156,13 @@ class CreateContentFormScreen extends React.Component {
           try {
             sortFields.push({'name': field, 'weight': this.state.form[field]['#weight']});
           } catch(e) {
-            // console.log(field);
+            console.log(field);
           }
         }
         sortFields = weightSort(sortFields);
         for (var k = 0; k < sortFields.length; k++) {
-          var fieldArray = this.state.form[field];
           var field = sortFields[k]['name'];
+          var fieldArray = this.state.form[field];
 
           try {
             fieldArray['machine_name'] = field;
@@ -179,6 +180,7 @@ class CreateContentFormScreen extends React.Component {
     return (
       <View style={{backgroundColor:'#EFEFF4',flex:1, padding: '5%'}}>
         <ScrollView style={{backgroundColor:'#EFEFF4',flex:1}}>
+          {/*<JSONTree data={this.state.oldForm} />*/}
           { nodeForm }
         </ScrollView>
       </View>
