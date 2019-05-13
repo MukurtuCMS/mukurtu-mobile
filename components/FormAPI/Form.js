@@ -3,7 +3,10 @@ import { View, Dimensions, StyleSheet } from 'react-native';
 import Textfield from './Textfield';
 import Textarea from './Textarea';
 import Radios from './Radios';
+import Checkboxes from './Checkboxes';
 import Select from './Select';
+import Date from './Date';
+import Scald from './Scald';
 import JSONTree from "react-native-json-tree";
 import { ButtonGroup, Button } from "react-native-elements";
 import axios from "axios";
@@ -87,6 +90,14 @@ export default class FormComponent extends React.Component {
         }
     }
 
+    setFormValueCheckboxes(newFieldName, newKey, newValue) {
+        if (this.state.formValues) {
+            const formValues = this.state.formValues;
+            Object.assign(formValues, {[newFieldName]: {[newKey]: newValue}});
+            this.setState({formValues: formValues});
+        }
+    }
+
     saveNode(){
         console.log(this.state.formValues);
     }
@@ -126,18 +137,32 @@ export default class FormComponent extends React.Component {
                                  if (fieldArray['nid'] !== undefined) {
                                      fieldArray = field['und'][0]['nid'];
                                  }
-                                 if (fieldArray['default'] !== undefined) {
+                                 else if (fieldArray['default'] !== undefined) {
                                      fieldArray = field['und'][0]['default'];
                                  }
-                                 if (fieldArray['sid'] !== undefined) {
+                                 else if (fieldArray['sid'] !== undefined) {
                                      fieldArray = field['und'][0]['sid'];
+                                 }
+                                 else if (fieldArray['value'] !== undefined) {
+                                     fieldArray = field['und'][0]['value'];
                                  }
                              }
                          }
                      }
 
                      if (typeof fieldArray === 'object' && fieldArray['#type']) {
-                         if (fieldArray['#type'] === 'textfield') {
+
+                         // first determine if field is scald library because in FAPI that is a textfield
+                         if (fieldArray['#preview_context'] && fieldArray['#preview_context'] === 'mukurtu_scald_media_assets_edit_') {
+                             form[i].push(<Scald
+                                 formValues={this.state.formValues}
+                                 fieldName={fieldName}
+                                 field={fieldArray}
+                                 key={fieldName}
+                                 setFormValue={this.setFormValue}
+                             />);
+                         }
+                         else if (fieldArray['#type'] === 'textfield') {
                              form[i].push(<Textfield
                                  formValues={this.state.formValues}
                                  fieldName={fieldName}
@@ -146,7 +171,7 @@ export default class FormComponent extends React.Component {
                                  setFormValue={this.setFormValue}
                              />);
                          }
-                         if (fieldArray['#type'] === 'text_format') {
+                         else if (fieldArray['#type'] === 'text_format') {
                              form[i].push(<Textarea
                                  formValues={this.state.formValues}
                                  fieldName={fieldName}
@@ -155,7 +180,16 @@ export default class FormComponent extends React.Component {
                                  setFormValue={this.setFormValue}
                              />);
                          }
-                         if (fieldArray['#type'] === 'radios') {
+                         else if (fieldArray['#type'] === 'textarea') {
+                             form[i].push(<Textarea
+                                 formValues={this.state.formValues}
+                                 fieldName={fieldName}
+                                 field={fieldArray}
+                                 key={fieldName}
+                                 setFormValue={this.setFormValue}
+                             />);
+                         }
+                         else if (fieldArray['#type'] === 'radios') {
                              form[i].push(<Radios
                                  formValues={this.state.formValues}
                                  fieldName={fieldName}
@@ -164,8 +198,26 @@ export default class FormComponent extends React.Component {
                                  setFormValueCheckbox={this.setFormValueCheckbox.bind(this)}
                              />);
                          }
-                         if (fieldArray['#type'] === 'select') {
+                         else if (fieldArray['#type'] === 'checkboxes') {
+                             form[i].push(<Checkboxes
+                                 formValues={this.state.formValues}
+                                 fieldName={fieldName}
+                                 field={fieldArray}
+                                 key={fieldName}
+                                 setFormValueCheckboxes={this.setFormValueCheckboxes.bind(this)}
+                             />);
+                         }
+                         else if (fieldArray['#type'] === 'select') {
                              form[i].push(<Select
+                                 formValues={this.state.formValues}
+                                 fieldName={fieldName}
+                                 field={fieldArray}
+                                 key={fieldName}
+                                 setFormValue={this.setFormValue}
+                             />);
+                         }
+                         else if (fieldArray['#type'] === 'item') {
+                             form[i].push(<Date
                                  formValues={this.state.formValues}
                                  fieldName={fieldName}
                                  field={fieldArray}
@@ -178,14 +230,13 @@ export default class FormComponent extends React.Component {
                  }
              }
          } catch (e) {
-             console.log(e);
+             // console.log(e);
          }
 
          for (var p = 0; p < form.length; p++) {
              var groupName = this.props.form[p]['group_name'];
              sceneRoutes[groupName] = <View style={{ width: 200, height: 200}}>{form[p]}</View>;
          }
-         console.log(buttons);
          if (buttons.length > 0) {
              buttonGroup = <ButtonGroup
                  onPress={this.updateIndex}

@@ -106,7 +106,7 @@ class LoginScreen extends React.Component {
                tx.executeSql('insert into auth (token, cookie) values (?, ?)',
                  [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
                  (success) => {
-
+                    console.log('test');
 
                  },
 
