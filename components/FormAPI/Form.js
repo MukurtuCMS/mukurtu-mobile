@@ -7,6 +7,7 @@ import Checkboxes from './Checkboxes';
 import Select from './Select';
 import Date from './Date';
 import Scald from './Scald';
+import Location from './Location';
 import JSONTree from "react-native-json-tree";
 import { ButtonGroup, Button } from "react-native-elements";
 import axios from "axios";
@@ -146,6 +147,9 @@ export default class FormComponent extends React.Component {
                                  else if (fieldArray['value'] !== undefined) {
                                      fieldArray = field['und'][0]['value'];
                                  }
+                                 else if (fieldArray['geom'] !== undefined) {
+                                   fieldArray = field['und'][0]['geom'];
+                                 }
                              }
                          }
                      }
@@ -225,7 +229,17 @@ export default class FormComponent extends React.Component {
                                  setFormValue={this.setFormValue}
                              />);
                          }
+                         else if (fieldArray['#type'] === 'geofield_latlon') {
+                           form[i].push(<Location
+                             formValues={this.state.formValues}
+                             fieldName={fieldName}
+                             field={fieldArray}
+                             key={fieldName}
+                             setFormValue={this.setFormValue}
+                           />);
+                         }
                      } else {
+                         console.log(fieldArray['#title']);
                      }
                  }
              }
