@@ -174,7 +174,8 @@ class CreateContentFormScreen extends React.Component {
       }
 
 
-      nodeForm = <FormComponent form={sortedNodeForm} />
+      const contentType = this.props.navigation.getParam('contentType');
+      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType}/>
     }
 
     return (

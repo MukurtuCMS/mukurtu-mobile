@@ -18,7 +18,7 @@ const db = SQLite.openDatabase('db.db');
 export default class FormComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {formValues: {}, selectedIndex: 0, ajax: ''}
+        this.state = {formValues: {"type": props.contentType}, selectedIndex: 0, ajax: ''}
         this.setFormValue = this.setFormValue.bind(this);
         this.updateIndex = this.updateIndex.bind(this);
         this.saveNode = this.saveNode.bind(this)
@@ -75,26 +75,47 @@ export default class FormComponent extends React.Component {
 
     }
 
-    setFormValue(newFieldName, newValue) {
+    setFormValue(newFieldName, newValue, valueKey) {
         if (this.state.formValues) {
             const formValues = this.state.formValues;
-            Object.assign(formValues, {[newFieldName]: newValue});
+            if (newFieldName === 'title') {
+                // if title, just need key, val
+                Object.assign(formValues, {[newFieldName]: newValue});
+            } else {
+                // if not, we need to format like drupal field
+                Object.assign(formValues, {[newFieldName]:[{[valueKey]: newValue}]});
+            }
+            // save value to state
             this.setState({formValues: formValues});
         }
     }
 
-    setFormValueCheckbox(newFieldName, newKey, newValue) {
+    setFormValueCheckbox(newFieldName, newValue, valueKey) {
+        // need different function for checkbox so we can unset values
         if (this.state.formValues) {
             const formValues = this.state.formValues;
-            Object.assign(formValues, {[newFieldName]: {[newKey]: newValue}});
+            // check if we are unchecking the box
+            if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][0][valueKey]) {
+                Object.assign(formValues, {[newFieldName]:[{[valueKey]: ''}]});
+            } else {
+                Object.assign(formValues, {[newFieldName]: [{[valueKey]: newValue}]});
+            }
+            // save value to state
             this.setState({formValues: formValues});
         }
     }
 
-    setFormValueCheckboxes(newFieldName, newKey, newValue) {
+    setFormValueCheckboxes(newFieldName, newValue, valueKey) {
+        // need different function for checkbox so we can unset values
         if (this.state.formValues) {
             const formValues = this.state.formValues;
-            Object.assign(formValues, {[newFieldName]: {[newKey]: newValue}});
+            // check if we are unchecking the box
+            if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][0][valueKey]) {
+                Object.assign(formValues, {[newFieldName]:[{[valueKey]: ''}]});
+            } else {
+                Object.assign(formValues, {[newFieldName]: [{[valueKey]: newValue}]});
+            }
+            // save value to state
             this.setState({formValues: formValues});
         }
     }
@@ -199,7 +220,7 @@ export default class FormComponent extends React.Component {
                                  fieldName={fieldName}
                                  field={fieldArray}
                                  key={fieldName}
-                                 setFormValueCheckbox={this.setFormValueCheckbox.bind(this)}
+                                 setFormValue={this.setFormValueCheckbox.bind(this)}
                              />);
                          }
                          else if (fieldArray['#type'] === 'checkboxes') {
@@ -208,7 +229,7 @@ export default class FormComponent extends React.Component {
                                  fieldName={fieldName}
                                  field={fieldArray}
                                  key={fieldName}
-                                 setFormValueCheckboxes={this.setFormValueCheckboxes.bind(this)}
+                                 setFormValue={this.setFormValueCheckboxes.bind(this)}
                              />);
                          }
                          else if (fieldArray['#type'] === 'select') {

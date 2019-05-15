@@ -4,20 +4,26 @@ import { CheckBox} from "react-native-elements";
 
 export default class Radios extends React.Component {
 
-    determineCheckboxValue(fieldName, fieldKey) {
-        return (this.props.formValues[fieldName]) ? this.props.formValues[fieldName][fieldKey] : false;
+    determineCheckboxValue(fieldName, fieldValue, fieldKey) {
+        if (this.props.formValues[fieldName]) {
+            if (this.props.formValues[fieldName][0][fieldKey] === fieldValue) {
+                return true;
+            }
+        }
+        return false;
     }
 
     render() {
         const field = this.props.field;
+        const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
         let checkboxes = [];
 
         for (const [value, label] of Object.entries(field['#options'])) {
             checkboxes.push(<CheckBox
                 key={value}
                 title={label}
-                checked={this.determineCheckboxValue(this.props.fieldName, value)}
-                onPress={() => this.props.setFormValueCheckbox(this.props.fieldName, value ,!(this.determineCheckboxValue(this.props.fieldName, value)))}
+                checked={this.determineCheckboxValue(this.props.fieldName, value, valueKey)}
+                onPress={() => this.props.setFormValue(this.props.fieldName, value, valueKey)}
             ></CheckBox>
         );
         }
