@@ -204,15 +204,10 @@ export default class HomeScreen extends React.Component {
         };
 
         fetch(url + '/app/one-time-login/retrieve', data)
-            .then((response) => response.text())
+            .then((response) => response.json())
             .then((responseText) => {
 
-              // Get just the URL from the response text
-              responseText = responseText.replace('["', '');
-              responseText = responseText.replace('"]', '');
-
-
-              let result = WebBrowser.openBrowserAsync(responseText);
+              let result = WebBrowser.openBrowserAsync(responseText[0]);
             })
             .catch((error) => {
               console.error(error);
