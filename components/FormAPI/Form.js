@@ -7,6 +7,7 @@ import Checkboxes from './Checkboxes';
 import Select from './Select';
 import Date from './Date';
 import Scald from './Scald';
+import Select2 from './Select2';
 import Location from './Location';
 import JSONTree from "react-native-json-tree";
 import { ButtonGroup, Button } from "react-native-elements";
@@ -88,6 +89,39 @@ export default class FormComponent extends React.Component {
             // save value to state
             this.setState({formValues: formValues});
         }
+    }
+
+    setFormValueSelect2(newFieldName, newValue, valueKey, key) {
+        console.log(key);
+        if (this.state.formValues) {
+            let formValues = this.state.formValues;
+
+            if (!(formValues[newFieldName])) {
+                formValues[newFieldName] = {};
+                formValues[newFieldName]['und'] = [];
+            }
+
+            formValues[newFieldName]['und'][key] = newValue;
+            // save value to state
+            this.setState({formValues: formValues});
+        }
+        console.log(this.state.formValues);
+
+
+/*        if (this.state.formValues) {
+            const formValues = this.state.formValues;
+                let newFormValues = [];
+                if (this.state.formValues[newFieldName]) {
+                    newFormValues = this.state.formValues[newFieldName];
+                }
+                newFormValues.push({[valueKey]: newValue});
+            Object.assign(formValues, {[newFieldName]: newFormValues});
+
+            console.log(formValues);
+            // save value to state
+            this.setState({formValues: formValues});
+        }
+        console.log(this.state.formValues);*/
     }
 
     setFormValueCheckbox(newFieldName, newValue, valueKey) {
@@ -258,6 +292,15 @@ export default class FormComponent extends React.Component {
                              key={fieldName}
                              setFormValue={this.setFormValue}
                            />);
+                         }
+                         else if (fieldArray['#type'] === 'select2_hidden') {
+                             form[i].push(<Select2
+                                 formValues={this.state.formValues}
+                                 fieldName={fieldName}
+                                 field={fieldArray}
+                                 key={fieldName}
+                                 setFormValue={this.setFormValueSelect2.bind(this)}
+                             />);
                          }
                      } else {
                          console.log(fieldArray['#title']);
