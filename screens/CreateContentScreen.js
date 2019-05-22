@@ -51,7 +51,7 @@ class CreateContentScreen extends React.Component {
 
   getToken(array) {
     if (array === undefined || array.length < 1) {
-      this.alertNotLoggedIn();
+      // this.alertNotLoggedIn(); Need to replace this with a log-in prompt
       return false;
     }
     const token = array[0].token;
@@ -69,7 +69,7 @@ class CreateContentScreen extends React.Component {
     axios.post('http://mukurtucms.kanopi.cloud/app/system/connect', {}, {headers: data.headers})
         .then((responseJson) => {
           if (responseJson.data.user.uid === 0) {
-            this.alertNotLoggedIn();
+            // this.alertNotLoggedIn(); Need to replace this with a login prompt
             return false;
           }
           data.method = 'GET';
@@ -85,7 +85,7 @@ class CreateContentScreen extends React.Component {
         })
         .catch((error) => {
           console.error(error);
-          this.alertNotLoggedIn();
+          // this.alertNotLoggedIn(); Need to replace this with a login prompt
         });
   }
 
