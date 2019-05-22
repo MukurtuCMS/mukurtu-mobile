@@ -29,7 +29,6 @@ class LoginScreen extends React.Component {
     const { navigation, screenProps } = this.props;
     const siteUrl = screenProps.siteUrl;
     this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
-    this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
     this.state = {
       name: false,
       password: false,
@@ -107,8 +106,7 @@ class LoginScreen extends React.Component {
                tx.executeSql('insert into auth (token, cookie) values (?, ?)',
                  [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
                  (success) => {
-                   // Set site status to logged in
-                   this._handleLoginStatusUpdate(true);
+                    console.log('test');
 
                  },
 
@@ -117,15 +115,11 @@ class LoginScreen extends React.Component {
              }
            );
 
-            this._handleSiteUrlUpdate(this.state.url);
-
             this.props.add(responseJson.session_name + '=' + responseJson.sessid);
             this.props.addUserProp(responseJson);
             this.props.navigation.navigate('Settings')
 
           })
-
-
 
           .catch((error) => {
             // console.error(error);

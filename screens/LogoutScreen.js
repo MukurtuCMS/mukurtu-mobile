@@ -9,13 +9,12 @@ import {
   View,
   TextInput,
   TouchableHighlight,
-  Alert, WebView
+  Alert
 } from 'react-native';
 import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
 import {addUser} from '../actions/user';
 import {WebBrowser, SQLite} from 'expo';
-import Axios from "axios";
 
 
 const db = SQLite.openDatabase('db.db');
@@ -25,11 +24,14 @@ class LogoutScreen extends React.Component {
 
   constructor(props) {
     super(props);
-    const { navigation, screenProps } = this.props;
+    // // Pass props down from App.js, since we're not using Redux
+    // const { navigation, screenProps } = this.props;
+    // const siteUrl = screenProps.siteUrl;
     this.handleLoginClick = this.handleLoginClick.bind(this);
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
-    this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
-    this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
+    // We can't get to this screen unless we're logged in
+    // although it might be better to check before we set state, just in case.
+    this.state = {isLoggedIn: true};
   }
 
   handleLogoutClick(viewId) {
@@ -41,7 +43,6 @@ class LogoutScreen extends React.Component {
   handleLoginClick() {
     this.props.navigation.navigate('Login');
   }
-
 
   getToken(array) {
     if (array === undefined || array.length < 1) {
@@ -60,7 +61,6 @@ class LogoutScreen extends React.Component {
       }
     };
     // Log out of app
-    // @todo log user out of browser as well
     fetch(this.props.screenProps.siteUrl + '/app/user/logout', data)
         .then((response) => response.json())
         .then((responseJson) => {
@@ -72,11 +72,7 @@ class LogoutScreen extends React.Component {
           );
         })
 
-        .then(() => {
-              this._handleLoginStatusUpdate(false);
-              this._handleSiteUrlUpdate('');
-            }
-        )
+        .then(this.setState({isLoggedIn: false}))
         .catch((error) => {
           console.error(error);
         });
@@ -87,8 +83,8 @@ class LogoutScreen extends React.Component {
 
   render() {
 
-
-    if (this.props.screenProps.isLoggedIn) {
+    const isLoggedIn = this.state.isLoggedIn;
+    if (isLoggedIn) {
       return (
           <View style={styles.container}>
             <Text>You Are Logged in as {this.props.user.user.name}</Text>
@@ -106,7 +102,6 @@ class LogoutScreen extends React.Component {
                               onPress={() => this.handleLoginClick()}>
             <Text style={styles.loginText}>Log In</Text>
           </TouchableHighlight>
-
         </View>
     )
 

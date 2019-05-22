@@ -12,7 +12,6 @@ import LogoutScreen from '../screens/LogoutScreen';
 import HelpScreen from '../screens/HelpScreen';
 import AboutScreen from '../screens/AboutScreen';
 import OfflineScreen from '../screens/OfflineScreen';
-import WebviewScreen from "../screens/WebviewScreen";
 
 const HomeStack = createStackNavigator({
   Home: { screen: HomeScreen },
@@ -50,7 +49,7 @@ CreateContentStack.navigationOptions = {
 const SettingsStack = createStackNavigator({
   Settings: { screen: SettingsScreen },
   Login: { screen: LoginScreen },
-  Logout: { screen: LogoutScreen },
+  Logout: LogoutScreen,
   Help: HelpScreen,
   About: AboutScreen
 });
@@ -82,30 +81,9 @@ OfflineStack.navigationOptions = {
   )
 };
 
-const WebviewStack = createStackNavigator({
-  Webview: { screen: WebviewScreen }
-});
-
-WebviewStack.navigationOptions = {
-  tabBarLabel: 'Browse Site',
-  tabBarIcon: ({ focused }) => (
-      <TabBarIcon
-          focused={focused}
-          name={
-            Platform.OS === 'ios'
-                ? `ios-information-circle${focused ? '' : '-outline'}`
-                : 'md-information-circle'
-          }
-      />
-  ),
-};
-
-
-
 export default createBottomTabNavigator({
   HomeStack,
   CreateContentStack,
   SettingsStack,
-  OfflineStack,
-  WebviewStack
+  OfflineStack
 });
