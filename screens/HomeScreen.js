@@ -22,7 +22,6 @@ const db = SQLite.openDatabase('db.db');
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    const { navigation, screenProps } = this.props;
     this.state = {
       contentList: [],
       result: null,
@@ -358,13 +357,13 @@ export default class HomeScreen extends React.Component {
     return (
         <View style={styles.container}>
           <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            {/*<View style={styles.header}>*/}
-            {/*  <Button*/}
-            {/*      style={styles.headerButton}*/}
-            {/*      title="Browse Digital Heritage"*/}
-            {/*      onPress={() => this._handlePressButtonAsync(siteUrl)}*/}
-            {/*  />*/}
-            {/*</View>*/}
+            <View style={styles.header}>
+              <Button
+                  style={styles.headerButton}
+                  title="Browse Digital Heritage"
+                  onPress={() => this._handlePressButtonAsync(siteUrl)}
+              />
+            </View>
 
             <View style={styles.getStartedContainer}>
 
