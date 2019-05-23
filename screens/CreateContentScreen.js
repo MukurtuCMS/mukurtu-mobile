@@ -66,10 +66,13 @@ class CreateContentScreen extends React.Component {
         'Cookie': cookie
       }
     };
-    axios.post('http://mukurtucms.kanopi.cloud/app/system/connect', {}, {headers: data.headers})
+    fetch('http://mukurtucms.kanopi.cloud/app/system/connect', data)
+        .then((response) => response.json())
         .then((responseJson) => {
           if (responseJson.data.user.uid === 0) {
             this.alertNotLoggedIn();
+          if (responseJson.user.uid === 0) {
+            // this.alertNotLoggedIn(); Need to replace this with a login prompt
             return false;
           }
           data.method = 'GET';
