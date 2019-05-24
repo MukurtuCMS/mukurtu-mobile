@@ -9,7 +9,7 @@ import {
   View,
   Alert,
   Button,
-  Linking
+  Linking, NetInfo
 } from 'react-native';
 import {WebBrowser, SQLite} from 'expo';
 import axios from 'axios';
@@ -31,7 +31,8 @@ export default class HomeScreen extends React.Component {
       redirectUrl: null,
       loggedIn: false,
       token: null,
-      cookie: null
+      cookie: null,
+      isConnected: true
     }
 
   }
@@ -42,6 +43,16 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount() {
     this.props.navigation.addListener('willFocus', this.componentActive);
+    // Add listener for internet connection change
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+  }
+
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
+  }
+
+  handleConnectivityChange = isConnected => {
+    this.setState({ isConnected });
   }
 
   componentActive = () => {
@@ -355,6 +366,12 @@ export default class HomeScreen extends React.Component {
 
     let i = 0;
 
+
+    let connectedTest = <Text>Connected</Text>;
+    if (!this.state.isConnected) {
+      connectedTest = <Text>Not Connected</Text>
+    }
+
     return (
         <View style={styles.container}>
           <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -367,6 +384,7 @@ export default class HomeScreen extends React.Component {
             {/*</View>*/}
 
             <View style={styles.getStartedContainer}>
+              {connectedTest}
 
               {
                 this.state.contentList.map((l) => (
