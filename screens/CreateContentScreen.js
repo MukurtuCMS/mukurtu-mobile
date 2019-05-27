@@ -24,8 +24,9 @@ class CreateContentScreen extends React.Component {
     title: 'Create Content'
   };
 
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
+    const { navigation, screenProps } = this.props;
     this.onValueChange = this.onValueChange.bind(this);
     this.componentActive = this.componentActive.bind(this);
     this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: ''}
@@ -57,6 +58,7 @@ class CreateContentScreen extends React.Component {
     const token = array[0].token;
     const cookie = array[0].cookie;
 
+
     let data = {
       method: 'POST',
       headers: {
@@ -66,7 +68,9 @@ class CreateContentScreen extends React.Component {
         'Cookie': cookie
       }
     };
-    fetch('http://mukurtucms.kanopi.cloud/app/system/connect', data)
+
+
+    fetch(this.props.screenProps.siteUrl + '/app/system/connect', data)
         .then((response) => response.json())
         .then((responseJson) => {
           if (responseJson.user.uid === 0) {
@@ -75,7 +79,7 @@ class CreateContentScreen extends React.Component {
           }
           data.method = 'GET';
 
-          fetch('http://mukurtucms.kanopi.cloud/app/creatable-types/retrieve', data)
+          fetch(this.props.screenProps.siteUrl + '/app/creatable-types/retrieve', data)
               .then((response) => response.json())
               .then((responseJson) => {
                 this.setState({contentTypes: responseJson});
