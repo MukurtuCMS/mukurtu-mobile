@@ -4,6 +4,7 @@ import Textfield from './Textfield';
 import Textarea from './Textarea';
 import Radios from './Radios';
 import Checkboxes from './Checkboxes';
+import Checkbox from './Checkbox';
 import Select from './Select';
 import Date from './Date';
 import Scald from './Scald';
@@ -113,13 +114,41 @@ export default class FormComponent extends React.Component {
     }
   }
 
+
+  setFormValueCheckbox(newFieldName, newValue, valueKey) {
+    if (this.state.formValues) {
+      const formValues = this.state.formValues;
+
+      console.log('new value');
+      console.log(newValue);
+
+      // React uses true/false, but drupal needs 1/0 for booleans.
+      if (newValue === true) {
+        newValue = 1;
+      } else {
+        newValue = 0;
+      }
+      let values = {
+        [newFieldName]: {
+          "und": {
+            "0": {[valueKey]: newValue}
+          }
+        }
+      };
+      Object.assign(formValues, values);
+
+      // save value to state
+      this.setState({formValues: formValues});
+    }
+  }
+
   setFormValueDate(newFieldName, newValue, type) {
 
 
     if (this.state.formValues) {
       let values = {};
 
-      if(type === 'date_combo') {
+      if (type === 'date_combo') {
         console.log(newFieldName);
         // If the type if date_combo, it needs slashes instead of dashes
         let dateValue = newValue.split('-').join('/');
@@ -127,9 +156,9 @@ export default class FormComponent extends React.Component {
           [newFieldName]: {
             "und": {
               "0": {
-                  "value": {
-                    "date": dateValue
-                  }
+                "value": {
+                  "date": dateValue
+                }
               }
             }
           }
@@ -207,20 +236,6 @@ export default class FormComponent extends React.Component {
             console.log(this.state.formValues);*/
   }
 
-  setFormValueCheckbox(newFieldName, newValue, valueKey) {
-    // need different function for checkbox so we can unset values
-    if (this.state.formValues) {
-      const formValues = this.state.formValues;
-      // check if we are unchecking the box
-      if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][0][valueKey]) {
-        Object.assign(formValues, {[newFieldName]: [{[valueKey]: ''}]});
-      } else {
-        Object.assign(formValues, {[newFieldName]: [{[valueKey]: newValue}]});
-      }
-      // save value to state
-      this.setState({formValues: formValues});
-    }
-  }
 
   setFormValueCheckboxes(newFieldName, newValue, valueKey) {
     // need different function for checkbox so we can unset values
@@ -241,7 +256,6 @@ export default class FormComponent extends React.Component {
 
     // console.log('form values');
     // console.log(this.state.formValues);
-
 
 
     this.postData(this.props.url + '/app/node.json', this.state.formValues)
@@ -283,7 +297,6 @@ export default class FormComponent extends React.Component {
   }
 
 
-
   render() {
     let form = [];
     let sceneRoutes = {};
@@ -293,168 +306,175 @@ export default class FormComponent extends React.Component {
     const {selectedIndex} = this.state;
 
 
-      // iterate through groups
-      for (var i = 0; i < this.props.form.length; i++) {
-        // @TODO: we will add a tabbed wrapper component here based on group name
-        form[i] = [];
-        buttons.push(this.props.form[i]['label']);
+    // iterate through groups
+    for (var i = 0; i < this.props.form.length; i++) {
+      // @TODO: we will add a tabbed wrapper component here based on group name
+      form[i] = [];
+      buttons.push(this.props.form[i]['label']);
 
-        try {
-          var childrenFields = this.props.form[i].childrenFields;
+      try {
+        var childrenFields = this.props.form[i].childrenFields;
 
-          for (var k = 0; k < childrenFields.length; k++) {
-            var field = childrenFields[k];
-            var fieldName = childrenFields[k]['machine_name'];
-
-
-            var fieldArray = childrenFields[k];
+        for (var k = 0; k < childrenFields.length; k++) {
+          var field = childrenFields[k];
+          var fieldName = childrenFields[k]['machine_name'];
 
 
+          var fieldArray = childrenFields[k];
 
 
-            if (fieldArray['#type'] !== undefined) {
+          if (fieldArray['#type'] !== undefined) {
 
-              // If field type is container, we need to drill down and find the form to render
-              if (fieldArray['#type'] === 'container') {
-                fieldArray = field['und'];
+            // If field type is container, we need to drill down and find the form to render
+            if (fieldArray['#type'] === 'container') {
+              fieldArray = field['und'];
 
 
-                if (fieldArray['#type'] === undefined) {
+              if (fieldArray['#type'] === undefined) {
 
-                  fieldArray = fieldArray[0];
+                fieldArray = fieldArray[0];
 
-                  if (fieldArray && fieldArray['#type'] === undefined) {
+                if (fieldArray && fieldArray['#type'] === undefined) {
 
-                    if(fieldArray['target_id'] !== undefined) {
-                      fieldArray = fieldArray['target_id'];
-                    } else if (fieldArray['nid'] !== undefined) {
-                      fieldArray = field['und'][0]['nid'];
-                    } else if (fieldArray['default'] !== undefined) {
-                      fieldArray = field['und'][0]['default'];
-                    } else if (fieldArray['sid'] !== undefined) {
-                      fieldArray = field['und'][0]['sid'];
-                    } else if (fieldArray['value'] !== undefined) {
-                      fieldArray = field['und'][0]['value'];
-                    } else if (fieldArray['geom'] !== undefined) {
-                      fieldArray = field['und'][0]['geom'];
-                    }
+                  if (fieldArray['target_id'] !== undefined) {
+                    fieldArray = fieldArray['target_id'];
+                  } else if (fieldArray['nid'] !== undefined) {
+                    fieldArray = field['und'][0]['nid'];
+                  } else if (fieldArray['default'] !== undefined) {
+                    fieldArray = field['und'][0]['default'];
+                  } else if (fieldArray['sid'] !== undefined) {
+                    fieldArray = field['und'][0]['sid'];
+                  } else if (fieldArray['value'] !== undefined) {
+                    fieldArray = field['und'][0]['value'];
+                  } else if (fieldArray['geom'] !== undefined) {
+                    fieldArray = field['und'][0]['geom'];
                   }
                 }
               }
+            }
 
-              if (typeof fieldArray === 'object' && fieldArray['#type']) {
 
-                // first determine if field is scald library because in FAPI that is a textfield
-                if (fieldArray['#preview_context'] && fieldArray['#preview_context'] === 'mukurtu_scald_media_assets_edit_') {
-                  form[i].push(<Scald
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      setFormValue={this.setFormValue}
-                  />);
-                } else if (fieldArray['#type'] === 'textfield') {
-                  form[i].push(<Textfield
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      setFormValue={this.setFormValue}
-                  />);
-                } else if (fieldArray['#type'] === 'text_format') {
-                  form[i].push(<Textarea
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      setFormValue={this.setFormValue}
-                  />);
-                } else if (fieldArray['#type'] === 'textarea') {
-                  form[i].push(<Textarea
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      setFormValue={this.setFormValue}
-                  />);
-                } else if (fieldArray['#type'] === 'radios') {
-                  form[i].push(<Radios
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      setFormValue={this.setFormValueCheckbox.bind(this)}
-                  />);
-                } else if (fieldArray['#type'] === 'checkboxes') {
-                  form[i].push(<Checkboxes
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      setFormValue={this.setFormValueCheckboxes.bind(this)}
-                  />);
-                } else if (fieldArray['#type'] === 'select') {
-                  form[i].push(<Select
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      setFormValue={this.setFormValue}
-                  />);
-                } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
-                  form[i].push(<Date
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      fieldType={fieldArray['#type']}
-                      setFormValue={this.setFormValueDate.bind(this)}
-                  />);
-                } else if (fieldArray['#type'] === 'geofield_latlon') {
-                  form[i].push(<Location
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      setFormValue={this.setFormValue}
-                  />);
-                } else if (fieldArray['#type'] === 'select2_hidden') {
-                  form[i].push(<Select2
-                      formValues={this.state.formValues}
-                      fieldName={fieldName}
-                      field={fieldArray}
-                      key={fieldName}
-                      setFormValue={this.setFormValueSelect2.bind(this)}
-                  />);
-                }
-              } else {
-                console.log(fieldArray['#title']);
+            if (typeof fieldArray === 'object' && fieldArray['#type']) {
+
+              // first determine if field is scald library because in FAPI that is a textfield
+              if (fieldArray['#preview_context'] && fieldArray['#preview_context'] === 'mukurtu_scald_media_assets_edit_') {
+                form[i].push(<Scald
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (fieldArray['#type'] === 'textfield') {
+                form[i].push(<Textfield
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (fieldArray['#type'] === 'text_format') {
+                form[i].push(<Textarea
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (fieldArray['#type'] === 'textarea') {
+                form[i].push(<Textarea
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (fieldArray['#type'] === 'radios') {
+                form[i].push(<Radios
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueCheckbox.bind(this)}
+                />);
+              } else if (fieldArray['#type'] === 'checkboxes') {
+                form[i].push(<Checkboxes
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueCheckboxes.bind(this)}
+                />);
+              } else if (fieldArray['#type'] === 'checkbox') {
+                form[i].push(<Checkbox
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueCheckbox.bind(this)}
+                />);
+              } else if (fieldArray['#type'] === 'select') {
+                form[i].push(<Select
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
+                form[i].push(<Date
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    fieldType={fieldArray['#type']}
+                    setFormValue={this.setFormValueDate.bind(this)}
+                />);
+              } else if (fieldArray['#type'] === 'geofield_latlon') {
+                form[i].push(<Location
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (fieldArray['#type'] === 'select2_hidden') {
+                form[i].push(<Select2
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueSelect2.bind(this)}
+                />);
               }
+            } else {
+              console.log(fieldArray['#title']);
             }
           }
-        } catch (e) {
-          // console.log(e);
         }
+      } catch (e) {
+        // console.log(e);
+      }
 
-        for (var p = 0; p < form.length; p++) {
-          var groupName = this.props.form[p]['group_name'];
-          sceneRoutes[groupName] = <View style={{width: 200, height: 200}}>{form[p]}</View>;
-        }
-        if (buttons.length > 0) {
-          buttonGroup = <ButtonGroup
-              onPress={this.updateIndex}
-              selectedIndex={selectedIndex}
-              buttons={buttons}
-              containerStyle={styles.buttonContainer}
-              buttonStyle={styles.buttonStyle}
-          />;
+      for (var p = 0; p < form.length; p++) {
+        var groupName = this.props.form[p]['group_name'];
+        sceneRoutes[groupName] = <View style={{width: 200, height: 200}}>{form[p]}</View>;
+      }
+      if (buttons.length > 0) {
+        buttonGroup = <ButtonGroup
+            onPress={this.updateIndex}
+            selectedIndex={selectedIndex}
+            buttons={buttons}
+            containerStyle={styles.buttonContainer}
+            buttonStyle={styles.buttonStyle}
+        />;
 
       }
     }
 
     let formDisplay;
 
-    if(this.state.formSubmitted) {
+    if (this.state.formSubmitted) {
       formDisplay = <View>
         <Text>Your content has been submitted successfully.</Text>
         <Button

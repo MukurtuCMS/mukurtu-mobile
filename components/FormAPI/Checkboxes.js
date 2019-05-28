@@ -17,7 +17,6 @@ export default class Checkboxes extends React.Component {
         const field = this.props.field;
         const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
         let checkboxes = [];
-
         for (const [value, label] of Object.entries(field['#options'])) {
             checkboxes.push(<CheckBox
                     key={value}
