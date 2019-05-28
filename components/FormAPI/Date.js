@@ -34,7 +34,7 @@ export default class Date extends React.Component {
             onDateChange={(date) => {
               this.setState({date: date});
               // newFieldName, newValue, valueKey
-              this.props.setFormValue(this.props.fieldName, date);
+              this.props.setFormValue(this.props.fieldName, date, this.props.fieldType);
             }
             }
         />

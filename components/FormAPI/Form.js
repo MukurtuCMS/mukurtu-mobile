@@ -113,39 +113,61 @@ export default class FormComponent extends React.Component {
     }
   }
 
-  setFormValueDate(newFieldName, newValue) {
+  setFormValueDate(newFieldName, newValue, type) {
 
-
-    // Drupal's Partial Date field requires a format like this:
-    // "field_original_date": {
-    //     //   "und" : {
-    //     //     "0": {
-    //     //       "from": {
-    //     //         "year": "2016",
-    //     //             "month": "05",
-    //     //             "day": "09"
-    //     //       }
-    //     //     }
-    //     //   }
-    //     // },
-    // Date will be in format 2016-05-09
-    let dateArray = newValue.split('-');
 
     if (this.state.formValues) {
-      const formValues = this.state.formValues;
-      let values = {
-        [newFieldName]: {
-          "und": {
-            "0": {
-              "from": {
-                "year": dateArray[0],
-                "month": dateArray[1],
-                "day": dateArray[2]
+      let values = {};
+
+      if(type === 'date_combo') {
+        console.log(newFieldName);
+        // If the type if date_combo, it needs slashes instead of dashes
+        let dateValue = newValue.split('-').join('/');
+        values = {
+          [newFieldName]: {
+            "und": {
+              "0": {
+                  "value": {
+                    "date": dateValue
+                  }
               }
             }
           }
-        }
-      };
+        };
+
+      } else {
+
+        // Drupal's Partial Date field requires a format like this:
+        // "field_original_date": {
+        //     //   "und" : {
+        //     //     "0": {
+        //     //       "from": {
+        //     //         "year": "2016",
+        //     //             "month": "05",
+        //     //             "day": "09"
+        //     //       }
+        //     //     }
+        //     //   }
+        //     // },
+        // Date will be in format 2016-05-09
+
+        let dateArray = newValue.split('-');
+
+        values = {
+          [newFieldName]: {
+            "und": {
+              "0": {
+                "from": {
+                  "year": dateArray[0],
+                  "month": dateArray[1],
+                  "day": dateArray[2]
+                }
+              }
+            }
+          }
+        };
+      }
+      const formValues = this.state.formValues;
       Object.assign(formValues, values);
 
       // save value to state
@@ -217,6 +239,10 @@ export default class FormComponent extends React.Component {
 
   saveNode() {
 
+    // console.log('form values');
+    // console.log(this.state.formValues);
+
+
 
     this.postData(this.props.url + '/app/node.json', this.state.formValues)
     // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
@@ -266,6 +292,7 @@ export default class FormComponent extends React.Component {
     let buttonGroup = [];
     const {selectedIndex} = this.state;
 
+
       // iterate through groups
       for (var i = 0; i < this.props.form.length; i++) {
         // @TODO: we will add a tabbed wrapper component here based on group name
@@ -283,22 +310,24 @@ export default class FormComponent extends React.Component {
             var fieldArray = childrenFields[k];
 
 
-            // if(fieldName === 'og_group_ref') {
-            //   console.log('seelect');
-            //   console.log(childrenFields[k]);
-            // }
 
 
             if (fieldArray['#type'] !== undefined) {
+
               // If field type is container, we need to drill down and find the form to render
               if (fieldArray['#type'] === 'container') {
                 fieldArray = field['und'];
 
+
                 if (fieldArray['#type'] === undefined) {
-                  fieldArray = field['und'][0];
+
+                  fieldArray = fieldArray[0];
 
                   if (fieldArray && fieldArray['#type'] === undefined) {
-                    if (fieldArray['nid'] !== undefined) {
+
+                    if(fieldArray['target_id'] !== undefined) {
+                      fieldArray = fieldArray['target_id'];
+                    } else if (fieldArray['nid'] !== undefined) {
                       fieldArray = field['und'][0]['nid'];
                     } else if (fieldArray['default'] !== undefined) {
                       fieldArray = field['und'][0]['default'];
@@ -372,12 +401,13 @@ export default class FormComponent extends React.Component {
                       key={fieldName}
                       setFormValue={this.setFormValue}
                   />);
-                } else if (fieldArray['#type'] === 'item') {
+                } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
                   form[i].push(<Date
                       formValues={this.state.formValues}
                       fieldName={fieldName}
                       field={fieldArray}
                       key={fieldName}
+                      fieldType={fieldArray['#type']}
                       setFormValue={this.setFormValueDate.bind(this)}
                   />);
                 } else if (fieldArray['#type'] === 'geofield_latlon') {
