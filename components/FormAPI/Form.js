@@ -119,9 +119,6 @@ export default class FormComponent extends React.Component {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
 
-      console.log('new value');
-      console.log(newValue);
-
       // React uses true/false, but drupal needs 1/0 for booleans.
       if (newValue === true) {
         newValue = 1;
@@ -142,10 +139,10 @@ export default class FormComponent extends React.Component {
     }
   }
 
+
   setFormValueDate(newFieldName, newValue, type) {
-
-
     if (this.state.formValues) {
+      const formValues = this.state.formValues;
       let values = {};
 
       if (type === 'date_combo') {
@@ -196,12 +193,50 @@ export default class FormComponent extends React.Component {
           }
         };
       }
-      const formValues = this.state.formValues;
+
       Object.assign(formValues, values);
 
       // save value to state
       this.setState({formValues: formValues});
     }
+  }
+
+
+  setFormValueLocation(newFieldName, latitude, longitude) {
+    if (this.state.formValues) {
+      const formValues = this.state.formValues;
+
+      // Format Drupal needs for submissions:
+      // "field_coverage": {
+      //   "und": {
+      //     "0": {
+      //       "geom": {
+      //         "lat": "14.6048471550539",
+      //             "lon": "149.3713159125509"
+      //       }
+      //
+      //     }
+      //   }
+      // },
+
+      let values = {
+        [newFieldName]: {
+          "und": {
+            "0": {
+              "geom": {
+                "lat": latitude,
+                "lon": longitude
+              }
+            }
+          }
+        }
+      };
+      Object.assign(formValues, values);
+      this.setState({formValues: formValues});
+
+    }
+    // save value to state
+
   }
 
 
@@ -254,9 +289,8 @@ export default class FormComponent extends React.Component {
 
   saveNode() {
 
-    // console.log('form values');
-    // console.log(this.state.formValues);
-
+    console.log('form values');
+    console.log(this.state.formValues);
 
     this.postData(this.props.url + '/app/node.json', this.state.formValues)
     // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
@@ -322,6 +356,10 @@ export default class FormComponent extends React.Component {
 
           var fieldArray = childrenFields[k];
 
+
+          if (['field_sections'].includes(fieldName)) {
+            console.log(fieldArray);
+          }
 
           if (fieldArray['#type'] !== undefined) {
 
@@ -436,7 +474,7 @@ export default class FormComponent extends React.Component {
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
-                    setFormValue={this.setFormValue}
+                    setFormValue={this.setFormValueLocation.bind(this)}
                 />);
               } else if (fieldArray['#type'] === 'select2_hidden') {
                 form[i].push(<Select2
