@@ -149,10 +149,11 @@ export default class App extends React.Component {
       }
     };
 
-
-    axios.post(this.props.screenProps.siteUrl + '/app/system/connect', {}, {headers: data.headers})
-        .then((responseJson) => {
-          if (responseJson.data.user.uid === 0) {
+    // @todo: Replace this with screen props once that is defined
+    fetch(this.state.siteUrl + '/app/system/connect', data)
+         .then((response) => response.json())
+         .then((responseJson) => {
+          if (responseJson.user.uid === 0) {
             this.alertNotLoggedIn();
             return false;
           }
