@@ -340,7 +340,6 @@ export default class HomeScreen extends React.Component {
 
   render() {
     const {navigation, screenProps} = this.props;
-    let siteUrl = this.props.screenProps.siteUrl;
 
     const list = [
       {
