@@ -16,7 +16,7 @@ export default class Location extends React.Component {
                 latitude: 37.78825,
                 longitude: -122.4324,
               }}
-              onLocationSelect={({latitude, longitude})=>console.log(longitude)}
+              onLocationSelect={({latitude, longitude})=> this.props.setFormValue(this.props.fieldName, latitude, longitude)}
           />
         </View>
     );

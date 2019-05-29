@@ -33,8 +33,8 @@ HomeStack.navigationOptions = {
 };
 
 const CreateContentStack = createStackNavigator({
-  Links: CreateContentScreen,
-  CreateContentForm: CreateContentFormScreen
+  Links: {screen: CreateContentScreen},
+  CreateContentForm: {screen: CreateContentFormScreen}
 });
 
 CreateContentStack.navigationOptions = {

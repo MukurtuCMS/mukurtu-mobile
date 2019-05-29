@@ -32,8 +32,9 @@ class CreateContentFormScreen extends React.Component {
     title: 'Create ' + `${navigation.getParam('contentTypeLabel')}`,
   });
 
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
+    const { navigation, screenProps } = this.props;
     this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: ''};
     this.onPress = this.onPress.bind(this);
   }
@@ -86,7 +87,7 @@ class CreateContentFormScreen extends React.Component {
         'Cookie': cookie
       }
     };
-    fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + contentType, data)
+    fetch(this.props.screenProps.siteUrl + '/app/node-form-fields/retrieve/' + contentType, data)
         .then((response) => response.json())
         .then((responseJson) => {
           let form = responseJson;
@@ -190,7 +191,7 @@ class CreateContentFormScreen extends React.Component {
 
 
       const contentType = this.props.navigation.getParam('contentType');
-      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType}/>
+      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl}/>
     }
 
     return (
