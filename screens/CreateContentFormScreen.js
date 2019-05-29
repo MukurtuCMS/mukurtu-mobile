@@ -42,7 +42,22 @@ class CreateContentFormScreen extends React.Component {
     this.props.navigation.addListener('willFocus', this.componentActive)
   }
 
+  retrieveContentType(array) {
+    if (array[0].blob !== undefined) {
+      this.setState({form: JSON.parse(array[0].blob), oldForm: JSON.parse(array[0].blob)});
+    }
+  }
+
   componentActive = () => {
+    // first set content types from db, then try connecting
+    db.transaction(tx => {
+      tx.executeSql(
+          'select blob from content_type where machine_name = ?;',
+          [this.props.navigation.getParam('contentType')],
+          (_, {rows: {_array}}) => this.retrieveContentType(_array)
+      );
+    });
+
     db.transaction(tx => {
       tx.executeSql(
           'select * from auth limit 1;',

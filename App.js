@@ -17,7 +17,6 @@ TaskManager.defineTask(taskName, async () => {
   console.log('background fetch running');
   return BackgroundFetch.Result.NewData;
 });
-console.log('task defined');
 
 export default class App extends React.Component {
 

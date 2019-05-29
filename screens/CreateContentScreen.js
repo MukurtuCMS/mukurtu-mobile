@@ -32,14 +32,30 @@ class CreateContentScreen extends React.Component {
   }
 
   componentDidMount(){
-    this.props.navigation.addListener('willFocus', this.componentActive)
+    this.props.navigation.addListener('willFocus', this.componentActive);
+
   }
 
   componentActive(){
     this.update();
   }
 
+  retrieveContentTypes(array) {
+    if (array.blob !== undefined) {
+      this.setState({contentTypes: JSON.parse(array.blob)});
+    }
+  }
+
   update() {
+    // first set content types from db, then try connecting
+    db.transaction(tx => {
+      tx.executeSql(
+          'select blob from content_types;',
+          '',
+          (_, {rows: {_array}}) => this.retrieveContentTypes(_array)
+      );
+    });
+
     db.transaction(tx => {
       tx.executeSql(
           'select * from auth limit 1;',
