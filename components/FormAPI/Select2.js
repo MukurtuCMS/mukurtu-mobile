@@ -49,13 +49,11 @@ export default class Select2 extends React.Component {
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
     let lang = 'und';
 
-    console.log(this.props.fieldName);
-    console.log(this.props.formValues[this.props.fieldName]);
     let autocompleteFields = [];
     for (var i = 0; i < this.state.count; i++) {
       const key = i;
       let query = '';
-      if (this.props.formValues[this.props.fieldName] !== 'undefined') {
+      if (this.props.formValues[this.props.fieldName] !== undefined) {
         // set the language key as initial key
         lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
         if (lang !== undefined) {

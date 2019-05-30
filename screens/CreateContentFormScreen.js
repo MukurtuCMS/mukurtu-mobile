@@ -9,7 +9,7 @@ import {
   View,
   Image,
   Alert,
-  TouchableHighlight,
+  TouchableHighlight, NetInfo,
 } from 'react-native';
 import SettingsList from 'react-native-settings-list';
 import { connect } from 'react-redux';
@@ -35,12 +35,17 @@ class CreateContentFormScreen extends React.Component {
   constructor(props){
     super(props);
     const { navigation, screenProps } = this.props;
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: ''};
+    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: '', isConnected: false};
     this.onPress = this.onPress.bind(this);
   }
 
   componentDidMount(){
     this.props.navigation.addListener('willFocus', this.componentActive)
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+  }
+
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
   retrieveContentType(array) {
@@ -59,13 +64,15 @@ class CreateContentFormScreen extends React.Component {
       );
     });
 
-    db.transaction(tx => {
-      tx.executeSql(
-          'select * from auth limit 1;',
-          '',
-          (_, { rows: { _array } }) => this.getType(_array)
-      );
-    });
+    if (this.state.isConnected) {
+      db.transaction(tx => {
+        tx.executeSql(
+            'select * from auth limit 1;',
+            '',
+            (_, {rows: {_array}}) => this.getType(_array)
+        );
+      });
+    }
   }
 
   getType(array) {

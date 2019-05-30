@@ -9,6 +9,7 @@ import {
   View,
   Image,
   Alert,
+  NetInfo
 } from 'react-native';
 import SettingsList from 'react-native-settings-list';
 import { connect } from 'react-redux';
@@ -29,25 +30,20 @@ class CreateContentScreen extends React.Component {
     const { navigation, screenProps } = this.props;
     this.onValueChange = this.onValueChange.bind(this);
     this.componentActive = this.componentActive.bind(this);
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: ''}
+    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: '', isConnected: false,}
   }
 
   componentDidMount(){
     this.props.navigation.addListener('willFocus', this.componentActive);
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+  }
 
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
   componentActive(){
-    this.update();
-  }
 
-  retrieveContentTypes(array) {
-    if (array.blob !== undefined) {
-      this.setState({contentTypes: JSON.parse(array.blob)});
-    }
-  }
-
-  update() {
     // first set content types from db, then try connecting
     db.transaction(tx => {
       tx.executeSql(
@@ -56,6 +52,23 @@ class CreateContentScreen extends React.Component {
           (_, {rows: {_array}}) => this.retrieveContentTypes(_array)
       );
     });
+
+    if (this.state.isConnected) {
+      this.update();
+    }
+  }
+
+  handleConnectivityChange = isConnected => {
+    this.setState({ isConnected });
+  }
+
+  retrieveContentTypes(array) {
+    if (array[0].blob !== undefined) {
+      this.setState({contentTypes: JSON.parse(array[0].blob)});
+    }
+  }
+
+  update() {
 
     db.transaction(tx => {
       tx.executeSql(

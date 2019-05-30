@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, View, Text } from 'react-native';
+import { Platform, StatusBar, StyleSheet, View, Text, NetInfo } from 'react-native';
 import {AppLoading, Asset, Font, Icon, SQLite, BackgroundFetch, TaskManager} from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 import { Provider } from 'react-redux';
@@ -33,13 +33,26 @@ export default class App extends React.Component {
       isLoggedIn: false,
       token: false,
       cookie: false,
+      isConnected: false
     };
   }
 
   componentDidMount() {
-    this.registerBackgroundSync();
-    this.logRegisteredTasks();
-    this.update();
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+
+    if (this.state.isConnected) {
+      this.registerBackgroundSync();
+      this.logRegisteredTasks();
+      this.update();
+    }
+  }
+
+  handleConnectivityChange = isConnected => {
+    this.setState({ isConnected });
+  }
+
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
   registerBackgroundSync = async () => {

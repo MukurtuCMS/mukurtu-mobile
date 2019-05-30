@@ -17,43 +17,6 @@ import {SQLite} from "expo";
 
 const db = SQLite.openDatabase('db.db');
 
-const testNode = {
-  "title": 'test title',
-  "body": {
-    "en": [
-      {
-        "format": "filtered_html",
-        "safe_summary": "",
-        "safe_value": "<p>This is the cultural narrative.</p>",
-        "summary":"",
-        "value": "<p>This is the cultural narrative.</p>",
-      }
-      ]
-  },
-  "changed": "1557937130",
-  "cid": "0",
-  "comment": "2",
-  "comment_count": "0",
-  "community_tags_form": null,
-  "field_collection": [],
-  "field_community_record_children": [],
-  "field_community_record_parent": [],
-  "field_community_ref": {
-  "und": [
-      {
-    "nid": "2",
-  },
-],
-},
-  "field_creator": {
-  "und": [
-      {
-    "tid": "2",
-  },
-],
-},
-};
-
 export default class FormComponent extends React.Component {
   constructor(props) {
     super(props);
@@ -330,19 +293,50 @@ export default class FormComponent extends React.Component {
 
   saveNode() {
 
-    console.log('form values');
-    console.log(this.state.formValues);
+    if (this.state.formValues.nid) {
+      console.log(this.state.formValues['field_category']);
+      console.log(this.props.node['field_category']);
 
-    this.postData(this.props.url + '/app/node.json', this.state.formValues)
-    // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
-        .then(
-            () => {
-              this.setState({
-                formSubmitted: true
-              })
-            }
-        )
-        .catch(error => console.error(error));
+      // I have to do this right now because I am getting errors trying to use the postData method
+      const token = this.state.token;
+      const cookie = this.state.cookie;
+      const data = {
+        method: 'PUT',
+        mode: 'cors',
+        cache: 'no-cache',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': token,
+          'Cookie': cookie
+        },
+        redirect: 'follow',
+        referrer: 'no-referrer',
+        body: JSON.stringify(this.state.formValues)
+      };
+
+      fetch('http://mukurtucms.kanopi.cloud/app/node/' + this.state.formValues.nid + '.json', data)
+          .then((response) => response.json())
+          .then((responseJson) => {
+            console.log(responseJson)
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+
+    } else {
+
+      this.postData(this.props.url + '/app/node.json', this.state.formValues)
+      // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
+          .then(
+              (response) => {
+                this.setState({
+                  formSubmitted: true
+                })
+              }
+          )
+          .catch(error => console.error(error));
+    }
   }
 
   resetForm() {
@@ -350,9 +344,9 @@ export default class FormComponent extends React.Component {
   }
 
 
-  postData(url = '', data = {}) {
+  postData(url = '', data = {}, method = 'POST') {
     return fetch(url, {
-      method: 'POST',
+      method: method,
 
       mode: 'cors',
       cache: 'no-cache',

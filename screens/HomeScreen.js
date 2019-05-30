@@ -34,7 +34,7 @@ export default class HomeScreen extends React.Component {
       loggedIn: false,
       token: null,
       cookie: null,
-      isConnected: true,
+      isConnected: false,
       nodes: []
     }
 
@@ -48,6 +48,12 @@ export default class HomeScreen extends React.Component {
     this.props.navigation.addListener('willFocus', this.componentActive);
     // Add listener for internet connection change
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    this.checkInitialConnection();
+  }
+
+  checkInitialConnection = async () => {
+    const isConnected = await NetInfo.isConnected.fetch();
+    this.setState({isConnected: isConnected});
   }
 
   componentWillUnmount() {
@@ -59,22 +65,24 @@ export default class HomeScreen extends React.Component {
   }
 
   componentActive = () => {
-    this.createNodesTable();
-    this.createTokenTable();
-    this.createSyncTable();
-    this.createNodesSavedTable();
-    this.createContentTypesTable();
-    this.createContentTypeTable();
-    this.update();
-    this.syncContentTypes();
+      this.createNodesTable();
+      this.createTokenTable();
+      this.createSyncTable();
+      this.createNodesSavedTable();
+      this.createContentTypesTable();
+      this.createContentTypeTable();
+      if (this.state.isConnected) {
+        this.update();
+        this.syncContentTypes();
+      }
 
-    db.transaction(tx => {
-      tx.executeSql(
-          'select * from nodes limit 10;',
-          '',
-          (_, { rows: { _array } }) => this.updateNodes(_array)
-      );
-    });
+      db.transaction(tx => {
+        tx.executeSql(
+            'select * from nodes limit 10;',
+            '',
+            (_, { rows: { _array } }) => this.updateNodes(_array)
+        );
+      });
   }
 
   updateNodes(array) {
@@ -180,7 +188,6 @@ export default class HomeScreen extends React.Component {
       cookie: cookie,
       token: token
     });
-
 
     // get last updated time
     db.transaction(tx => {
@@ -418,12 +425,6 @@ export default class HomeScreen extends React.Component {
               fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + machineName, data)
                   .then((response) => response.json())
                   .then((responseJson) => {
-                    db.transaction(
-                        tx => {
-                          tx.executeSql('delete from content_type;',
-                          );
-                        }
-                    );
 
                     db.transaction(
                         tx => {
