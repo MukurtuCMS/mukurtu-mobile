@@ -9,6 +9,7 @@ import Select from './Select';
 import Date from './Date';
 import Scald from './Scald';
 import Select2 from './Select2';
+import ConditionalSelect from './ConditionalSelect';
 import Location from './Location';
 import JSONTree from "react-native-json-tree";
 import {ButtonGroup, Button, Text} from "react-native-elements";
@@ -146,7 +147,6 @@ export default class FormComponent extends React.Component {
       let values = {};
 
       if (type === 'date_combo') {
-        console.log(newFieldName);
         // If the type if date_combo, it needs slashes instead of dashes
         let dateValue = newValue.split('-').join('/');
         values = {
@@ -359,11 +359,6 @@ export default class FormComponent extends React.Component {
 
           var fieldArray = childrenFields[k];
 
-
-          if (['field_sections'].includes(fieldName)) {
-            console.log(fieldArray);
-          }
-
           if (fieldArray['#type'] !== undefined) {
 
             // If field type is container, we need to drill down and find the form to render
@@ -454,6 +449,17 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckbox.bind(this)}
                 />);
+              }
+              // OG group gets special conditional select. Can expand to other conditional fields as needed
+              else if (fieldArray['#type'] === 'select' && fieldName === 'og_group_ref') {
+                form[i].push(<ConditionalSelect
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+
               } else if (fieldArray['#type'] === 'select') {
                 form[i].push(<Select
                     formValues={this.state.formValues}
