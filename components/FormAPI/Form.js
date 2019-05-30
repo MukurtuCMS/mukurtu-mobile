@@ -392,10 +392,7 @@ export default class FormComponent extends React.Component {
           var fieldName = childrenFields[k]['machine_name'];
 
           //
-          // if(fieldName === 'og_group_ref') {
-          //   console.log('field name');
-          //   console.log(field);
-          // }
+
 
           var fieldArray = childrenFields[k];
 
