@@ -277,7 +277,7 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueSelect2(newFieldName, newValue, valueKey, key, options) {
+  setFormValueSelect2(newFieldName, newValue, valueKey, key, options, lang = 'und') {
 
     if (this.state.formValues) {
       let formValues = this.state.formValues;
@@ -289,9 +289,10 @@ export default class FormComponent extends React.Component {
       //     }
       //   },
 
-      if (!(formValues[newFieldName])) {
+      if (!(formValues[newFieldName]) || formValues[newFieldName].length < 1) {
         formValues[newFieldName] = {};
-        formValues[newFieldName]['und'] = {};
+        formValues[newFieldName][lang] = [];
+        formValues[newFieldName][lang][0] = {};
       }
 
       // Convert text from react to id for Drupal. Inverse is done in select2.js
@@ -303,7 +304,7 @@ export default class FormComponent extends React.Component {
        nid = selectedOption[0].id;
       }
 
-      formValues[newFieldName]['und'][key] = nid;
+      formValues[newFieldName][lang][0][valueKey] = nid;
 
       // save value to state
       this.setState({formValues: formValues});

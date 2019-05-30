@@ -47,12 +47,33 @@ export default class Select2 extends React.Component {
     let defaultSelect = true;
     // set value key, defaulted to value
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
+    let lang = 'und';
 
-
+    console.log(this.props.fieldName);
+    console.log(this.props.formValues[this.props.fieldName]);
     let autocompleteFields = [];
     for (var i = 0; i < this.state.count; i++) {
       const key = i;
-      const query = (this.props.formValues[this.props.fieldName]) ? this.props.formValues[this.props.fieldName]['und'][key] : '';
+      let query = '';
+      if (this.props.formValues[this.props.fieldName] !== 'undefined') {
+        // set the language key as initial key
+        lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
+        if (lang !== undefined) {
+          // this is our lookup id, we need to find the text value for the id
+          const id = this.props.formValues[this.props.fieldName][lang][key][valueKey];
+          let term = '';
+          for (var i = 0; i < options.length; i++) {
+            if (options[i].id == id) {
+              term = options[i].text;
+            }
+          }
+          if (term.length > 0) {
+            query = term;
+          }
+        } else {
+          const lang = 'und';
+        }
+      }
 
       // We store the option ID for Drupal purposes, but need to set value to the text for React Purposes
       let defaultValue = query;
@@ -75,14 +96,14 @@ export default class Select2 extends React.Component {
           containerStyle={styles.autocompleteContainer}
           data={sortedOptions.length === 1 && comp(query, sortedOptions[0].text) ? [] : sortedOptions}
           defaultValue={defaultValue}
-          onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, key, options)}
+          onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, key, options, lang)}
           placeholder={placeholder}
           hideResults={this.state.autocompleteSelected[key]}
           renderItem={({item, i}) => (
               <TouchableOpacity
                   onPress={
                     () => {
-                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, key, options)
+                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, key, options, lang)
                       this.updateAutocomplete(key, true)
                     }
 
