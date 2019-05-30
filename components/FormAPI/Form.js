@@ -240,6 +240,41 @@ export default class FormComponent extends React.Component {
   }
 
 
+  setFormValueConditionalSelect(newFieldName, val) {
+
+    if (this.state.formValues) {
+      let formValues = this.state.formValues;
+
+      // Drupal needs this format for conditional select fields:
+
+      // "oggroup_fieldset": {
+      //   "0": {
+      //     "dropdown_first": "2",
+      //         "dropdown_second": {
+      //       "target_id": "4"
+      //     }
+      //
+      //   }
+      // },
+
+      let values = {
+        ['oggroup_fieldset']: {
+            "0": {
+              "dropdown_first": "2",
+              "dropdown_second": {
+                "target_id": val
+              }
+            }
+
+        }
+      };
+      Object.assign(formValues, values);
+
+      this.setState({formValues: formValues});
+    }
+  }
+
+
   setFormValueSelect2(newFieldName, newValue, valueKey, key, options) {
 
     if (this.state.formValues) {
@@ -291,7 +326,7 @@ export default class FormComponent extends React.Component {
   }
 
   saveNode() {
-
+    //
     console.log('form values');
     console.log(this.state.formValues);
 
@@ -356,6 +391,11 @@ export default class FormComponent extends React.Component {
           var field = childrenFields[k];
           var fieldName = childrenFields[k]['machine_name'];
 
+          //
+          // if(fieldName === 'og_group_ref') {
+          //   console.log('field name');
+          //   console.log(field);
+          // }
 
           var fieldArray = childrenFields[k];
 
@@ -457,7 +497,7 @@ export default class FormComponent extends React.Component {
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
-                    setFormValue={this.setFormValue}
+                    setFormValue={this.setFormValueConditionalSelect.bind(this)}
                 />);
 
               } else if (fieldArray['#type'] === 'select') {
