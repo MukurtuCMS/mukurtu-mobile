@@ -33,6 +33,7 @@ export default class WebviewScreen extends React.Component {
   componentWillMount() {
 
     let isLoggedInBrowser = this._checkBrowserLoginStatus(this.props.screenProps.siteUrl);
+    console.log(isLoggedInBrowser);
 
     this.setState({isLoggedInBrowser: isLoggedInBrowser});
 
@@ -53,6 +54,7 @@ export default class WebviewScreen extends React.Component {
       fetch(this.props.screenProps.siteUrl + '/app/one-time-login/retrieve', data)
           .then((response) => response.text())
           .then((responseText) => {
+
 
             // Get just the URL from the response text
             responseText = responseText.replace('["', '');

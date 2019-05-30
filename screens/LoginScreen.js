@@ -11,11 +11,10 @@ import {
   TouchableHighlight,
   Alert
 } from 'react-native';
-import { connect } from 'react-redux';
-import { addPlace } from '../actions/place';
-import { addUser } from '../actions/user';
+import {connect} from 'react-redux';
+import {addPlace} from '../actions/place';
+import {addUser} from '../actions/user';
 import {SQLite, WebBrowser} from 'expo';
-
 
 
 const db = SQLite.openDatabase('db.db');
@@ -26,114 +25,129 @@ class LoginScreen extends React.Component {
   constructor(props) {
     super(props);
     // Pass props down from App.js, since we're not using Redux
-    const { navigation, screenProps } = this.props;
+    const {navigation, screenProps} = this.props;
     const siteUrl = screenProps.siteUrl;
     this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
     this.state = {
+      url: siteUrl,
       name: false,
       password: false,
-      siteUrl: siteUrl,
       error: false,
       places: 'b',
     }
   }
 
+  loginCallback() {
+
+  }
+
+
   onClickListener = (viewId) => {
-/*    userAuth(this.state.name, this.state.password, this.state.url)
-      .then((res) => {
-        Alert(res.message);
-        if(res.message === 'Not Found') {
-          this.setState({
-            error: 'User not found'
-          });
-        }
-        else {
-          this.props.navigator.push({
-            title: res.name || 'No Title',
-            passProps: {userInfo: res}
-          });
-          this.setState({
-            error: false,
-            username: ''
-          })
-        }
-      });*/
-    if(this.state.name !== false) {
+    /*    userAuth(this.state.name, this.state.password, this.state.url)
+          .then((res) => {
+            Alert(res.message);
+            if(res.message === 'Not Found') {
+              this.setState({
+                error: 'User not found'
+              });
+            }
+            else {
+              this.props.navigator.push({
+                title: res.name || 'No Title',
+                passProps: {userInfo: res}
+              });
+              this.setState({
+                error: false,
+                username: ''
+              })
+            }
+          });*/
+    if (this.state.name !== false) {
       var name = this.state.name.toLowerCase().trim();
     }
-    if(this.state.password !== false) {
+    if (this.state.password !== false) {
       var pass = this.state.password.toLowerCase().trim();
     }
-    if(this.state.url !== false) {
-      var url = this.state.url.toLowerCase().trim();
-      this._handleSiteUrlUpdate(url);
+    if (this.state.url === false) {
+      // Will need error handling/validation
+      return;
+
     }
 
-    fetch(this.state.url + '/services/session/token')
-      .then((response) => {
-        let Token = response._bodyText;
+    var url = this.state.url.toLowerCase().trim();
 
-        let data = {
-          method: 'POST',
-          body: JSON.stringify({
-            username: name,
-            password: pass
-          }),
-          headers: {
-            'Accept':       'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': Token,
-            'Cookie': this.props.places
-          }
-        };
+    // Set a component URL state for now, then once login is complete set the app-wide URL
+    this.setState({
+      url: url
+    }, () => {
 
-        fetch(this.state.url + '/app/user/login.json', data)
-          .then((response) => response.json())
-          .then((responseJson) => {
-           //  db.transaction(
-           //   tx => {
-           //     tx.executeSql('delete from auth;');
-           //   }
-           // );
-           db.transaction(
-            tx => {
-              tx.executeSql('delete from auth;',
-              );
-            }
-          );
-            db.transaction(
-             tx => {
-               tx.executeSql('insert into auth (token, cookie) values (?, ?)',
-                 [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
-                 (success) => {
-                   // Set site status to logged in
-                   this._handleLoginStatusUpdate(true);
+      fetch(this.state.url + '/services/session/token')
+          .then((response) => {
+            let Token = response._bodyText;
 
-                 },
+            let data = {
+              method: 'POST',
+              body: JSON.stringify({
+                username: name,
+                password: pass
+              }),
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': Token,
+                'Cookie': this.props.places
+              }
+            };
 
-                 (success, error) => console.log(' ')
-               );
-             }
-           );
+            fetch(this.state.url + '/app/user/login.json', data)
+                .then((response) => response.json())
+                .then((responseJson) => {
 
-            this._handleSiteUrlUpdate(this.state.url);
+                  //  db.transaction(
+                  //   tx => {
+                  //     tx.executeSql('delete from auth;');
+                  //   }
+                  // );
+                  db.transaction(
+                      tx => {
+                        tx.executeSql('delete from auth;',
+                        );
+                      }
+                  );
+                  db.transaction(
+                      tx => {
+                        tx.executeSql('insert into auth (token, cookie) values (?, ?)',
+                            [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
+                            (success) => {
+                              // Set site status to logged in
+                              this._handleLoginStatusUpdate(true);
 
-            this.props.add(responseJson.session_name + '=' + responseJson.sessid);
-            this.props.addUserProp(responseJson);
-            this.props.navigation.navigate('Settings')
+                            },
 
+                            (success, error) => console.log(' ')
+                        );
+                      }
+                  );
+
+                  this._handleSiteUrlUpdate(this.state.url);
+
+                  this.props.add(responseJson.session_name + '=' + responseJson.sessid);
+                  this.props.addUserProp(responseJson);
+                  this.props.navigation.navigate('Settings')
+
+                })
+
+
+                .catch((error) => {
+                  // console.error(error);
+                });
           })
-
-
-
           .catch((error) => {
             // console.error(error);
           });
-      })
-      .catch((error) => {
-        // console.error(error);
-      });
+
+    });
   }
 
   render() {
@@ -144,43 +158,44 @@ class LoginScreen extends React.Component {
     }
 
     return (
-      <View style={styles.container}>
-        <View style={styles.inputContainer}>
-          {showError}
-          <TextInput style={styles.inputs}
-                     placeholder="Email"
-                     keyboardType="email-address"
-                     underlineColorAndroid='transparent'
-                     onChangeText={(name) => this.setState({name})}/>
+        <View style={styles.container}>
+          <View style={styles.inputContainer}>
+            {showError}
+            <TextInput style={styles.inputs}
+                       placeholder="Email"
+                       keyboardType="email-address"
+                       underlineColorAndroid='transparent'
+                       onChangeText={(name) => this.setState({name})}/>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <TextInput style={styles.inputs}
+                       placeholder="Password"
+                       secureTextEntry={true}
+                       underlineColorAndroid='transparent'
+                       onChangeText={(password) => this.setState({password})}/>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <TextInput style={styles.inputs}
+                       placeholder="Url"
+                       underlineColorAndroid='transparent'
+                       onChangeText={(url) => this.setState({url})}/>
+          </View>
+
+          <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
+                              onPress={() => this.onClickListener('login')}>
+            <Text style={styles.loginText}>Login</Text>
+          </TouchableHighlight>
+
+          <TouchableHighlight style={styles.buttonContainer} onPress={() => this.onClickListener('restore_password')}>
+            <Text>Forgot your password?</Text>
+          </TouchableHighlight>
+
+          <TouchableHighlight style={styles.buttonContainer} onPress={() => this.onClickListener('register')}>
+            <Text>Register</Text>
+          </TouchableHighlight>
         </View>
-
-        <View style={styles.inputContainer}>
-          <TextInput style={styles.inputs}
-                     placeholder="Password"
-                     secureTextEntry={true}
-                     underlineColorAndroid='transparent'
-                     onChangeText={(password) => this.setState({password})}/>
-        </View>
-
-        <View style={styles.inputContainer}>
-          <TextInput style={styles.inputs}
-                     placeholder="Url"
-                     underlineColorAndroid='transparent'
-                      onChangeText={(url) => this.setState({url})} />
-        </View>
-
-        <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.onClickListener('login')}>
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableHighlight>
-
-        <TouchableHighlight style={styles.buttonContainer} onPress={() => this.onClickListener('restore_password')}>
-          <Text>Forgot your password?</Text>
-        </TouchableHighlight>
-
-        <TouchableHighlight style={styles.buttonContainer} onPress={() => this.onClickListener('register')}>
-          <Text>Register</Text>
-        </TouchableHighlight>
-      </View>
     );
   }
 }
@@ -195,34 +210,34 @@ const styles = StyleSheet.create({
   inputContainer: {
     borderBottomColor: '#F5FCFF',
     backgroundColor: '#FFFFFF',
-    borderRadius:30,
+    borderRadius: 30,
     borderBottomWidth: 1,
-    width:250,
-    height:45,
-    marginBottom:20,
+    width: 250,
+    height: 45,
+    marginBottom: 20,
     flexDirection: 'row',
-    alignItems:'center'
+    alignItems: 'center'
   },
-  inputs:{
-    height:45,
-    marginLeft:16,
+  inputs: {
+    height: 45,
+    marginLeft: 16,
     borderBottomColor: '#FFFFFF',
-    flex:1,
+    flex: 1,
   },
-  inputIcon:{
-    width:30,
-    height:30,
-    marginLeft:15,
+  inputIcon: {
+    width: 30,
+    height: 30,
+    marginLeft: 15,
     justifyContent: 'center'
   },
   buttonContainer: {
-    height:45,
+    height: 45,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom:20,
-    width:250,
-    borderRadius:30,
+    marginBottom: 20,
+    width: 250,
+    borderRadius: 30,
   },
   loginButton: {
     backgroundColor: "#00b5ec",

@@ -318,7 +318,7 @@ export default class FormComponent extends React.Component {
 
       mode: 'cors',
       cache: 'no-cache',
-      credentials: 'same-origin',
+      // credentials: 'same-origin',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
