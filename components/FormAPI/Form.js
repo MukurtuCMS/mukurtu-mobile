@@ -277,35 +277,38 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueSelect2(newFieldName, newValue, valueKey, key) {
+  setFormValueSelect2(newFieldName, newValue, valueKey, key, options) {
+
     if (this.state.formValues) {
       let formValues = this.state.formValues;
 
+      // Drupal needs this format for select fields:
+      // “field_related_dh_items”: {
+      //   “und”: {
+      //     “0”: “30"
+      //     }
+      //   },
+
       if (!(formValues[newFieldName])) {
         formValues[newFieldName] = {};
-        formValues[newFieldName]['und'] = [];
+        formValues[newFieldName]['und'] = {};
       }
 
-      formValues[newFieldName]['und'][key] = newValue;
+      // Convert text from react to id for Drupal. Inverse is done in select2.js
+      let selectedOption = options.filter(function(option) {
+        return option.text === newValue;
+      });
+      let nid = newValue;
+      if (selectedOption !== undefined && selectedOption.length !== 0) {
+       nid = selectedOption[0].id;
+      }
+
+      formValues[newFieldName]['und'][key] = nid;
+
       // save value to state
       this.setState({formValues: formValues});
     }
 
-
-    /*        if (this.state.formValues) {
-                const formValues = this.state.formValues;
-                    let newFormValues = [];
-                    if (this.state.formValues[newFieldName]) {
-                        newFormValues = this.state.formValues[newFieldName];
-                    }
-                    newFormValues.push({[valueKey]: newValue});
-                Object.assign(formValues, {[newFieldName]: newFormValues});
-
-                console.log(formValues);
-                // save value to state
-                this.setState({formValues: formValues});
-            }
-            console.log(this.state.formValues);*/
   }
 
 

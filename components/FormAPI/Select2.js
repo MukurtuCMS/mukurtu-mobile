@@ -53,6 +53,17 @@ export default class Select2 extends React.Component {
     for (var i = 0; i < this.state.count; i++) {
       const key = i;
       const query = (this.props.formValues[this.props.fieldName]) ? this.props.formValues[this.props.fieldName]['und'][key] : '';
+
+      // We store the option ID for Drupal purposes, but need to set value to the text for React Purposes
+      let defaultValue = query;
+      let selected = options.filter(function(option) {
+        return option.id === query;
+      });
+      if(selected.length !== 0) {
+        defaultValue = selected[0].text;
+      }
+
+
       const sortedOptions = this.findFilm(query, options);
       const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
       const placeholder = 'Enter ' + field['#title'];
@@ -63,15 +74,15 @@ export default class Select2 extends React.Component {
           autoCorrect={false}
           containerStyle={styles.autocompleteContainer}
           data={sortedOptions.length === 1 && comp(query, sortedOptions[0].text) ? [] : sortedOptions}
-          defaultValue={query}
-          onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, key)}
+          defaultValue={defaultValue}
+          onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, key, options)}
           placeholder={placeholder}
           hideResults={this.state.autocompleteSelected[key]}
           renderItem={({item, i}) => (
               <TouchableOpacity
                   onPress={
                     () => {
-                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, key)
+                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, key, options)
                       this.updateAutocomplete(key, true)
                     }
 

@@ -10,7 +10,6 @@ export default class Select extends React.Component {
 
     if (field['#default_value'].length > 0) {
       this.props.setFormValue(this.props.fieldName, field['#default_value'][0], valueKey);
-    } else {
     }
   }
 
@@ -59,7 +58,7 @@ export default class Select extends React.Component {
       <Text>{field['#title']}</Text>
       <Picker
           style={{height: 250, width: 'auto'}}
-          onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey)}
+          onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text)}
           selectedValue={selectedValue}
       >
         {options}
