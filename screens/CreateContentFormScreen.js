@@ -44,7 +44,7 @@ class CreateContentFormScreen extends React.Component {
   }
 
   retrieveContentType(array) {
-    if (array[0].blob !== undefined) {
+    if (array.length > 0 && array[0].blob !== undefined) {
       this.setState({form: JSON.parse(array[0].blob), oldForm: JSON.parse(array[0].blob)});
     }
   }
@@ -172,7 +172,7 @@ class CreateContentFormScreen extends React.Component {
           try {
             sortFields.push({'name': field, 'weight': this.state.form[field]['#weight']});
           } catch(e) {
-            console.log(field);
+            // console.log(field);
           }
         }
         sortFields = weightSort(sortFields);
@@ -183,7 +183,7 @@ class CreateContentFormScreen extends React.Component {
           try {
             fieldArray['machine_name'] = field;
           } catch(e) {
-            console.log(field);
+            // console.log(field);
           }
           sortedNodeForm[i]['childrenFields'].push(fieldArray);
         };
@@ -191,7 +191,8 @@ class CreateContentFormScreen extends React.Component {
 
 
       const contentType = this.props.navigation.getParam('contentType');
-      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl}/>
+      const node = this.props.navigation.getParam('node');
+      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl} node={node} />
     }
 
     return (

@@ -7,8 +7,12 @@ export default class Textarea extends React.Component {
         const field = this.props.field;
         const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
         let value = '';
-        if(typeof this.props.formValues[this.props.fieldName] !== 'undefined') {
-            value = this.props.formValues[this.props.fieldName]['und']['0'][valueKey];
+        if(typeof this.props.formValues[this.props.fieldName] !== 'undefined' && this.props.formValues[this.props.fieldName] !== undefined) {
+            // set the language key as initial key
+            const initialKey = Object.keys(this.props.formValues[this.props.fieldName])[0];
+            // console.log(this.props.fieldName);
+            // console.log(this.props.formValues[this.props.fieldName]);
+            value = this.props.formValues[this.props.fieldName][initialKey]['0'][valueKey];
         }
         return <View>
             <Text>{field['#title']}</Text>

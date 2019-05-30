@@ -17,11 +17,48 @@ import {SQLite} from "expo";
 
 const db = SQLite.openDatabase('db.db');
 
+const testNode = {
+  "title": 'test title',
+  "body": {
+    "en": [
+      {
+        "format": "filtered_html",
+        "safe_summary": "",
+        "safe_value": "<p>This is the cultural narrative.</p>",
+        "summary":"",
+        "value": "<p>This is the cultural narrative.</p>",
+      }
+      ]
+  },
+  "changed": "1557937130",
+  "cid": "0",
+  "comment": "2",
+  "comment_count": "0",
+  "community_tags_form": null,
+  "field_collection": [],
+  "field_community_record_children": [],
+  "field_community_record_parent": [],
+  "field_community_ref": {
+  "und": [
+      {
+    "nid": "2",
+  },
+],
+},
+  "field_creator": {
+  "und": [
+      {
+    "tid": "2",
+  },
+],
+},
+};
+
 export default class FormComponent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      formValues: {"type": props.contentType},
+      formValues: (this.props.node !== undefined) ? this.props.node : {"type": props.contentType},
       selectedIndex: 0,
       ajax: '',
       cookie: null,
@@ -272,15 +309,15 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueCheckboxes(newFieldName, newValue, valueKey) {
+  setFormValueCheckboxes(newFieldName, newValue, valueKey, lang = 'und') {
     // need different function for checkbox so we can unset values
     if (this.state.formValues) {
       const formValues = this.state.formValues;
       // check if we are unchecking the box
-      if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][0][valueKey]) {
-        Object.assign(formValues, {[newFieldName]: [{[valueKey]: ''}]});
+      if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][0][valueKey]) {
+        Object.assign(formValues, {[newFieldName]: {[lang]: [{[valueKey]: ''}]}});
       } else {
-        Object.assign(formValues, {[newFieldName]: [{[valueKey]: newValue}]});
+        Object.assign(formValues, {[newFieldName]: {[lang]: [{[valueKey]: newValue}]}});
       }
       // save value to state
       this.setState({formValues: formValues});
@@ -433,7 +470,7 @@ export default class FormComponent extends React.Component {
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
-                    setFormValue={this.setFormValueCheckbox.bind(this)}
+                    setFormValue={this.setFormValueCheckboxes.bind(this)}
                 />);
               } else if (fieldArray['#type'] === 'checkboxes') {
                 form[i].push(<Checkboxes

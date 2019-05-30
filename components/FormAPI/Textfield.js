@@ -7,8 +7,15 @@ export default class Textfield extends React.Component {
         const field = this.props.field;
         const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
         let value = '';
-        if(typeof this.props.formValues[this.props.fieldName] !== 'undefined') {
-            value = this.props.formValues[this.props.fieldName][valueKey];
+        if (this.props.fieldName === 'title' && this.props.formValues[this.props.fieldName] !== undefined) {
+            if(this.props.formValues[this.props.fieldName].length > 0) {
+                value = this.props.formValues[this.props.fieldName];
+            }
+        }
+        else if(typeof this.props.formValues[this.props.fieldName] !== 'undefined') {
+            // set the language key as initial key
+            const initialKey = Object.keys(this.props.formValues[this.props.fieldName])[0];
+            value = this.props.formValues[this.props.fieldName][initialKey][0][valueKey];
         }
         return <View>
             <Text>{field['#title']}</Text>

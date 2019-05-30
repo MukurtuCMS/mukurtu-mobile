@@ -17,6 +17,7 @@ import {FontAwesome} from '@expo/vector-icons';
 import {MonoText} from '../components/StyledText';
 import JSONTree from 'react-native-json-tree'
 import SettingsList from "react-native-settings-list";
+import NodeTeaser from "../components/Displays/nodeTeaser";
 
 const db = SQLite.openDatabase('db.db');
 
@@ -77,7 +78,10 @@ export default class HomeScreen extends React.Component {
   }
 
   updateNodes(array) {
-    console.log(array.length);
+    // let's parse the json blobs before setting state
+    for (var i = 0; i < array.length; i++) {
+      array[i].entity = JSON.parse(array[i].entity);
+    }
     this.setState({nodes: array});
   }
 
@@ -200,24 +204,23 @@ export default class HomeScreen extends React.Component {
           data.method = 'GET';
 
 
-          // fetch(siteUrl + '/app/synced-nodes/retrieve', data)
-          //     .then((response) => response.json())
-          //     .then((responseJson) => {
-          //       console.log(responseJson.digital_heritage);
-          //       if (typeof responseJson.digital_heritage === 'object') {
-          //         this.buildRemovalNids(responseJson.digital_heritage);
-          //         for (const [nid, timestamp] of Object.entries(responseJson.digital_heritage)) {
-          //           // @todo don't update all nodes but starring a node does not save
-          //           // if (timestamp > this.state.syncUpdated) {
-          //           this.saveNode(nid, data);
-          //           this.updateSync();
-          //           // }
-          //         }
-          //       }
-          //     })
-          //     .catch((error) => {
-          //       console.error(error);
-          //     });
+          fetch('http://mukurtucms.kanopi.cloud' + '/app/synced-nodes/retrieve', data)
+              .then((response) => response.json())
+              .then((responseJson) => {
+                if (typeof responseJson.digital_heritage === 'object') {
+                  this.buildRemovalNids(responseJson.digital_heritage);
+                  for (const [nid, timestamp] of Object.entries(responseJson.digital_heritage)) {
+                    // @todo don't update all nodes but starring a node does not save
+                    // if (timestamp > this.state.syncUpdated) {
+                    this.saveNode(nid, data);
+                    this.updateSync();
+                    // }
+                  }
+                }
+              })
+              .catch((error) => {
+                console.error(error);
+              });
         })
         .catch((error) => {
           this.setState({loggedIn: false})
@@ -322,7 +325,7 @@ export default class HomeScreen extends React.Component {
           db.transaction(
               tx => {
                 tx.executeSql('insert into nodes (nid, title, entity) values (?, ?, ?)',
-                    [node.nid, node.title, node],
+                    [node.nid, node.title, JSON.stringify(node)],
                     (success) => success,
                     (success, error) => ''
                 );
@@ -412,15 +415,16 @@ export default class HomeScreen extends React.Component {
 
             // now let's sync all content type endpoints
             for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-              db.transaction(
-                  tx => {
-                    tx.executeSql('delete from content_type;',
-                    );
-                  }
-              );
               fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + machineName, data)
                   .then((response) => response.json())
                   .then((responseJson) => {
+                    db.transaction(
+                        tx => {
+                          tx.executeSql('delete from content_type;',
+                          );
+                        }
+                    );
+
                     db.transaction(
                         tx => {
                           tx.executeSql('insert into content_type (machine_name, blob) values (?, ?)',
@@ -464,7 +468,6 @@ export default class HomeScreen extends React.Component {
           <View><Text>No nodes were found in offline storage.</Text></View>
       )
     }
-    console.log(this.state.nodes);
 
     let i = 0;
 
@@ -474,13 +477,10 @@ export default class HomeScreen extends React.Component {
 
             <View>
 
-              <Text>Offline test</Text>
+              <Text>Offline Nodes</Text>
               {
-                this.state.nodes.map((l) => (
-                    <View key={i++}>
-                      <Text>{l.title}</Text>
-                      <Text>{l.body}</Text>
-                    </View>
+                this.state.nodes.map((node) => (
+                    <NodeTeaser key={i++} node={node} navigation={this.props.navigation} />
                 ))
               }
             </View>
