@@ -9,6 +9,7 @@ import Select from './Select';
 import Date from './Date';
 import Scald from './Scald';
 import Select2 from './Select2';
+import ConditionalSelect from './ConditionalSelect';
 import Location from './Location';
 import JSONTree from "react-native-json-tree";
 import {ButtonGroup, Button, Text} from "react-native-elements";
@@ -146,7 +147,6 @@ export default class FormComponent extends React.Component {
       let values = {};
 
       if (type === 'date_combo') {
-        console.log(newFieldName);
         // If the type if date_combo, it needs slashes instead of dashes
         let dateValue = newValue.split('-').join('/');
         values = {
@@ -240,6 +240,41 @@ export default class FormComponent extends React.Component {
   }
 
 
+
+  setFormValueConditionalSelect(newFieldName, val) {
+
+    if (this.state.formValues) {
+      let formValues = this.state.formValues;
+
+      // Drupal needs this format for conditional select fields:
+
+      // "oggroup_fieldset": {
+      //   "0": {
+      //     "dropdown_first": "2",
+      //         "dropdown_second": {
+      //       "target_id": "4"
+      //     }
+      //
+      //   }
+      // },
+
+      let values = {
+        ['oggroup_fieldset']: {
+            "0": {
+              "dropdown_first": "2",
+              "dropdown_second": {
+                "target_id": val
+              }
+            }
+
+        }
+      };
+      Object.assign(formValues, values);
+      this.setState({formValues: formValues});
+    }
+  }
+
+
   setFormValueSelect2(newFieldName, newValue, valueKey, key, options, lang = 'und') {
 
     if (this.state.formValues) {
@@ -292,6 +327,7 @@ export default class FormComponent extends React.Component {
   }
 
   saveNode() {
+
 
     if (this.state.formValues.nid) {
       console.log(this.state.formValues['field_category']);
@@ -350,7 +386,7 @@ export default class FormComponent extends React.Component {
 
       mode: 'cors',
       cache: 'no-cache',
-      credentials: 'same-origin',
+      // credentials: 'same-origin',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -388,13 +424,10 @@ export default class FormComponent extends React.Component {
           var field = childrenFields[k];
           var fieldName = childrenFields[k]['machine_name'];
 
+          //
+
 
           var fieldArray = childrenFields[k];
-
-
-          if (['field_sections'].includes(fieldName)) {
-            console.log(fieldArray);
-          }
 
           if (fieldArray['#type'] !== undefined) {
 
@@ -486,6 +519,17 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckbox.bind(this)}
                 />);
+              }
+              // OG group gets special conditional select. Can expand to other conditional fields as needed
+              else if (fieldArray['#type'] === 'select' && fieldName === 'og_group_ref') {
+                form[i].push(<ConditionalSelect
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueConditionalSelect.bind(this)}
+                />);
+
               } else if (fieldArray['#type'] === 'select') {
                 form[i].push(<Select
                     formValues={this.state.formValues}
