@@ -21,7 +21,7 @@ export default class FormComponent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      formValues: {"type": props.contentType},
+      formValues: (this.props.node !== undefined) ? this.props.node : {"type": props.contentType},
       selectedIndex: 0,
       ajax: '',
       cookie: null,
@@ -240,7 +240,7 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueSelect2(newFieldName, newValue, valueKey, key, options) {
+  setFormValueSelect2(newFieldName, newValue, valueKey, key, options, lang = 'und') {
 
     if (this.state.formValues) {
       let formValues = this.state.formValues;
@@ -252,9 +252,10 @@ export default class FormComponent extends React.Component {
       //     }
       //   },
 
-      if (!(formValues[newFieldName])) {
+      if (!(formValues[newFieldName]) || formValues[newFieldName].length < 1) {
         formValues[newFieldName] = {};
-        formValues[newFieldName]['und'] = {};
+        formValues[newFieldName][lang] = [];
+        formValues[newFieldName][lang][0] = {};
       }
 
       // Convert text from react to id for Drupal. Inverse is done in select2.js
@@ -266,7 +267,7 @@ export default class FormComponent extends React.Component {
        nid = selectedOption[0].id;
       }
 
-      formValues[newFieldName]['und'][key] = nid;
+      formValues[newFieldName][lang][0][valueKey] = nid;
 
       // save value to state
       this.setState({formValues: formValues});
@@ -275,15 +276,15 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueCheckboxes(newFieldName, newValue, valueKey) {
+  setFormValueCheckboxes(newFieldName, newValue, valueKey, lang = 'und') {
     // need different function for checkbox so we can unset values
     if (this.state.formValues) {
       const formValues = this.state.formValues;
       // check if we are unchecking the box
-      if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][0][valueKey]) {
-        Object.assign(formValues, {[newFieldName]: [{[valueKey]: ''}]});
+      if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][0][valueKey]) {
+        Object.assign(formValues, {[newFieldName]: {[lang]: [{[valueKey]: ''}]}});
       } else {
-        Object.assign(formValues, {[newFieldName]: [{[valueKey]: newValue}]});
+        Object.assign(formValues, {[newFieldName]: {[lang]: [{[valueKey]: newValue}]}});
       }
       // save value to state
       this.setState({formValues: formValues});
@@ -292,19 +293,50 @@ export default class FormComponent extends React.Component {
 
   saveNode() {
 
-    console.log('form values');
-    console.log(this.state.formValues);
+    if (this.state.formValues.nid) {
+      console.log(this.state.formValues['field_category']);
+      console.log(this.props.node['field_category']);
 
-    this.postData(this.props.url + '/app/node.json', this.state.formValues)
-    // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
-        .then(
-            () => {
-              this.setState({
-                formSubmitted: true
-              })
-            }
-        )
-        .catch(error => console.error(error));
+      // I have to do this right now because I am getting errors trying to use the postData method
+      const token = this.state.token;
+      const cookie = this.state.cookie;
+      const data = {
+        method: 'PUT',
+        mode: 'cors',
+        cache: 'no-cache',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': token,
+          'Cookie': cookie
+        },
+        redirect: 'follow',
+        referrer: 'no-referrer',
+        body: JSON.stringify(this.state.formValues)
+      };
+
+      fetch('http://mukurtucms.kanopi.cloud/app/node/' + this.state.formValues.nid + '.json', data)
+          .then((response) => response.json())
+          .then((responseJson) => {
+            console.log(responseJson)
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+
+    } else {
+
+      this.postData(this.props.url + '/app/node.json', this.state.formValues)
+      // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
+          .then(
+              (response) => {
+                this.setState({
+                  formSubmitted: true
+                })
+              }
+          )
+          .catch(error => console.error(error));
+    }
   }
 
   resetForm() {
@@ -312,9 +344,9 @@ export default class FormComponent extends React.Component {
   }
 
 
-  postData(url = '', data = {}) {
+  postData(url = '', data = {}, method = 'POST') {
     return fetch(url, {
-      method: 'POST',
+      method: method,
 
       mode: 'cors',
       cache: 'no-cache',
@@ -436,7 +468,7 @@ export default class FormComponent extends React.Component {
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
-                    setFormValue={this.setFormValueCheckbox.bind(this)}
+                    setFormValue={this.setFormValueCheckboxes.bind(this)}
                 />);
               } else if (fieldArray['#type'] === 'checkboxes') {
                 form[i].push(<Checkboxes

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, View, Text } from 'react-native';
-import {AppLoading, Asset, Font, Icon, SQLite} from 'expo';
+import { Platform, StatusBar, StyleSheet, View, Text, NetInfo } from 'react-native';
+import {AppLoading, Asset, Font, Icon, SQLite, BackgroundFetch, TaskManager} from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 import { Provider } from 'react-redux';
 import {LoginText} from "./components/LoginText";
@@ -10,6 +10,13 @@ import axios from "axios";
 
 const store = configureStore();
 const db = SQLite.openDatabase('db.db');
+
+BackgroundFetch.setMinimumIntervalAsync(60);
+const taskName = 'mukurtu-mobile-sync';
+TaskManager.defineTask(taskName, async () => {
+  console.log('background fetch running');
+  return BackgroundFetch.Result.NewData;
+});
 
 export default class App extends React.Component {
 
@@ -25,14 +32,38 @@ export default class App extends React.Component {
       siteUrl: 'http://mukurtucms.kanopi.cloud/',
       isLoggedIn: false,
       token: false,
-      cookie: false
+      cookie: false,
+      isConnected: false
     };
   }
 
   componentDidMount() {
-    this.update();
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+
+    if (this.state.isConnected) {
+      this.registerBackgroundSync();
+      this.logRegisteredTasks();
+      this.update();
+    }
   }
 
+  handleConnectivityChange = isConnected => {
+    this.setState({ isConnected });
+  }
+
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
+  }
+
+  registerBackgroundSync = async () => {
+    await BackgroundFetch.registerTaskAsync(taskName);
+    console.log('task registered');
+  };
+
+  logRegisteredTasks = async () => {
+    const registeredTasks = await TaskManager.getRegisteredTasksAsync();
+    console.log(registeredTasks);
+  };
 
   render() {
     let screenProps = {
