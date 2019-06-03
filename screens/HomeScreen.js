@@ -9,13 +9,15 @@ import {
   View,
   Alert,
   Button,
-  Linking
+  Linking, NetInfo
 } from 'react-native';
 import {WebBrowser, SQLite} from 'expo';
 import axios from 'axios';
 import {FontAwesome} from '@expo/vector-icons';
 import {MonoText} from '../components/StyledText';
 import JSONTree from 'react-native-json-tree'
+import SettingsList from "react-native-settings-list";
+import NodeTeaser from "../components/Displays/nodeTeaser";
 
 const db = SQLite.openDatabase('db.db');
 
@@ -31,7 +33,9 @@ export default class HomeScreen extends React.Component {
       redirectUrl: null,
       loggedIn: false,
       token: null,
-      cookie: null
+      cookie: null,
+      isConnected: false,
+      nodes: []
     }
 
   }
@@ -42,13 +46,51 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount() {
     this.props.navigation.addListener('willFocus', this.componentActive);
+    // Add listener for internet connection change
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    this.checkInitialConnection();
+  }
+
+  checkInitialConnection = async () => {
+    const isConnected = await NetInfo.isConnected.fetch();
+    this.setState({isConnected: isConnected});
+  }
+
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
+  }
+
+  handleConnectivityChange = isConnected => {
+    this.setState({ isConnected });
   }
 
   componentActive = () => {
-    this.createNodesTable();
-    this.createTokenTable();
-    this.createSyncTable();
-    this.update();
+      this.createNodesTable();
+      this.createTokenTable();
+      this.createSyncTable();
+      this.createNodesSavedTable();
+      this.createContentTypesTable();
+      this.createContentTypeTable();
+      if (this.state.isConnected) {
+        this.update();
+        this.syncContentTypes();
+      }
+
+      db.transaction(tx => {
+        tx.executeSql(
+            'select * from nodes limit 10;',
+            '',
+            (_, { rows: { _array } }) => this.updateNodes(_array)
+        );
+      });
+  }
+
+  updateNodes(array) {
+    // let's parse the json blobs before setting state
+    for (var i = 0; i < array.length; i++) {
+      array[i].entity = JSON.parse(array[i].entity);
+    }
+    this.setState({nodes: array});
   }
 
   createTokenTable() {
@@ -71,6 +113,33 @@ export default class HomeScreen extends React.Component {
     db.transaction(tx => {
       tx.executeSql(
           'create table if not exists nodes (nid integer primary key, title text, entity text);'
+      );
+    });
+  }
+
+  // this will be a store for any nodes that need to be uploaded next sync
+  createNodesSavedTable() {
+    db.transaction(tx => {
+      tx.executeSql(
+          'create table if not exists nodes_saved (nid integer primary key, title text, entity text);'
+      );
+    });
+  }
+
+  // this will be a store the content types overview endpoint
+  createContentTypesTable() {
+    db.transaction(tx => {
+      tx.executeSql(
+          'create table if not exists content_types (id integer primary key, blob text);'
+      );
+    });
+  }
+
+  // this will be a store the content type endpoint
+  createContentTypeTable() {
+    db.transaction(tx => {
+      tx.executeSql(
+          'create table if not exists content_type (machine_name text primary key, blob text);'
       );
     });
   }
@@ -120,7 +189,6 @@ export default class HomeScreen extends React.Component {
       token: token
     });
 
-
     // get last updated time
     db.transaction(tx => {
       tx.executeSql(
@@ -129,18 +197,10 @@ export default class HomeScreen extends React.Component {
           (_, {rows: {_array}}) => this.setState({syncUpdated: _array})
       );
     });
-    let data = {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cookie': cookie
-      }
-    };
+    let data = this.buildFetchData('POST');
 
 
-    fetch(this.props.screenProps.siteUrl + '/app/system/connect', data)
+    fetch('http://mukurtucms.kanopi.cloud' + '/app/system/connect', data)
         .then((response) => response.json())
         .then((responseJson) => {
           if (responseJson.user.uid === 0) {
@@ -151,27 +211,25 @@ export default class HomeScreen extends React.Component {
           data.method = 'GET';
 
 
-          // fetch(siteUrl + '/app/synced-nodes/retrieve', data)
-          //     .then((response) => response.json())
-          //     .then((responseJson) => {
-          //       console.log(responseJson.digital_heritage);
-          //       if (typeof responseJson.digital_heritage === 'object') {
-          //         this.buildRemovalNids(responseJson.digital_heritage);
-          //         for (const [nid, timestamp] of Object.entries(responseJson.digital_heritage)) {
-          //           // @todo don't update all nodes but starring a node does not save
-          //           // if (timestamp > this.state.syncUpdated) {
-          //           this.saveNode(nid, data);
-          //           this.updateSync();
-          //           // }
-          //         }
-          //       }
-          //     })
-          //     .catch((error) => {
-          //       console.error(error);
-          //     });
+          fetch('http://mukurtucms.kanopi.cloud' + '/app/synced-nodes/retrieve', data)
+              .then((response) => response.json())
+              .then((responseJson) => {
+                if (typeof responseJson.digital_heritage === 'object') {
+                  this.buildRemovalNids(responseJson.digital_heritage);
+                  for (const [nid, timestamp] of Object.entries(responseJson.digital_heritage)) {
+                    // @todo don't update all nodes but starring a node does not save
+                    // if (timestamp > this.state.syncUpdated) {
+                    this.saveNode(nid, data);
+                    this.updateSync();
+                    // }
+                  }
+                }
+              })
+              .catch((error) => {
+                console.error(error);
+              });
         })
         .catch((error) => {
-          console.error(error);
           this.setState({loggedIn: false})
           this.alertNotLoggedIn();
         });
@@ -263,21 +321,20 @@ export default class HomeScreen extends React.Component {
     fetch(this.props.screenProps.siteUrl + '/app/node/' + nid + '.json', data)
         .then((response) => response.json())
         .then((node) => {
-          console.log(node.title)
           db.transaction(tx => {
             tx.executeSql(
                 'delete from nodes where nid = ?;',
                 [node.nid],
-                (_, {rows: {_array}}) => console.log(_array)
+                (_, {rows: {_array}}) => ''
             );
           });
 
           db.transaction(
               tx => {
                 tx.executeSql('insert into nodes (nid, title, entity) values (?, ?, ?)',
-                    [node.nid, node.title, node],
+                    [node.nid, node.title, JSON.stringify(node)],
                     (success) => success,
-                    (success, error) => console.log(' ')
+                    (success, error) => ''
                 );
               }
           );
@@ -300,7 +357,7 @@ export default class HomeScreen extends React.Component {
           tx.executeSql('insert into sync (id, last) values (?, ?)',
               [1, time],
               (success) => success,
-              (success, error) => console.log(' ')
+              (success, error) => ''
           );
         }
     );
@@ -331,49 +388,100 @@ export default class HomeScreen extends React.Component {
           tx.executeSql(
               'delete from nodes where nid = ?;',
               [currentNid],
-              (_, {rows: {_array}}) => console.log(_array)
+              (_, {rows: {_array}}) => console.log('')
           );
         });
       }
     }
   }
 
-  render() {
-    const {navigation, screenProps} = this.props;
+  syncContentTypes() {
+    if (!this.state.loggedIn) {
+      return false;
+    }
+    const data = this.buildFetchData();
+    fetch('http://mukurtucms.kanopi.cloud/app/creatable-types/retrieve', data)
+        .then((response) => response.json())
+        .then((responseJson) => {
+          if (typeof responseJson === 'object' && responseJson !== null) {
+            db.transaction(
+                tx => {
+                  tx.executeSql('delete from content_types;',
+                  );
+                }
+            );
+            db.transaction(
+                tx => {
+                  tx.executeSql('insert into content_types (id, blob) values (?, ?)',
+                      [1, JSON.stringify(responseJson)],
+                      (success) => '',
+                      (success, error) => console.log(' ')
+                  );
+                }
+            );
 
-    const list = [
-      {
-        name: 'Digital Heritage Item 1',
-        description: "This is my item text. This is my item textarea I need words to fill in. This is my item text. This is my item textarea I need words to fill in."
-      },
-      {
-        name: 'Digital Heritage Item 2',
-        description: "This is my item text. This is my item textarea I need words to fill in. This is my item text. This is my item textarea I need words to fill in."
+            // now let's sync all content type endpoints
+            for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+              fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + machineName, data)
+                  .then((response) => response.json())
+                  .then((responseJson) => {
+
+                    db.transaction(
+                        tx => {
+                          tx.executeSql('insert into content_type (machine_name, blob) values (?, ?)',
+                              [machineName, JSON.stringify(responseJson)],
+                              (success) => '',
+                              (success, error) => ''
+                          );
+                        }
+                    );
+                  })
+                  .catch((error) => {
+                    // console.error(error);
+                  });
+            }
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+  }
+
+  buildFetchData(method = 'GET'){
+    const token = this.state.token;
+    const cookie = this.state.cookie;
+    const data = {
+      method: method,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': token,
+        'Cookie': cookie
       }
-    ];
+    };
+    return data;
+  }
+
+
+  render() {
+    if (this.state.nodes.length < 1) {
+      return (
+          <View><Text>No nodes were found in offline storage.</Text></View>
+      )
+    }
 
     let i = 0;
 
     return (
         <View style={styles.container}>
-          <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            {/*<View style={styles.header}>*/}
-            {/*  <Button*/}
-            {/*      style={styles.headerButton}*/}
-            {/*      title="Browse Digital Heritage"*/}
-            {/*      onPress={() => this._handlePressButtonAsync(siteUrl)}*/}
-            {/*  />*/}
-            {/*</View>*/}
+          <ScrollView style={styles.container}>
 
-            <View style={styles.getStartedContainer}>
+            <View>
 
+              <Text>Offline Nodes</Text>
               {
-                this.state.contentList.map((l) => (
-                    <View key={i++} style={styles.listWrapper}>
-                      <Text style={styles.listTextHeader}>{l.title}</Text>
-                      <FontAwesome name="star" size={25} style={styles.star} onPress={() => this.saveNode(l.nid)}/>
-                      <Text style={styles.listTextBody}>{(l.body.und) ? l.body.und[0].value : ''}</Text>
-                    </View>
+                this.state.nodes.map((node) => (
+                    <NodeTeaser key={i++} node={node} navigation={this.props.navigation} />
                 ))
               }
             </View>

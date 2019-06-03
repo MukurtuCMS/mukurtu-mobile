@@ -9,7 +9,7 @@ import {
   View,
   Image,
   Alert,
-  TouchableHighlight,
+  TouchableHighlight, NetInfo,
 } from 'react-native';
 import SettingsList from 'react-native-settings-list';
 import { connect } from 'react-redux';
@@ -35,22 +35,44 @@ class CreateContentFormScreen extends React.Component {
   constructor(props){
     super(props);
     const { navigation, screenProps } = this.props;
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: ''};
+    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: '', isConnected: false};
     this.onPress = this.onPress.bind(this);
   }
 
   componentDidMount(){
     this.props.navigation.addListener('willFocus', this.componentActive)
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+  }
+
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
+  }
+
+  retrieveContentType(array) {
+    if (array.length > 0 && array[0].blob !== undefined) {
+      this.setState({form: JSON.parse(array[0].blob), oldForm: JSON.parse(array[0].blob)});
+    }
   }
 
   componentActive = () => {
+    // first set content types from db, then try connecting
     db.transaction(tx => {
       tx.executeSql(
-          'select * from auth limit 1;',
-          '',
-          (_, { rows: { _array } }) => this.getType(_array)
+          'select blob from content_type where machine_name = ?;',
+          [this.props.navigation.getParam('contentType')],
+          (_, {rows: {_array}}) => this.retrieveContentType(_array)
       );
     });
+
+    if (this.state.isConnected) {
+      db.transaction(tx => {
+        tx.executeSql(
+            'select * from auth limit 1;',
+            '',
+            (_, {rows: {_array}}) => this.getType(_array)
+        );
+      });
+    }
   }
 
   getType(array) {
@@ -157,7 +179,7 @@ class CreateContentFormScreen extends React.Component {
           try {
             sortFields.push({'name': field, 'weight': this.state.form[field]['#weight']});
           } catch(e) {
-            console.log(field);
+            // console.log(field);
           }
         }
         sortFields = weightSort(sortFields);
@@ -168,7 +190,7 @@ class CreateContentFormScreen extends React.Component {
           try {
             fieldArray['machine_name'] = field;
           } catch(e) {
-            console.log(field);
+            // console.log(field);
           }
           sortedNodeForm[i]['childrenFields'].push(fieldArray);
         };
@@ -176,7 +198,8 @@ class CreateContentFormScreen extends React.Component {
 
 
       const contentType = this.props.navigation.getParam('contentType');
-      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl}/>
+      const node = this.props.navigation.getParam('node');
+      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl} node={node} />
     }
 
     return (
