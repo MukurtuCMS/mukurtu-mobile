@@ -69,7 +69,6 @@ export default class Select2 extends React.Component {
             });
 
           if (term.length > 0) {
-
             query = term;
           }
         }
@@ -79,17 +78,15 @@ export default class Select2 extends React.Component {
       }
 
       // We store the option ID for Drupal purposes, but need to set value to the text for React Purposes
-      // let defaultValue = (this.props.formValues[this.props.fieldName]) ? this.props.formValues[this.props.fieldName][lang][key] : '';
-      let defaultValue;
+      let defaultValue = (this.props.formValues[this.props.fieldName]) ? this.props.formValues[this.props.fieldName][lang][key] : '';
       let selected = options.filter(function(option) {
-        return option.id === query.tid;
+        return option.id === defaultValue;
       });
       if(selected.length !== 0) {
         defaultValue = selected[0].text;
       }
 
-
-      const sortedOptions = this.findFilm(query, options);
+      const sortedOptions = this.findFilm(defaultValue, options);
       const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
       const placeholder = 'Enter ' + field['#title'];
 
