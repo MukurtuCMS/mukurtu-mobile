@@ -38,10 +38,6 @@ class LoginScreen extends React.Component {
     }
   }
 
-  loginCallback() {
-
-  }
-
 
   onClickListener = (viewId) => {
     /*    userAuth(this.state.name, this.state.password, this.state.url)
