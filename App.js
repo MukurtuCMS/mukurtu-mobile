@@ -93,11 +93,9 @@ export default class App extends React.Component {
     this.setState({ isLoadingComplete: true });
   };
 
-  _handleSiteUrlUpdate = (url, callback) => {
+  _handleSiteUrlUpdate = (url) => {
     this.setState({ siteUrl: url });
   };
-
-
 
   _handleLoginStatusUpdate = (status) => {
     this.setState({ isLoggedIn: status });

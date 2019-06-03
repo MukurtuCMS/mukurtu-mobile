@@ -269,7 +269,6 @@ export default class FormComponent extends React.Component {
         }
       };
       Object.assign(formValues, values);
-
       this.setState({formValues: formValues});
     }
   }
@@ -326,7 +325,6 @@ export default class FormComponent extends React.Component {
   }
 
   saveNode() {
-    //
     console.log('form values');
     console.log(this.state.formValues);
 

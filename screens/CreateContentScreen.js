@@ -74,7 +74,6 @@ class CreateContentScreen extends React.Component {
         .then((response) => response.json())
         .then((responseJson) => {
           if (responseJson.user.uid === 0) {
-            console.log(responseJson);
             // this.alertNotLoggedIn(); Need to replace this with a login prompt
             return false;
           }
@@ -83,7 +82,6 @@ class CreateContentScreen extends React.Component {
           fetch(this.props.screenProps.siteUrl + '/app/creatable-types/retrieve', data)
               .then((response) => response.json())
               .then((responseJson) => {
-                console.log(responseJson);
                 this.setState({contentTypes: responseJson});
               })
               .catch((error) => {
