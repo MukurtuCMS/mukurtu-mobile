@@ -416,10 +416,18 @@ export default class FormComponent extends React.Component {
     for (var i = 0; i < this.props.form.length; i++) {
       // @TODO: we will add a tabbed wrapper component here based on group name
       form[i] = [];
-      buttons.push(this.props.form[i]['label']);
+      if(this.props.form[i]['label'] !== undefined) {
+        buttons.push(this.props.form[i]['label']);
+      }
 
       try {
-        var childrenFields = this.props.form[i].childrenFields;
+        let childrenFields;
+        if(this.props.form[i].childrenFields === undefined) {
+          childrenFields = this.props.form;
+        } else {
+          childrenFields = this.props.form[i].childrenFields;
+        }
+
 
         for (var k = 0; k < childrenFields.length; k++) {
           var field = childrenFields[k];
