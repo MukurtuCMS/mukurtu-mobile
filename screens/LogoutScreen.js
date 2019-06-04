@@ -17,15 +17,15 @@ import {addUser} from '../actions/user';
 import {WebBrowser, SQLite} from 'expo';
 import Axios from "axios";
 
-
-const db = SQLite.openDatabase('db.db');
-
+// create a global db for database list and last known user
+const globalDB = SQLite.openDatabase('global');
 
 class LogoutScreen extends React.Component {
 
   constructor(props) {
     super(props);
     const { navigation, screenProps } = this.props;
+    this.state = {db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
     this.handleLoginClick = this.handleLoginClick.bind(this);
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
     this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
@@ -64,11 +64,19 @@ class LogoutScreen extends React.Component {
     fetch(this.props.screenProps.siteUrl + '/app/user/logout', data)
         .then((response) => response.json())
         .then((responseJson) => {
-          db.transaction(
+          this.state.db.transaction(
               tx => {
                 tx.executeSql('delete from auth;',
                 );
               }
+          );
+
+          // we need to remove our global user
+          globalDB.transaction(
+            tx => {
+              tx.executeSql('delete from user;',
+              );
+            }
           );
         })
 

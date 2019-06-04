@@ -11,6 +11,9 @@ import axios from "axios";
 const store = configureStore();
 const db = SQLite.openDatabase('db.db');
 
+// create a global db for database list and last known user
+const globalDB = SQLite.openDatabase('global');
+
 BackgroundFetch.setMinimumIntervalAsync(60);
 const taskName = 'mukurtu-mobile-sync';
 TaskManager.defineTask(taskName, async () => {
@@ -25,6 +28,7 @@ export default class App extends React.Component {
     super(props);
     this._handleSiteUrlUpdate = this._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
+
     this.state = {
       isLoadingComplete: false,
       // This is the base siteUrl for testing purposes. When logging in user can set a new URL
@@ -33,12 +37,36 @@ export default class App extends React.Component {
       isLoggedIn: false,
       token: false,
       cookie: false,
-      isConnected: false
+      isConnected: false,
+      databaseName: false
     };
   }
 
+  setDatabaseName = () => {
+    const self = this;
+    globalDB.transaction(tx => {
+      tx.executeSql(
+        'select * from user limit 1;',
+        '',
+        function(tx, result){
+          const array = result.rows._array;
+          if (!array) {
+            self.setState({databaseName: null});
+          } else {
+            const siteUrl = array[0].siteUrl;
+            const userBlob = JSON.parse(array[0].user);
+            const databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
+
+            self.setState({databaseName: databaseName});
+          }
+        }
+      );
+    });
+  };
+
   componentDidMount() {
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    this.setDatabaseName();
 
     if (this.state.isConnected) {
       this.registerBackgroundSync();
@@ -66,11 +94,15 @@ export default class App extends React.Component {
   };
 
   render() {
+    if (this.state.databaseName === false){
+      return [];
+    }
     let screenProps = {
           siteUrl: this.state.siteUrl,
           isLoggedIn: this.state.isLoggedIn,
           token: this.state.token,
           cookie: this.state.cookie,
+          databaseName: this.state.databaseName,
           _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
           _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
         };
@@ -124,8 +156,24 @@ export default class App extends React.Component {
     this.setState({ isLoadingComplete: true });
   };
 
-  _handleSiteUrlUpdate = (url) => {
-    this.setState({ siteUrl: url });
+  _handleSiteUrlUpdate = (url, uid) => {
+      // create database and set database name state
+      const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
+      const databaseName = siteUrl.replace(/\./g,'_') + '_' + uid;
+
+    // we need to update our global databasename
+    globalDB.transaction(
+      tx => {
+        tx.executeSql('replace into database (siteUrl, databaseName) values (?, ?)',
+          [siteUrl, databaseName],
+          (success) => {
+          },
+          (success, error) => console.log(' ')
+        );
+      }
+    );
+
+    this.setState({ siteUrl: url, databaseName: databaseName});
   };
 
   _handleLoginStatusUpdate = (status) => {

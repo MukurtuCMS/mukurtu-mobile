@@ -18,8 +18,6 @@ import { addUser } from '../actions/user';
 import axios from "axios";
 import { WebBrowser, SQLite } from 'expo';
 
-const db = SQLite.openDatabase('db.db');
-
 class CreateContentScreen extends React.Component {
   static navigationOptions = {
     title: 'Create Content'
@@ -30,7 +28,7 @@ class CreateContentScreen extends React.Component {
     const { navigation, screenProps } = this.props;
     this.onValueChange = this.onValueChange.bind(this);
     this.componentActive = this.componentActive.bind(this);
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: '', isConnected: false,}
+    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: '', isConnected: false, db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
   }
 
   componentDidMount(){
@@ -43,18 +41,22 @@ class CreateContentScreen extends React.Component {
   }
 
   componentActive(){
+    if (!this.state.db) {
+      this.alertNotLoggedIn();
+    } else {
 
-    // first set content types from db, then try connecting
-    db.transaction(tx => {
-      tx.executeSql(
+      // first set content types from db, then try connecting
+      this.state.db.transaction(tx => {
+        tx.executeSql(
           'select blob from content_types;',
           '',
           (_, {rows: {_array}}) => this.retrieveContentTypes(_array)
-      );
-    });
+        );
+      });
 
-    if (this.state.isConnected) {
-      this.update();
+      if (this.state.isConnected) {
+        this.update();
+      }
     }
   }
 
@@ -63,14 +65,14 @@ class CreateContentScreen extends React.Component {
   }
 
   retrieveContentTypes(array) {
-    if (array[0].blob !== undefined) {
+    if (array[0] && array[0].blob !== undefined) {
       this.setState({contentTypes: JSON.parse(array[0].blob)});
     }
   }
 
   update() {
 
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'select * from auth limit 1;',
           '',
