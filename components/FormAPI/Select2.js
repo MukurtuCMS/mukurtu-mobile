@@ -87,7 +87,12 @@ export default class Select2 extends React.Component {
       }
 
       const sortedOptions = this.findFilm(defaultValue, options);
-      const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
+      const comp = (a, b) => {
+        if(typeof a !== "string" || typeof b !== "string") {
+          return false;
+        }
+        return a.toLowerCase().trim() === b.toLowerCase().trim()
+      };
       const placeholder = 'Enter ' + field['#title'];
 
       autocompleteFields.push(<Autocomplete
