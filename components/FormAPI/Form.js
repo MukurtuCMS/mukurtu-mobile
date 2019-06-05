@@ -32,6 +32,7 @@ export default class FormComponent extends React.Component {
     this.setFormValue = this.setFormValue.bind(this);
     this.updateIndex = this.updateIndex.bind(this);
     this.saveNode = this.saveNode.bind(this)
+    this.validateForm = this.validateForm.bind(this)
     this.resetForm = this.resetForm.bind(this)
   }
 
@@ -375,6 +376,16 @@ export default class FormComponent extends React.Component {
     }
   }
 
+  validateForm() {
+
+
+
+    let form = this.props.form;
+    // Loop through form values to get all required ones
+    form['children'][0];
+
+  }
+
   resetForm() {
     this.setState({formSubmitted: false});
   }
@@ -459,6 +470,8 @@ export default class FormComponent extends React.Component {
               }
             }
 
+            // Set required values
+            let required = fieldArray['#required'];
 
             if (typeof fieldArray === 'object' && fieldArray['#type']) {
 
@@ -477,6 +490,7 @@ export default class FormComponent extends React.Component {
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
+                    required={required}
                     setFormValue={this.setFormValue}
                 />);
               } else if (fieldArray['#type'] === 'text_format') {
@@ -607,7 +621,7 @@ export default class FormComponent extends React.Component {
         {form[this.state.selectedIndex]}
         <Button
             title="Save"
-            onPress={this.saveNode}
+            onPress={this.validateForm}
         />
       </View>;
     }
