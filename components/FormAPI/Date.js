@@ -7,6 +7,11 @@ export default class Date extends React.Component {
     this.state = {date: "2016-05-18"}
   }
 
+  componentDidMount() {
+    // Set initial date in case it's not changed
+    this.props.setFormValue(this.props.fieldName, this.state.date, this.props.fieldType);
+  }
+
   render() {
     return (
         <DatePicker

@@ -291,8 +291,7 @@ export default class FormComponent extends React.Component {
 
       if (!(formValues[newFieldName]) || formValues[newFieldName].length < 1) {
         formValues[newFieldName] = {};
-        formValues[newFieldName][lang] = [];
-        formValues[newFieldName][lang][0] = {};
+        formValues[newFieldName][lang] = {};
       }
 
       // Convert text from react to id for Drupal. Inverse is done in select2.js
@@ -304,7 +303,7 @@ export default class FormComponent extends React.Component {
        nid = selectedOption[0].id;
       }
 
-      formValues[newFieldName][lang][0][valueKey] = nid;
+      formValues[newFieldName][lang][key] = nid;
 
       // save value to state
       this.setState({formValues: formValues});
@@ -318,10 +317,10 @@ export default class FormComponent extends React.Component {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
       // check if we are unchecking the box
-      if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][0][valueKey]) {
-        Object.assign(formValues, {[newFieldName]: {[lang]: [{[valueKey]: ''}]}});
+      if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][valueKey]) {
+        Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: ''}}});
       } else {
-        Object.assign(formValues, {[newFieldName]: {[lang]: [{[valueKey]: newValue}]}});
+        Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: newValue}}});
       }
       // save value to state
       this.setState({formValues: formValues});
@@ -330,6 +329,8 @@ export default class FormComponent extends React.Component {
 
   saveNode() {
 
+    console.log('form values');
+    console.log(this.state.formValues);
 
     if (this.state.formValues.nid) {
       console.log(this.state.formValues['field_category']);
@@ -782,10 +783,18 @@ export default class FormComponent extends React.Component {
     for (var i = 0; i < this.props.form.length; i++) {
       // @TODO: we will add a tabbed wrapper component here based on group name
       form[i] = [];
-      buttons.push(this.props.form[i]['label']);
+      if(this.props.form[i]['label'] !== undefined) {
+        buttons.push(this.props.form[i]['label']);
+      }
 
       try {
-        var childrenFields = this.props.form[i].childrenFields;
+        let childrenFields;
+        if(this.props.form[i].childrenFields === undefined) {
+          childrenFields = this.props.form;
+        } else {
+          childrenFields = this.props.form[i].childrenFields;
+        }
+
 
         for (var k = 0; k < childrenFields.length; k++) {
           var field = childrenFields[k];
