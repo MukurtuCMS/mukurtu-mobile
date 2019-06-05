@@ -19,7 +19,8 @@ import JSONTree from 'react-native-json-tree'
 import SettingsList from "react-native-settings-list";
 import NodeTeaser from "../components/Displays/nodeTeaser";
 
-const db = SQLite.openDatabase('db.db');
+// create a global db for database list and last known user
+const globalDB = SQLite.openDatabase('global');
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
@@ -35,9 +36,9 @@ export default class HomeScreen extends React.Component {
       token: null,
       cookie: null,
       isConnected: false,
-      nodes: []
+      nodes: [],
+      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null
     }
-
   }
 
   static navigationOptions = {
@@ -45,6 +46,9 @@ export default class HomeScreen extends React.Component {
   };
 
   componentDidMount() {
+    if (!this.state.db) {
+      this.alertNotLoggedIn();
+    }
     this.props.navigation.addListener('willFocus', this.componentActive);
     // Add listener for internet connection change
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
@@ -65,6 +69,10 @@ export default class HomeScreen extends React.Component {
   }
 
   componentActive = () => {
+    if (!this.state.db) {
+      this.alertNotLoggedIn();
+    } else {
+      this.createGlobalTables();
       this.createNodesTable();
       this.createTokenTable();
       this.createSyncTable();
@@ -76,13 +84,14 @@ export default class HomeScreen extends React.Component {
         this.syncContentTypes();
       }
 
-      db.transaction(tx => {
+      this.state.db.transaction(tx => {
         tx.executeSql(
-            'select * from nodes limit 10;',
-            '',
-            (_, { rows: { _array } }) => this.updateNodes(_array)
+          'select * from nodes limit 10;',
+          '',
+          (_, {rows: {_array}}) => this.updateNodes(_array)
         );
       });
+    }
   }
 
   updateNodes(array) {
@@ -93,8 +102,21 @@ export default class HomeScreen extends React.Component {
     this.setState({nodes: array});
   }
 
+  createGlobalTables() {
+    globalDB.transaction(tx => {
+      tx.executeSql(
+          'create table if not exists user (siteUrl primary key, user text);'
+      );
+    });
+    globalDB.transaction(tx => {
+      tx.executeSql(
+          'create table if not exists database (siteUrl primary key, databaseName text);'
+      );
+    });
+  }
+
   createTokenTable() {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'create table if not exists auth (id integer primary key, token text, cookie text);'
       );
@@ -102,7 +124,7 @@ export default class HomeScreen extends React.Component {
   }
 
   createSyncTable() {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'create table if not exists sync (id integer primary key, last integer);'
       );
@@ -110,7 +132,7 @@ export default class HomeScreen extends React.Component {
   }
 
   createNodesTable() {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'create table if not exists nodes (nid integer primary key, title text, entity text);'
       );
@@ -119,7 +141,7 @@ export default class HomeScreen extends React.Component {
 
   // this will be a store for any nodes that need to be uploaded next sync
   createNodesSavedTable() {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'create table if not exists nodes_saved (nid integer primary key, title text, entity text);'
       );
@@ -128,7 +150,7 @@ export default class HomeScreen extends React.Component {
 
   // this will be a store the content types overview endpoint
   createContentTypesTable() {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'create table if not exists content_types (id integer primary key, blob text);'
       );
@@ -137,7 +159,7 @@ export default class HomeScreen extends React.Component {
 
   // this will be a store the content type endpoint
   createContentTypeTable() {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'create table if not exists content_type (machine_name text primary key, blob text);'
       );
@@ -145,7 +167,7 @@ export default class HomeScreen extends React.Component {
   }
 
   update() {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'select * from auth limit 1;',
           '',
@@ -190,7 +212,7 @@ export default class HomeScreen extends React.Component {
     });
 
     // get last updated time
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'select * from sync limit 1;',
           '',
@@ -321,7 +343,7 @@ export default class HomeScreen extends React.Component {
     fetch(this.props.screenProps.siteUrl + '/app/node/' + nid + '.json', data)
         .then((response) => response.json())
         .then((node) => {
-          db.transaction(tx => {
+          this.state.db.transaction(tx => {
             tx.executeSql(
                 'delete from nodes where nid = ?;',
                 [node.nid],
@@ -329,7 +351,7 @@ export default class HomeScreen extends React.Component {
             );
           });
 
-          db.transaction(
+          this.state.db.transaction(
               tx => {
                 tx.executeSql('insert into nodes (nid, title, entity) values (?, ?, ?)',
                     [node.nid, node.title, JSON.stringify(node)],
@@ -346,13 +368,13 @@ export default class HomeScreen extends React.Component {
 
   updateSync() {
     const time = new Date().getTime()
-    db.transaction(
+    this.state.db.transaction(
         tx => {
           tx.executeSql('delete from sync;',
           );
         }
     );
-    db.transaction(
+    this.state.db.transaction(
         tx => {
           tx.executeSql('insert into sync (id, last) values (?, ?)',
               [1, time],
@@ -364,7 +386,7 @@ export default class HomeScreen extends React.Component {
   }
 
   buildRemovalNids(nids) {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'select nid from nodes;',
           '',
@@ -374,7 +396,7 @@ export default class HomeScreen extends React.Component {
   }
 
   removeNids(currentNids, newNids) {
-    const db2 = SQLite.openDatabase('db.db');
+    const db2 = this.state.db;
     for (var i = 0; i < currentNids.length; i++) {
       var currentlyStarred = false;
       for (const [nid, timestamp] of Object.entries(newNids)) {
@@ -404,13 +426,13 @@ export default class HomeScreen extends React.Component {
         .then((response) => response.json())
         .then((responseJson) => {
           if (typeof responseJson === 'object' && responseJson !== null) {
-            db.transaction(
+            this.state.db.transaction(
                 tx => {
                   tx.executeSql('delete from content_types;',
                   );
                 }
             );
-            db.transaction(
+            this.state.db.transaction(
                 tx => {
                   tx.executeSql('insert into content_types (id, blob) values (?, ?)',
                       [1, JSON.stringify(responseJson)],
@@ -426,7 +448,7 @@ export default class HomeScreen extends React.Component {
                   .then((response) => response.json())
                   .then((responseJson) => {
 
-                    db.transaction(
+                    this.state.db.transaction(
                         tx => {
                           tx.executeSql('insert into content_type (machine_name, blob) values (?, ?)',
                               [machineName, JSON.stringify(responseJson)],

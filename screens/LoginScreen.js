@@ -17,6 +17,9 @@ import {addUser} from '../actions/user';
 import {SQLite, WebBrowser} from 'expo';
 
 
+// create a global db for database list and last known user
+const globalDB = SQLite.openDatabase('global');
+
 const db = SQLite.openDatabase('db.db');
 
 
@@ -35,6 +38,7 @@ class LoginScreen extends React.Component {
       password: false,
       error: false,
       places: 'b',
+      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null
     }
   }
 
@@ -99,34 +103,59 @@ class LoginScreen extends React.Component {
             fetch(this.state.url + '/app/user/login.json', data)
                 .then((response) => response.json())
                 .then((responseJson) => {
+                    // remove http:// from url
+                    const url = this.state.url.replace(/(^\w+:|^)\/\//, '');
 
+                    // we need to update our global user
+                    globalDB.transaction(
+                        tx => {
+                            tx.executeSql('delete from user;',
+                            );
+                        }
+                    );
+
+                    globalDB.transaction(
+                        tx => {
+                            tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
+                                [url, JSON.stringify(responseJson)],
+                                (success) => {
+                                    // Set site status to logged in
+                                    this._handleLoginStatusUpdate(true);
+
+                                },
+
+                                (success, error) => console.log(' ')
+                            );
+                        }
+                    );
                   //  db.transaction(
                   //   tx => {
                   //     tx.executeSql('delete from auth;');
                   //   }
                   // );
-                  db.transaction(
-                      tx => {
-                        tx.executeSql('delete from auth;',
-                        );
-                      }
+
+                  this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid);
+
+                  this.state.db.transaction(
+                    tx => {
+                      tx.executeSql('delete from auth;',
+                      );
+                    }
                   );
-                  db.transaction(
-                      tx => {
-                        tx.executeSql('insert into auth (token, cookie) values (?, ?)',
-                            [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
-                            (success) => {
-                              // Set site status to logged in
-                              this._handleLoginStatusUpdate(true);
+                  this.state.db.transaction(
+                    tx => {
+                      tx.executeSql('insert into auth (token, cookie) values (?, ?)',
+                        [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
+                        (success) => {
+                          // Set site status to logged in
+                          this._handleLoginStatusUpdate(true);
 
-                            },
+                        },
 
-                            (success, error) => console.log(' ')
-                        );
-                      }
+                        (success, error) => console.log(' ')
+                      );
+                    }
                   );
-
-                  this._handleSiteUrlUpdate(this.state.url);
 
                   this.props.add(responseJson.session_name + '=' + responseJson.sessid);
                   this.props.addUserProp(responseJson);

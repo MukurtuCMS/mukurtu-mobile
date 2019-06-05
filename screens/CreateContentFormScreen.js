@@ -25,8 +25,6 @@ import axios from "axios";
 import weightSort from 'weight-sort';
 import JSONTree from "react-native-json-tree";
 
-const db = SQLite.openDatabase('db.db');
-
 class CreateContentFormScreen extends React.Component {
   static navigationOptions = ({ navigation }) => ({
     title: 'Create ' + `${navigation.getParam('contentTypeLabel')}`,
@@ -35,7 +33,7 @@ class CreateContentFormScreen extends React.Component {
   constructor(props){
     super(props);
     const { navigation, screenProps } = this.props;
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: '', isConnected: false};
+    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: '', isConnected: false, db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null};
     this.onPress = this.onPress.bind(this);
   }
 
@@ -56,22 +54,26 @@ class CreateContentFormScreen extends React.Component {
 
   componentActive = () => {
     // first set content types from db, then try connecting
-    db.transaction(tx => {
-      tx.executeSql(
+    if (!this.state.db) {
+      this.alertNotLoggedIn();
+    } else {
+      this.state.db.transaction(tx => {
+        tx.executeSql(
           'select blob from content_type where machine_name = ?;',
           [this.props.navigation.getParam('contentType')],
           (_, {rows: {_array}}) => this.retrieveContentType(_array)
-      );
-    });
+        );
+      });
 
-    if (this.state.isConnected) {
-      db.transaction(tx => {
-        tx.executeSql(
+      if (this.state.isConnected) {
+        this.state.db.transaction(tx => {
+          tx.executeSql(
             'select * from auth limit 1;',
             '',
             (_, {rows: {_array}}) => this.getType(_array)
-        );
-      });
+          );
+        });
+      }
     }
   }
 
