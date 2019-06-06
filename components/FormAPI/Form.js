@@ -142,6 +142,52 @@ export default class FormComponent extends React.Component {
     }
   }
 
+  setFormValueParagraph(paragraphFieldName, paragraphFormState) {
+    if (this.state.formValues) {
+      const formValues = this.state.formValues;
+      // See the paragraph component for how paragraph state is formatted.
+      let values = {
+        [paragraphFieldName]: {
+          "und": {
+            "0": paragraphFormState
+          }
+        }
+      };
+
+      // let values = paragraphFormState;
+
+      // Format Drupal needs for submissions:
+      // "field_word_entry": {
+      //   "und": {
+      //     "0": {
+      //       "field_alternate_spelling": {
+      //         "und": {
+      //           "0": {
+      //             "value": "alternate spelling value"
+      //           }
+      //         }
+      //       }
+      //     },
+      //     "1": {
+      //       "field_alternate_spelling": {
+      //         "und": {
+      //           "0": {
+      //             "value": "22222"
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
+      // },
+
+
+      Object.assign(formValues, values);
+
+      // save value to state
+      this.setState({formValues: formValues});
+    }
+  }
+
 
   setFormValueDate(newFieldName, newValue, type) {
     if (this.state.formValues) {
@@ -242,7 +288,6 @@ export default class FormComponent extends React.Component {
   }
 
 
-
   setFormValueConditionalSelect(newFieldName, val) {
 
     if (this.state.formValues) {
@@ -262,12 +307,12 @@ export default class FormComponent extends React.Component {
 
       let values = {
         ['oggroup_fieldset']: {
-            "0": {
-              "dropdown_first": "2",
-              "dropdown_second": {
-                "target_id": val
-              }
+          "0": {
+            "dropdown_first": "2",
+            "dropdown_second": {
+              "target_id": val
             }
+          }
 
         }
       };
@@ -295,12 +340,12 @@ export default class FormComponent extends React.Component {
       }
 
       // Convert text from react to id for Drupal. Inverse is done in select2.js
-      let selectedOption = options.filter(function(option) {
+      let selectedOption = options.filter(function (option) {
         return option.text === newValue;
       });
       let nid = newValue;
       if (selectedOption !== undefined && selectedOption.length !== 0) {
-       nid = selectedOption[0].id;
+        nid = selectedOption[0].id;
       }
 
       formValues[newFieldName][lang][key] = nid;
@@ -381,10 +426,9 @@ export default class FormComponent extends React.Component {
   validateForm() {
 
 
-
-    let form = this.props.form;
-    // Loop through form values to get all required ones
-    form['children'][0];
+    // let form = this.props.form;
+    // // Loop through form values to get all required ones
+    // form['children'][0];
 
   }
 
@@ -598,7 +642,6 @@ export default class FormComponent extends React.Component {
       if (fieldArray['#type'] === 'container') {
         fieldArray = field['und'];
 
-
         if (fieldArray['#type'] === undefined) {
 
           fieldArray = fieldArray[0];
@@ -606,36 +649,28 @@ export default class FormComponent extends React.Component {
           if (fieldArray && fieldArray['#type'] === undefined) {
 
             // If it's a paragraph, we need to recursively run through and create
-            if(fieldArray['#entity_type'] !== undefined && fieldArray['#entity_type'] === 'paragraphs_item') {
-
-              form[i].push(<Paragraph
+            if (fieldArray['#entity_type'] !== undefined && fieldArray['#entity_type'] === 'paragraphs_item') {
+              // let subForm = [];
+              // let q = 0;
+              // for (let [key, value] of Object.entries(fieldArray)) {
+              //
+              //     let subfieldArray = value;
+              //     let subfieldName = 'asdf' + q;
+              //     subForm[q] = this.createFieldArray(subfieldArray, subfieldArray, subfieldName, subForm, q, isRecursive = false);
+              //     q++;
+              //
+              // }
+              let paragraph = <Paragraph
                   formValues={this.state.formValues}
                   fieldName={fieldName}
                   field={fieldArray}
                   key={fieldName}
-                  setFormValue={this.setFormValue}
-              />);
+                  setFormValue={this.setFormValueParagraph.bind(this)}
+              />;
 
+              form[i].push(paragraph);
 
-              // let subForm = [];
-              // let m = 0;
-              //
-              // for (const key of Object.keys(fieldArray)) {
-              //   if (fieldArray.hasOwnProperty(key) && key.charAt(0) !== '#') {
-              //     let field = fieldArray[key];
-              //     let fieldName = field['machine_name'];
-              //
-              //
-              //
-              //   }
-              //
-              //
-              // }
-              // form[i].push(subForm);
-
-            }
-
-            else if (fieldArray['target_id'] !== undefined) {
+            } else if (fieldArray['target_id'] !== undefined) {
               fieldArray = fieldArray['target_id'];
             } else if (fieldArray['nid'] !== undefined) {
               fieldArray = field['und'][0]['nid'];
@@ -666,7 +701,18 @@ export default class FormComponent extends React.Component {
               key={fieldName}
               setFormValue={this.setFormValue}
           />);
-        } else if (fieldArray['#type'] === 'textfield') {
+        }
+        // else if(fieldArray['#columns'] !== undefined) {
+        //   form[i].push(<Textfield
+        //       formValues={this.state.formValues}
+        //       fieldName={fieldName}
+        //       field={fieldArray}
+        //       key={fieldName}
+        //       setFormValue={this.setFormValue}
+        //   />);
+        //
+        // }
+        else if (fieldArray['#type'] === 'textfield') {
           form[i].push(<Textfield
               formValues={this.state.formValues}
               fieldName={fieldName}
@@ -783,13 +829,13 @@ export default class FormComponent extends React.Component {
     for (var i = 0; i < this.props.form.length; i++) {
       // @TODO: we will add a tabbed wrapper component here based on group name
       form[i] = [];
-      if(this.props.form[i]['label'] !== undefined) {
+      if (this.props.form[i]['label'] !== undefined) {
         buttons.push(this.props.form[i]['label']);
       }
 
       try {
         let childrenFields;
-        if(this.props.form[i].childrenFields === undefined) {
+        if (this.props.form[i].childrenFields === undefined) {
           childrenFields = this.props.form;
         } else {
           childrenFields = this.props.form[i].childrenFields;
@@ -805,7 +851,7 @@ export default class FormComponent extends React.Component {
 
           var fieldArray = childrenFields[k];
 
-         form = this.createFieldArray(fieldArray, field, fieldName, form, i);
+          form = this.createFieldArray(fieldArray, field, fieldName, form, i);
         }
       } catch (e) {
         // console.log(e);
@@ -845,7 +891,7 @@ export default class FormComponent extends React.Component {
         {form[this.state.selectedIndex]}
         <Button
             title="Save"
-            onPress={this.validateForm}
+            onPress={this.saveNode}
         />
       </View>;
     }
