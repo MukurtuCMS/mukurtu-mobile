@@ -16,12 +16,16 @@ export default class Textfield extends React.Component {
             // set the language key as initial key
             const initialKey = Object.keys(this.props.formValues[this.props.fieldName])[0];
             value = this.props.formValues[this.props.fieldName][initialKey][0][valueKey];
+        } else if(typeof this.props.formValues[this.props.index] !== 'undefined' && typeof this.props.formValues[this.props.index][this.props.fieldName] !== 'undefined') {
+            // Check for field within paragraph
+            const initialKey = Object.keys(this.props.formValues[this.props.index][this.props.fieldName])[0];
+            value = this.props.formValues[this.props.index][this.props.fieldName][initialKey][0][valueKey];
         }
         return <View>
             <Text>{field['#title']}</Text>
             <TextInput
                 style={{height: 40, borderColor: 'gray', borderWidth: 1}}
-                onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey)}
+                onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, this.props.index)}
                 value={value}
                 defaultValue={field['#default_value']}
                 maxLength={field['#maxlength']}

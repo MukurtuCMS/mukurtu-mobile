@@ -8,16 +8,22 @@ export default class Paragraph extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      subformValues: {}
+      subformValues: {},
+      numberOfForms: 1
     };
 
   }
 
   addParagraph() {
 
+    let currentIndex = this.state.numberOfForms;
+
+    this.setState({numberOfForms: currentIndex + 1}, ()=> {
+
+    })
   }
 
-  setParagraphValue(fieldName, value) {
+  setParagraphValue(fieldName, value, valueName,  index) {
     if (this.state.subformValues) {
       // Will need to get this dynamically
       let paragraphFieldName = 'field_word_entry';
@@ -47,46 +53,40 @@ export default class Paragraph extends React.Component {
       //   }
       // },
 
-      let values = {
-          [fieldName] : {
-            "und" : {
-              "0" : {
-                "value": value
-              }
-            }
+
+      if(typeof subformValues[index] === 'undefined') {
+        subformValues[index] = {};
+      }
+
+
+      subformValues[index][fieldName] = {
+        "und": {
+          "0": {
+            [valueName]: value
           }
+        }
       };
-      Object.assign(subformValues, values);
+
+
       this.setState({subformValues: subformValues}, () => {
         // Then when we're done setting paragraph values, add the paragraph state to the parent form state
         this.props.setFormValue(paragraphFieldName, this.state.subformValues);
       });
 
     }
-
-
   }
 
-  render() {
-
-    let debugProps = this.props;
+  createParagraphForm(index) {
     let paragraphForm = [];
-
-    paragraphForm.push(<Text>Test Paragraph Form</Text>);
-    // paragraphForm.push(this.props.subForm);
-
     let fields = this.props.field;
 
     for (const key of Object.keys(fields)) {
       if (fields.hasOwnProperty(key) && key.charAt(0) !== '#') {
 
-
         let subfield = fields[key];
         if(subfield['#type'] === 'container' && subfield['und'] !== undefined) {
           subfield = subfield['und'][0];
         }
-
-
 
         if(subfield !== undefined && subfield['#columns'] !== undefined) {
           let fieldName;
@@ -94,10 +94,11 @@ export default class Paragraph extends React.Component {
             fieldName = subfield['#field_name'];
           }
           paragraphForm.push(<Textfield
+              index={index}
               formValues={this.state.subformValues}
-              fieldName={subfield['#field_name']}
+              fieldName={fieldName}
               field={subfield}
-              key={subfield['#field_name']}
+              key={fieldName}
               setFormValue={this.setParagraphValue.bind(this)}
               // onChangeText={(text) => this.setParagraphValue(subfield['#field_name'], text)}
           />);
@@ -105,18 +106,40 @@ export default class Paragraph extends React.Component {
         }
       }
     }
+    return paragraphForm;
+  }
+
+
+  render() {
+
+    let debugProps = this.props;
+    let paragraphForms = [];
+    // let paragraphForm = [];
+
+    let paragraphFormTitle = <Text>Test Paragraph Form</Text>;
+    // paragraphForm.push(this.props.subForm);
+
+
+
+    for(let i = 0; i < this.state.numberOfForms; i++) {
+      let paragraphForm = this.createParagraphForm(i);
+      paragraphForms.push(paragraphForm);
+    }
 
 
     // Add action button
+    let paragraphFormButton;
     if(this.props.field['actions'] !== undefined) {
-      paragraphForm.push(<Button
+      paragraphFormButton = <Button
           title="Add Another"
-          onPress={this.addParagraph}
-      />)
+          onPress={this.addParagraph.bind(this)}
+      />
     }
 
     return <View>
-      {paragraphForm}
+      {paragraphFormTitle}
+      {paragraphForms}
+      {paragraphFormButton}
     </View>;
   }
 }

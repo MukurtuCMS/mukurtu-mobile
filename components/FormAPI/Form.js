@@ -384,6 +384,10 @@ export default class FormComponent extends React.Component {
       // I have to do this right now because I am getting errors trying to use the postData method
       const token = this.state.token;
       const cookie = this.state.cookie;
+      console.log('token');
+      console.log(token);
+      console.log('cookie');
+      console.log(cookie);
       const data = {
         method: 'PUT',
         mode: 'cors',
