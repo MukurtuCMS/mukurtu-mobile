@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import {Button, CheckBox} from "react-native-elements";
 import Textfield from "./Textfield";
+import Select2 from "./Select2";
 
 export default class Paragraph extends React.Component {
 
@@ -15,15 +16,30 @@ export default class Paragraph extends React.Component {
   }
 
   addParagraph() {
-
     let currentIndex = this.state.numberOfForms;
 
-    this.setState({numberOfForms: currentIndex + 1}, ()=> {
+    this.setState({numberOfForms: currentIndex + 1}, () => {
 
     })
   }
 
-  setParagraphValue(fieldName, value, valueName,  index) {
+  removeParagraph() {
+    let currentIndex = this.state.numberOfForms;
+
+    // Unset the values for this subform
+    let subformValues = this.state.subformValues;
+    subformValues[this.props.index] = undefined;
+
+    this.setState({subformValues: subformValues}, () => {
+      this.setState({numberOfForms: currentIndex - 1});
+      // Will need to remove values from parent formstate as well
+    });
+
+
+  }
+
+
+  setParagraphValue(fieldName, value, valueName, index) {
     if (this.state.subformValues) {
       // Will need to get this dynamically
       let paragraphFieldName = 'field_word_entry';
@@ -54,7 +70,7 @@ export default class Paragraph extends React.Component {
       // },
 
 
-      if(typeof subformValues[index] === 'undefined') {
+      if (typeof subformValues[index] === 'undefined') {
         subformValues[index] = {};
       }
 
@@ -80,48 +96,82 @@ export default class Paragraph extends React.Component {
     let paragraphForm = [];
     let fields = this.props.field;
 
+    // First put the relevant field values into an array so we can sort them by weight
+    // For full nodes this is done before the component function, but it seems tidier to isolate all the paragraph functionality.
+    let formFields = [];
     for (const key of Object.keys(fields)) {
       if (fields.hasOwnProperty(key) && key.charAt(0) !== '#') {
-
-        let subfield = fields[key];
-        if(subfield['#type'] === 'container' && subfield['und'] !== undefined) {
-          subfield = subfield['und'][0];
-        }
-
-        if(subfield !== undefined && subfield['#columns'] !== undefined) {
-          let fieldName;
-          if(subfield['#field_name'] !== undefined) {
-            fieldName = subfield['#field_name'];
-          }
-          paragraphForm.push(<Textfield
-              index={index}
-              formValues={this.state.subformValues}
-              fieldName={fieldName}
-              field={subfield}
-              key={fieldName}
-              setFormValue={this.setParagraphValue.bind(this)}
-              // onChangeText={(text) => this.setParagraphValue(subfield['#field_name'], text)}
-          />);
-
-        }
+        formFields.push(fields[key]);
       }
     }
+
+    // Sort by weight
+    formFields.sort(function(a, b) {
+      return a['#weight'] - b['#weight'];
+    });
+
+    formFields.forEach((subfield) => {
+
+      if (subfield['#type'] === 'container' && subfield['und'] !== undefined) {
+        subfield = subfield['und'];
+        if (subfield[0] !== undefined) {
+          subfield = subfield[0];
+        }
+      }
+
+      let fieldName;
+      if (subfield['#field_name'] !== undefined) {
+        fieldName = subfield['#field_name'];
+      }
+
+      if (subfield['#weight'] !== undefined) {
+
+        if (subfield !== undefined && subfield['#columns'] !== undefined) {
+          if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
+            paragraphForm.push(<Select2
+                formValues={this.state.subformValues}
+                fieldName={fieldName}
+                field={subfield}
+                key={fieldName}
+                setFormValue={this.setParagraphValue.bind(this)}
+            />);
+          } else {
+
+            paragraphForm.push(<Textfield
+                index={index}
+                formValues={this.state.subformValues}
+                fieldName={fieldName}
+                field={subfield}
+                key={fieldName}
+                setFormValue={this.setParagraphValue.bind(this)}
+                // onChangeText={(text) => this.setParagraphValue(subfield['#field_name'], text)}
+            />);
+          }
+        }
+      }
+    });
+
+    // Add remove button if this isn't the first one
+    if (index > 0) {
+      let removeButton = <Button
+          index={index}
+          title="Remove"
+          onPress={this.removeParagraph.bind(this)}
+      />;
+      paragraphForm.push(removeButton);
+    }
+
     return paragraphForm;
   }
 
 
   render() {
 
-    let debugProps = this.props;
     let paragraphForms = [];
-    // let paragraphForm = [];
 
-    let paragraphFormTitle = <Text>Test Paragraph Form</Text>;
-    // paragraphForm.push(this.props.subForm);
+    let paragraphTitle = <Text>{this.props.paragraphTitle}</Text>;
 
-
-
-    for(let i = 0; i < this.state.numberOfForms; i++) {
+    for (let i = 0; i < this.state.numberOfForms; i++) {
       let paragraphForm = this.createParagraphForm(i);
       paragraphForms.push(paragraphForm);
     }
@@ -129,15 +179,15 @@ export default class Paragraph extends React.Component {
 
     // Add action button
     let paragraphFormButton;
-    if(this.props.field['actions'] !== undefined) {
+    if (this.props.field['actions'] !== undefined) {
       paragraphFormButton = <Button
-          title="Add Another"
+          title={this.props.addMoreText}
           onPress={this.addParagraph.bind(this)}
       />
     }
 
     return <View>
-      {paragraphFormTitle}
+      {paragraphTitle}
       {paragraphForms}
       {paragraphFormButton}
     </View>;
