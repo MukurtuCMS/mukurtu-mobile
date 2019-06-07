@@ -21,8 +21,12 @@ export default class Textfield extends React.Component {
             const initialKey = Object.keys(this.props.formValues[this.props.index][this.props.fieldName])[0];
             value = this.props.formValues[this.props.index][this.props.fieldName][initialKey][0][valueKey];
         }
+        let title = field['#title'];
+        if(this.props.title) {
+            title = this.props.title;
+        }
         return <View>
-            <Text>{field['#title']}</Text>
+            <Text>{title}</Text>
             <TextInput
                 style={{height: 40, borderColor: 'gray', borderWidth: 1}}
                 onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, this.props.index)}

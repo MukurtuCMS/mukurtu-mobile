@@ -112,6 +112,8 @@ export default class Paragraph extends React.Component {
 
     formFields.forEach((subfield) => {
 
+      let originalSubField = subfield;
+
       if (subfield['#type'] === 'container' && subfield['und'] !== undefined) {
         subfield = subfield['und'];
         if (subfield[0] !== undefined) {
@@ -124,7 +126,15 @@ export default class Paragraph extends React.Component {
         fieldName = subfield['#field_name'];
       }
 
-      if (subfield['#weight'] !== undefined) {
+      let fieldTitle = '';
+      if(typeof subfield !== 'undefined' && typeof subfield['#title'] !== 'undefined') {
+        fieldTitle = subfield['#title'];
+      }
+
+      // Multiple value text fields store title here
+      if(typeof originalSubField['und'] !== "undefined" && typeof originalSubField['und']['#title'] !== "undefined") {
+        fieldTitle = originalSubField['und']['#title'];
+      }
 
         if (subfield !== undefined && subfield['#columns'] !== undefined) {
           if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
@@ -144,11 +154,12 @@ export default class Paragraph extends React.Component {
                 field={subfield}
                 key={fieldName}
                 setFormValue={this.setParagraphValue.bind(this)}
+                title={fieldTitle}
                 // onChangeText={(text) => this.setParagraphValue(subfield['#field_name'], text)}
             />);
           }
         }
-      }
+      // }
     });
 
     // Add remove button if this isn't the first one
