@@ -459,198 +459,6 @@ export default class FormComponent extends React.Component {
   }
 
 
-  createFieldArray(originalFieldArray, field, fieldName, form, i, isRecursive = false) {
-
-    // Save original field array so we can access add more text for paragraph
-    let fieldArray = originalFieldArray;
-
-    if (fieldArray['#type'] !== undefined) {
-
-      // If field type is container, we need to drill down and find the form to render
-      if (fieldArray['#type'] === 'container') {
-        fieldArray = field['und'];
-
-        if (fieldArray['#type'] === undefined) {
-
-          fieldArray = fieldArray[0];
-
-          if (fieldArray && fieldArray['#type'] === undefined) {
-
-
-            if (fieldArray['#entity_type'] !== undefined && fieldArray['#entity_type'] === 'paragraphs_item') {
-
-              // Default add more text in case it's not present in array
-              let addMoreText = 'Add Another';
-              let paragraphTitle = '';
-              if (originalFieldArray['und'] !== undefined) {
-
-                if(originalFieldArray['und']['#title'] !== undefined) {
-                  paragraphTitle = originalFieldArray['und']['#title'];
-                }
-
-                if (originalFieldArray['und']['add_more'] !== undefined && originalFieldArray['und']['add_more']['add_more'] !== undefined) {
-                  addMoreText = originalFieldArray['und']['add_more']['add_more']['#value'];
-                }
-              }
-
-              let paragraph = <Paragraph
-                  formValues={this.state.formValues}
-                  fieldName={fieldName}
-                  field={fieldArray}
-                  key={fieldName}
-                  setFormValue={this.setFormValueParagraph.bind(this)}
-                  addMoreText={addMoreText}
-                  paragraphTitle={paragraphTitle}
-              />;
-
-              form[i].push(paragraph);
-
-            } else if (fieldArray['target_id'] !== undefined) {
-              fieldArray = fieldArray['target_id'];
-            } else if (fieldArray['nid'] !== undefined) {
-              fieldArray = field['und'][0]['nid'];
-            } else if (fieldArray['default'] !== undefined) {
-              fieldArray = field['und'][0]['default'];
-            } else if (fieldArray['sid'] !== undefined) {
-              fieldArray = field['und'][0]['sid'];
-            } else if (fieldArray['value'] !== undefined) {
-              fieldArray = field['und'][0]['value'];
-            } else if (fieldArray['geom'] !== undefined) {
-              fieldArray = field['und'][0]['geom'];
-            }
-          }
-        }
-      }
-
-      // Set required values
-      let required = fieldArray['#required'];
-
-      if (typeof fieldArray === 'object' && fieldArray['#type']) {
-
-        // first determine if field is scald library because in FAPI that is a textfield
-        if (fieldArray['#preview_context'] && fieldArray['#preview_context'] === 'mukurtu_scald_media_assets_edit_') {
-          form[i].push(<Scald
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValue}
-          />);
-        }
-        // else if(fieldArray['#columns'] !== undefined) {
-        //   form[i].push(<Textfield
-        //       formValues={this.state.formValues}
-        //       fieldName={fieldName}
-        //       field={fieldArray}
-        //       key={fieldName}
-        //       setFormValue={this.setFormValue}
-        //   />);
-        //
-        // }
-        else if (fieldArray['#type'] === 'textfield') {
-          form[i].push(<Textfield
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              required={required}
-              setFormValue={this.setFormValue}
-          />);
-        } else if (fieldArray['#type'] === 'text_format') {
-          form[i].push(<Textarea
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValue}
-          />);
-        } else if (fieldArray['#type'] === 'textarea') {
-          form[i].push(<Textarea
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValue}
-          />);
-        } else if (fieldArray['#type'] === 'radios') {
-          form[i].push(<Radios
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValueCheckboxes.bind(this)}
-          />);
-        } else if (fieldArray['#type'] === 'checkboxes') {
-          form[i].push(<Checkboxes
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValueCheckboxes.bind(this)}
-          />);
-        } else if (fieldArray['#type'] === 'checkbox') {
-          form[i].push(<Checkbox
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValueCheckbox.bind(this)}
-          />);
-        }
-        // OG group gets special conditional select. Can expand to other conditional fields as needed
-        else if (fieldArray['#type'] === 'select' && fieldName === 'og_group_ref') {
-          form[i].push(<ConditionalSelect
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValueConditionalSelect.bind(this)}
-          />);
-
-        } else if (fieldArray['#type'] === 'select') {
-          form[i].push(<Select
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValue}
-          />);
-        } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
-          form[i].push(<Date
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              fieldType={fieldArray['#type']}
-              setFormValue={this.setFormValueDate.bind(this)}
-          />);
-        } else if (fieldArray['#type'] === 'geofield_latlon') {
-          form[i].push(<Location
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValueLocation.bind(this)}
-          />);
-        } else if (fieldArray['#type'] === 'select2_hidden') {
-          form[i].push(<Select2
-              formValues={this.state.formValues}
-              fieldName={fieldName}
-              field={fieldArray}
-              key={fieldName}
-              setFormValue={this.setFormValueSelect2.bind(this)}
-          />);
-        }
-      } else {
-        console.log(fieldArray['#title']);
-      }
-    }
-
-
-    return form;
-  }
-
-
   render() {
     let form = [];
     let sceneRoutes = {};
@@ -686,7 +494,192 @@ export default class FormComponent extends React.Component {
 
           var fieldArray = childrenFields[k];
 
-          form = this.createFieldArray(fieldArray, field, fieldName, form, i);
+          // Save original field array so we can access add more text for paragraph
+          let originalFieldArray = fieldArray;
+
+          if (fieldArray['#type'] !== undefined) {
+
+            // If field type is container, we need to drill down and find the form to render
+            if (fieldArray['#type'] === 'container') {
+              fieldArray = field['und'];
+
+              if (fieldArray['#type'] === undefined) {
+
+                fieldArray = fieldArray[0];
+
+                if (fieldArray && fieldArray['#type'] === undefined) {
+
+
+                  if (fieldArray['#entity_type'] !== undefined && fieldArray['#entity_type'] === 'paragraphs_item') {
+
+                    // Default add more text in case it's not present in array
+                    let addMoreText = 'Add Another';
+                    let paragraphTitle = '';
+                    if (originalFieldArray['und'] !== undefined) {
+
+                      if (originalFieldArray['und']['#title'] !== undefined) {
+                        paragraphTitle = originalFieldArray['und']['#title'];
+                      }
+
+                      if (originalFieldArray['und']['add_more'] !== undefined && originalFieldArray['und']['add_more']['add_more'] !== undefined) {
+                        addMoreText = originalFieldArray['und']['add_more']['add_more']['#value'];
+                      }
+                    }
+
+                    let paragraph = <Paragraph
+                        formValues={this.state.formValues}
+                        fieldName={fieldName}
+                        field={fieldArray}
+                        key={fieldName}
+                        setFormValue={this.setFormValueParagraph.bind(this)}
+                        addMoreText={addMoreText}
+                        paragraphTitle={paragraphTitle}
+                    />;
+
+                    form[i].push(paragraph);
+
+                  } else if (fieldArray['target_id'] !== undefined) {
+                    fieldArray = fieldArray['target_id'];
+                  } else if (fieldArray['nid'] !== undefined) {
+                    fieldArray = field['und'][0]['nid'];
+                  } else if (fieldArray['default'] !== undefined) {
+                    fieldArray = field['und'][0]['default'];
+                  } else if (fieldArray['sid'] !== undefined) {
+                    fieldArray = field['und'][0]['sid'];
+                  } else if (fieldArray['value'] !== undefined) {
+                    fieldArray = field['und'][0]['value'];
+                  } else if (fieldArray['geom'] !== undefined) {
+                    fieldArray = field['und'][0]['geom'];
+                  }
+                }
+              }
+            }
+
+            // Set required values
+            let required = fieldArray['#required'];
+
+            if (typeof fieldArray === 'object' && fieldArray['#type']) {
+
+              // first determine if field is scald library because in FAPI that is a textfield
+              if (fieldArray['#preview_context'] && fieldArray['#preview_context'] === 'mukurtu_scald_media_assets_edit_') {
+                form[i].push(<Scald
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              }
+              // else if(fieldArray['#columns'] !== undefined) {
+              //   form[i].push(<Textfield
+              //       formValues={this.state.formValues}
+              //       fieldName={fieldName}
+              //       field={fieldArray}
+              //       key={fieldName}
+              //       setFormValue={this.setFormValue}
+              //   />);
+              //
+              // }
+              else if (fieldArray['#type'] === 'textfield') {
+                form[i].push(<Textfield
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    required={required}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (fieldArray['#type'] === 'text_format') {
+                form[i].push(<Textarea
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (fieldArray['#type'] === 'textarea') {
+                form[i].push(<Textarea
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (fieldArray['#type'] === 'radios') {
+                form[i].push(<Radios
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueCheckboxes.bind(this)}
+                />);
+              } else if (fieldArray['#type'] === 'checkboxes') {
+                form[i].push(<Checkboxes
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueCheckboxes.bind(this)}
+                />);
+              } else if (fieldArray['#type'] === 'checkbox') {
+                form[i].push(<Checkbox
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueCheckbox.bind(this)}
+                />);
+              }
+              // OG group gets special conditional select. Can expand to other conditional fields as needed
+              else if (fieldArray['#type'] === 'select' && fieldName === 'og_group_ref') {
+                form[i].push(<ConditionalSelect
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueConditionalSelect.bind(this)}
+                />);
+
+              } else if (fieldArray['#type'] === 'select') {
+                form[i].push(<Select
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+              } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
+                form[i].push(<Date
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    fieldType={fieldArray['#type']}
+                    setFormValue={this.setFormValueDate.bind(this)}
+                />);
+              } else if (fieldArray['#type'] === 'geofield_latlon') {
+                form[i].push(<Location
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueLocation.bind(this)}
+                />);
+              } else if (fieldArray['#type'] === 'select2_hidden') {
+                form[i].push(<Select2
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValueSelect2.bind(this)}
+                />);
+              }
+            } else {
+              console.log(fieldArray['#title']);
+            }
+          }
+
+
         }
       } catch (e) {
         // console.log(e);
