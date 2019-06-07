@@ -374,8 +374,6 @@ export default class FormComponent extends React.Component {
 
   saveNode() {
 
-    console.log('form values');
-    console.log(this.state.formValues);
 
     if (this.state.formValues.nid) {
       console.log(this.state.formValues['field_category']);
@@ -421,15 +419,6 @@ export default class FormComponent extends React.Component {
           )
           .catch(error => console.error(error));
     }
-  }
-
-  validateForm() {
-
-
-    // let form = this.props.form;
-    // // Loop through form values to get all required ones
-    // form['children'][0];
-
   }
 
   resetForm() {
@@ -570,16 +559,16 @@ export default class FormComponent extends React.Component {
                     setFormValue={this.setFormValue}
                 />);
               }
-              // else if(fieldArray['#columns'] !== undefined) {
-              //   form[i].push(<Textfield
-              //       formValues={this.state.formValues}
-              //       fieldName={fieldName}
-              //       field={fieldArray}
-              //       key={fieldName}
-              //       setFormValue={this.setFormValue}
-              //   />);
-              //
-              // }
+              else if(fieldArray['#columns'] !== undefined) {
+                form[i].push(<Textfield
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+
+              }
               else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
                     formValues={this.state.formValues}

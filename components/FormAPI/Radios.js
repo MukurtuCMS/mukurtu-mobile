@@ -6,8 +6,6 @@ export default class Radios extends React.Component {
 
     determineCheckboxValue(fieldName, fieldValue, fieldKey) {
         if (this.props.formValues[fieldName]) {
-            console.log('field name');
-            console.log(this.props.formValues[fieldName]);
             // set the language key as initial key
             const lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
 
