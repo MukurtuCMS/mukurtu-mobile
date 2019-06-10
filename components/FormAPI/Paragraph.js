@@ -39,7 +39,7 @@ export default class Paragraph extends React.Component {
   }
 
 
-  setParagraphValue(fieldName, value, valueName, index) {
+  setParagraphValue(fieldName, value, valueName, index, subindex = 0) {
     if (this.state.subformValues) {
       // Will need to get this dynamically
       let paragraphFieldName = 'field_word_entry';
@@ -77,7 +77,7 @@ export default class Paragraph extends React.Component {
 
       subformValues[index][fieldName] = {
         "und": {
-          "0": {
+          [subindex]: {
             [valueName]: value
           }
         }
@@ -131,6 +131,12 @@ export default class Paragraph extends React.Component {
         fieldTitle = subfield['#title'];
       }
 
+      //
+      let cardinality = 1;
+      if(typeof originalSubField['und'] !== 'undefined' && typeof originalSubField['und']['#cardinality'] !== 'undefined') {
+        cardinality = Number(originalSubField['und']['#cardinality']);
+      }
+
       // Multiple value text fields store title here
       if(typeof originalSubField['und'] !== "undefined" && typeof originalSubField['und']['#title'] !== "undefined") {
         fieldTitle = originalSubField['und']['#title'];
@@ -144,6 +150,7 @@ export default class Paragraph extends React.Component {
                 field={subfield}
                 key={fieldName}
                 setFormValue={this.setParagraphValue.bind(this)}
+                cardinality={cardinality}
             />);
           } else {
 
@@ -155,6 +162,7 @@ export default class Paragraph extends React.Component {
                 key={fieldName}
                 setFormValue={this.setParagraphValue.bind(this)}
                 title={fieldTitle}
+                cardinality={cardinality}
                 // onChangeText={(text) => this.setParagraphValue(subfield['#field_name'], text)}
             />);
           }

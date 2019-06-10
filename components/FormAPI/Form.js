@@ -32,9 +32,8 @@ export default class FormComponent extends React.Component {
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.updateIndex = this.updateIndex.bind(this);
-    this.saveNode = this.saveNode.bind(this)
-    this.validateForm = this.validateForm.bind(this)
-    this.resetForm = this.resetForm.bind(this)
+    this.saveNode = this.saveNode.bind(this);
+    this.resetForm = this.resetForm.bind(this);
   }
 
   componentDidMount() {
@@ -93,7 +92,7 @@ export default class FormComponent extends React.Component {
 
   }
 
-  setFormValue(newFieldName, newValue, valueKey) {
+  setFormValue(newFieldName, newValue, valueKey, index = '0') {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
       if (newFieldName === 'title') {
@@ -105,7 +104,7 @@ export default class FormComponent extends React.Component {
         let values = {
           [newFieldName]: {
             "und": {
-              "0": {[valueKey]: newValue}
+              [index]: {[valueKey]: newValue}
             }
           }
         };
