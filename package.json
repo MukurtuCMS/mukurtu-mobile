@@ -26,6 +26,7 @@
     "react-native-json-tree": "^1.2.0",
     "react-native-map-picker": "0.0.1",
     "react-native-maps": "^0.24.2",
+    "react-native-render-html": "^4.1.2",
     "react-native-scrollable-tab-view-forked": "^1.0.4",
     "react-native-settings-list": "^1.8.0",
     "react-native-tab-view": "^2.2.0",

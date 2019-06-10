@@ -37,7 +37,10 @@ export default class HomeScreen extends React.Component {
       cookie: null,
       isConnected: false,
       nodes: [],
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null
+      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
+      communityFilterList: [],
+      terms: false,
+      categoriesList: []
     }
   }
 
@@ -53,6 +56,7 @@ export default class HomeScreen extends React.Component {
     // Add listener for internet connection change
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
     this.checkInitialConnection();
+    this.componentActive();
   }
 
   checkInitialConnection = async () => {
@@ -74,11 +78,13 @@ export default class HomeScreen extends React.Component {
     } else {
       this.createGlobalTables();
       this.createNodesTable();
+      this.createTaxonomyTable();
       this.createTokenTable();
       this.createSyncTable();
       this.createNodesSavedTable();
       this.createContentTypesTable();
       this.createContentTypeTable();
+      this.createDisplayModesTable();
       if (this.state.isConnected) {
         this.update();
         this.syncContentTypes();
@@ -86,20 +92,59 @@ export default class HomeScreen extends React.Component {
 
       this.state.db.transaction(tx => {
         tx.executeSql(
-          'select * from nodes limit 10;',
+          'select * from nodes;',
           '',
           (_, {rows: {_array}}) => this.updateNodes(_array)
+        );
+      });
+
+      this.state.db.transaction(tx => {
+        tx.executeSql(
+          'select * from taxonomy;',
+          '',
+          (query, result) => this.setTaxonomy(result.rows._array)
         );
       });
     }
   }
 
+  setTaxonomy = (array) => {
+    let termList = {};
+    for (var i = 0; i < array.length; i++) {
+      termList[array[i].tid] = JSON.parse(array[i].entity)
+    }
+    this.setState({terms: termList});
+  }
+
   updateNodes(array) {
     // let's parse the json blobs before setting state
     for (var i = 0; i < array.length; i++) {
-      array[i].entity = JSON.parse(array[i].entity);
+      if (array[i].entity && array[i].entity.length > 0) {
+        array[i].entity = JSON.parse(array[i].entity);
+      }
     }
     this.setState({nodes: array});
+    this.updateFilters();
+  }
+
+  updateFilters = () => {
+    let categoriesList = {};
+    if (this.state.nodes.length > 0) {
+      for (var i = 0; i < this.state.nodes.length; i++) {
+        if (this.state.nodes[i].entity.field_category) {
+          const lang = Object.keys(this.state.nodes[i].entity.field_category)[0];
+          if (this.state.nodes[i].entity.field_category) {
+            const categories = this.state.nodes[i].entity.field_category[lang];
+            for (var k = 0; k < categories.length; k++) {
+              if (this.state.terms[categories[k].tid]) {
+                categoriesList[categories[k].tid] = this.state.terms[categories[k].tid].name;
+              }
+            }
+          }
+        }
+      }
+    }
+    this.setState({categoriesList: categoriesList});
   }
 
   createGlobalTables() {
@@ -134,7 +179,15 @@ export default class HomeScreen extends React.Component {
   createNodesTable() {
     this.state.db.transaction(tx => {
       tx.executeSql(
-          'create table if not exists nodes (nid integer primary key, title text, entity text);'
+          'create table if not exists nodes (nid integer primary key, title text, entity text, editable boolean);'
+      );
+    });
+  }
+
+  createTaxonomyTable() {
+    this.state.db.transaction(tx => {
+      tx.executeSql(
+        'create table if not exists taxonomy (tid integer primary key, title text, entity text);'
       );
     });
   }
@@ -162,6 +215,15 @@ export default class HomeScreen extends React.Component {
     this.state.db.transaction(tx => {
       tx.executeSql(
           'create table if not exists content_type (machine_name text primary key, blob text);'
+      );
+    });
+  }
+
+  // this will be a store the content type endpoint
+  createDisplayModesTable() {
+    this.state.db.transaction(tx => {
+      tx.executeSql(
+        'create table if not exists display_modes (machine_name text primary key, node_view text, list_view text);'
       );
     });
   }
@@ -233,19 +295,39 @@ export default class HomeScreen extends React.Component {
           data.method = 'GET';
 
 
-          fetch('http://mukurtucms.kanopi.cloud' + '/app/synced-nodes/retrieve', data)
+          fetch('http://mukurtucms.kanopi.cloud' + '/app/synced-entities/retrieve', data)
               .then((response) => response.json())
               .then((responseJson) => {
-                if (typeof responseJson.digital_heritage === 'object') {
-                  this.buildRemovalNids(responseJson.digital_heritage);
-                  for (const [nid, timestamp] of Object.entries(responseJson.digital_heritage)) {
+                if (typeof responseJson.nodes === 'object') {
+                  let nodes = {};
+                  for (const [type, entity] of Object.entries(responseJson.nodes)) {
+                    if (typeof responseJson.nodes[type] === 'object') {
+                      for (const [nid, object] of Object.entries(responseJson.nodes[type])) {
+                        if (typeof responseJson.nodes[type] === 'object') {
+                          nodes[nid] = object;
+                        }
+                      }
+                    }
+                  }
+                  this.buildRemovalNids(nodes);
+                  for (const [nid, object] of Object.entries(nodes)) {
                     // @todo don't update all nodes but starring a node does not save
                     // if (timestamp > this.state.syncUpdated) {
-                    this.saveNode(nid, data);
-                    this.updateSync();
+                    this.saveNode(nid, data, object.editable);
+                    // }
+                  }
+
+                  // now lets sync the taxonomy terms as well
+                }
+                if (typeof responseJson.terms === 'object') {
+                  for (const [tid, object] of Object.entries(responseJson.terms)) {
+                    // @todo don't update all nodes but starring a node does not save
+                    // if (timestamp > this.state.syncUpdated) {
+                    this.saveTaxonomy(tid, data);
                     // }
                   }
                 }
+                this.updateSync();
               })
               .catch((error) => {
                 console.error(error);
@@ -339,7 +421,7 @@ export default class HomeScreen extends React.Component {
     return loggedIn;
   }
 
-  saveNode(nid, data) {
+  saveNode(nid, data, editable) {
     fetch(this.props.screenProps.siteUrl + '/app/node/' + nid + '.json', data)
         .then((response) => response.json())
         .then((node) => {
@@ -353,8 +435,8 @@ export default class HomeScreen extends React.Component {
 
           this.state.db.transaction(
               tx => {
-                tx.executeSql('insert into nodes (nid, title, entity) values (?, ?, ?)',
-                    [node.nid, node.title, JSON.stringify(node)],
+                tx.executeSql('insert into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
+                    [node.nid, node.title, JSON.stringify(node), editable],
                     (success) => success,
                     (success, error) => ''
                 );
@@ -364,6 +446,26 @@ export default class HomeScreen extends React.Component {
         .catch((error) => {
           console.error(error);
         });
+  }
+
+  saveTaxonomy(tid, data) {
+    fetch(this.props.screenProps.siteUrl + '/app/tax-term/' + tid + '.json', data)
+      .then((response) => response.json())
+      .then((term) => {
+
+        this.state.db.transaction(
+          tx => {
+            tx.executeSql('replace into taxonomy (tid, title, entity) values (?, ?, ?)',
+              [term.tid, term.name, JSON.stringify(term)],
+              (success) => success,
+              (success, error) => ''
+            );
+          }
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   updateSync() {
@@ -467,6 +569,40 @@ export default class HomeScreen extends React.Component {
         .catch((error) => {
           console.error(error);
         });
+
+    // Now let's do the same thing for the display modes
+    fetch('http://mukurtucms.kanopi.cloud/app/viewable-types/retrieve', data)
+      .then((response) => response.json())
+      .then((responseJson) => {
+        if (typeof responseJson === 'object' && responseJson !== null) {
+
+          // now let's sync all content type display endpoints
+          for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+            fetch('http://mukurtucms.kanopi.cloud/app/node-view-fields/retrieve/' + machineName, data)
+              .then((response) => response.json())
+              .then((responseJson) => {
+
+                this.state.db.transaction(
+                  tx => {
+                    tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
+                      [machineName, JSON.stringify(responseJson)],
+                      (success) => '',
+                      (success, error) => ''
+                    );
+                  }
+                );
+
+                // @todo: We will need to grab the listing display as well
+              })
+              .catch((error) => {
+                // console.error(error);
+              });
+          }
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   buildFetchData(method = 'GET'){
@@ -493,6 +629,21 @@ export default class HomeScreen extends React.Component {
     }
 
     let i = 0;
+
+    let categoriesList = [];
+    if (this.state.categoriesList) {
+      categoriesList.push(
+      <Picker
+        selectedValue={this.state.categorySelection}
+        style={{height: 50, width: 100}}
+        onValueChange={(itemValue, itemIndex) =>
+          this.setFilters('category', itemValue)
+        }>
+        <Picker.Item label="Java" value="java" />
+        <Picker.Item label="JavaScript" value="js" />
+      </Picker>
+      );
+    }
 
     return (
         <View style={styles.container}>

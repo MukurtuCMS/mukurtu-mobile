@@ -12,6 +12,14 @@ export default class NodeTeaser extends React.Component {
         })
     }
 
+    viewNode() {
+        this.props.navigation.navigate('Node', {
+            contentType: this.props.node.entity.type,
+            contentTypeLabel: this.props.node.entity.title,
+            node: this.props.node.entity
+        })
+    }
+
     render() {
         const node = this.props.node;
 
@@ -23,7 +31,7 @@ export default class NodeTeaser extends React.Component {
         }
         return <View style={styles.nodeWrapper}>
             <View style={styles.nodeInnerWrapper}>
-                <Text style={styles.nodeTitle}>{node.title}</Text>
+                <Text style={styles.nodeTitle} onPress={() => this.viewNode()}>{node.title}</Text>
                 <Text style={styles.nodeBody} numberOfLines={2}>{body}</Text>
             </View>
             <View style={styles.nodeEditWrapper}>
