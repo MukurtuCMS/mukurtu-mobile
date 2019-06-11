@@ -53,11 +53,16 @@ export default class App extends React.Component {
           if (!array) {
             self.setState({databaseName: null});
           } else {
-            const siteUrl = array[0].siteUrl;
-            const userBlob = JSON.parse(array[0].user);
-            const databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
+            if (array[0].user.length > 0) {
+              const siteUrl = array[0].siteUrl;
+              console.log(array[0].user);
+              if (array[0].user) {
+                const userBlob = JSON.parse(array[0].user);
+                const databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
 
-            self.setState({databaseName: databaseName});
+                self.setState({databaseName: databaseName});
+              }
+            }
           }
         }
       );
