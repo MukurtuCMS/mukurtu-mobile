@@ -87,7 +87,6 @@ export default class HomeScreen extends React.Component {
     if (!this.state.db) {
       this.alertNotLoggedIn();
     } else {
-      this.createGlobalTables();
       this.createNodesTable();
       this.createTaxonomyTable();
       this.createTokenTable();
@@ -312,19 +311,6 @@ export default class HomeScreen extends React.Component {
         );
       });
     }
-  }
-
-  createGlobalTables() {
-    globalDB.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists user (siteUrl primary key, user text);'
-      );
-    });
-    globalDB.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists database (siteUrl primary key, databaseName text);'
-      );
-    });
   }
 
   createTokenTable() {
