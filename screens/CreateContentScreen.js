@@ -125,6 +125,24 @@ class CreateContentScreen extends React.Component {
         });
   }
 
+  alertNotLoggedIn() {
+    // This is done inline in some places,
+    // But setting it here as well as a catch to ensure state is updated.
+    this.setState({loggedIn: false});
+    Alert.alert(
+      'Connection Issue',
+      'We are having trouble reaching the servers.',
+      [
+        {
+          text: 'Continue Offline',
+          style: 'cancel',
+        },
+        {text: 'Log In', onPress: () => this.props.navigation.navigate('Login')},
+      ],
+      {cancelable: true}
+    )
+  }
+
   render() {
     const { navigation } = this.props;
     var bgColor = '#DCE3F4';
