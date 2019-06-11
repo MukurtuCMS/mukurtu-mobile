@@ -5,11 +5,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   Alert,
   Button,
-  Linking, NetInfo
+  Linking, NetInfo, Picker
 } from 'react-native';
 import {WebBrowser, SQLite} from 'expo';
 import axios from 'axios';
@@ -40,7 +41,17 @@ export default class HomeScreen extends React.Component {
       db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
       communityFilterList: [],
       terms: false,
-      categoriesList: []
+      nodeList: false,
+      categoriesList: [],
+      categoriesSelected: '0',
+      communityList: [],
+      communitySelected: '0',
+      collectionList: [],
+      collectionSelected: '0',
+      keywordsList: [],
+      keywordsSelected: '0',
+      filteredContentList: [],
+      search: ''
     }
   }
 
@@ -117,14 +128,44 @@ export default class HomeScreen extends React.Component {
   }
 
   updateNodes(array) {
+    let nodeList = {};
     // let's parse the json blobs before setting state
     for (var i = 0; i < array.length; i++) {
       if (array[i].entity && array[i].entity.length > 0) {
         array[i].entity = JSON.parse(array[i].entity);
+        if (array[i]) {
+          nodeList[array[i].nid] = array[i].entity;
+        }
       }
     }
-    this.setState({nodes: array});
+
+    this.setState({nodes: array, filteredContentList: array, nodeList: nodeList});
     this.updateFilters();
+  }
+
+  // @todo: Possibly remove this as I had to use a custom function for filtering anyways
+  preprocessFilteredContent = (array) => {
+    // we need to replace any languages with und so we can filter correctly
+    let count = 0;
+    count++;
+    let preprocessedArray = [];
+    if (array.length > 0) {
+      for (var i = 0; i < array.length; i++) {
+        count++;
+        if (array[i].entity) {
+          for (const [fieldName, fieldValue] of Object.entries(array[i].entity)) {
+            if (fieldValue && typeof fieldValue === 'object') {
+              const lang = (Object.keys(fieldValue)) ? Object.keys(fieldValue)[0] : null;
+              if (lang && lang === 'en') {
+                array[i].entity[fieldName]['und'] = array[i].entity[fieldName]['en'];
+                delete array[i].entity[fieldName][lang];
+              }
+            }
+          }
+        }
+      }
+    }
+    return array;
   }
 
   updateFilters = () => {
@@ -144,7 +185,133 @@ export default class HomeScreen extends React.Component {
         }
       }
     }
-    this.setState({categoriesList: categoriesList});
+    let keywordsList = {};
+    if (this.state.nodes.length > 0) {
+      for (var i = 0; i < this.state.nodes.length; i++) {
+        if (this.state.nodes[i].entity.field_tags) {
+          const lang = Object.keys(this.state.nodes[i].entity.field_tags)[0];
+          if (this.state.nodes[i].entity.field_tags) {
+            const keywords = this.state.nodes[i].entity.field_tags[lang];
+            if (keywords) {
+              for (var k = 0; k < keywords.length; k++) {
+                if (this.state.terms[keywords[k].tid]) {
+                  keywordsList[keywords[k].tid] = this.state.terms[keywords[k].tid].name;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    let communityList = {};
+    if (this.state.nodes.length > 0) {
+      for (var i = 0; i < this.state.nodes.length; i++) {
+        if (this.state.nodes[i].entity.field_community_ref) {
+          const lang = Object.keys(this.state.nodes[i].entity.field_community_ref)[0];
+          if (this.state.nodes[i].entity.field_community_ref) {
+            const community = this.state.nodes[i].entity.field_community_ref[lang];
+            if (community) {
+              for (var k = 0; k < community.length; k++) {
+                if (this.state.nodes[community[k].nid]) {
+                  communityList[community[k].nid] = this.state.nodeList[community[k].nid].title;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    let collectionList = {};
+    if (this.state.nodes.length > 0) {
+      for (var i = 0; i < this.state.nodes.length; i++) {
+        if (this.state.nodes[i].entity.field_collection) {
+          const lang = Object.keys(this.state.nodes[i].entity.field_collection)[0];
+          if (this.state.nodes[i].entity.field_collection) {
+            const collections = this.state.nodes[i].entity.field_collection[lang];
+            if (collections) {
+              for (var k = 0; k < collections.length; k++) {
+                if (this.state.nodes[collections[k].nid]) {
+                  collectionList[collections[k].nid] = this.state.nodeList[collections[k].nid].title;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    this.setState({categoriesList: categoriesList, communityList: communityList, collectionList: collectionList, keywordsList: keywordsList});
+  }
+
+  filterCategory = (categories, tid, value='tid') => {
+    if (categories && tid) {
+      const lang = Object.keys(categories)[0];
+      if (categories[lang]) {
+        for (var i = 0; i < categories[lang].length; i++) {
+          if (categories[lang][i][value] === tid) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  setFilters = (filter, tid) => {
+    if (filter === 'category') {
+      this.setState({categoriesSelected: tid});
+      let content = this.state.nodes;
+      if (tid !== '0') {
+        content = content.filter(node => this.filterCategory(node.entity.field_category, tid));
+      }
+      this.setState({filteredContentList: content});
+    }
+    if (filter === 'community') {
+      this.setState({communitySelected: tid});
+      let content = this.state.nodes;
+      if (tid !== '0') {
+        content = content.filter(node => this.filterCategory(node.entity.field_community_ref, tid, 'nid'));
+      }
+      this.setState({filteredContentList: content});
+    }
+  }
+
+  getFilteredContentList = () => {
+    let filteredContentList = this.state.nodes;
+    if (this.state.categoriesSelected !== '0') {
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_category, this.state.categoriesSelected));
+    }
+    if (this.state.communitySelected !== '0') {
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_community_ref, this.state.communitySelected, 'nid'));
+    }
+    if (this.state.keywordsSelected !== '0') {
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_tags, this.state.keywordsSelected));
+    }
+    if (this.state.collectionSelected !== '0') {
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_collection, this.state.collectionSelected, 'nid'));
+    }
+
+    return filteredContentList;
+  }
+
+  setSearchText = (text) => {
+    this.setState({search: text});
+    if (text.length > 0) {
+      this.state.db.transaction(tx => {
+        tx.executeSql(
+          "select * from nodes where instr(upper(entity), upper(?)) > 0;",
+          [text],
+          (_, {rows: {_array}}) => this.updateNodes(_array)
+        );
+      });
+    } else {
+      this.state.db.transaction(tx => {
+        tx.executeSql(
+          "select * from nodes;",
+          '',
+          (_, {rows: {_array}}) => this.updateNodes(_array)
+        );
+      });
+    }
   }
 
   createGlobalTables() {
@@ -624,7 +791,14 @@ export default class HomeScreen extends React.Component {
   render() {
     if (this.state.nodes.length < 1) {
       return (
-          <View><Text>No nodes were found in offline storage.</Text></View>
+          <View>
+            <TextInput
+              style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+              onChangeText={(text) => this.setSearchText(text)}
+              value={this.state.search}
+            />
+            <Text>No nodes were found in offline storage.</Text>
+          </View>
       )
     }
 
@@ -632,36 +806,127 @@ export default class HomeScreen extends React.Component {
 
     let categoriesList = [];
     if (this.state.categoriesList) {
+      let options = [];
+      options.push(<Picker.Item key={"0"} label='None' value='0' />);
+      for (const [tid, name] of Object.entries(this.state.categoriesList)) {
+          options.push(<Picker.Item
+              key={tid}
+              label={name}
+              value={tid}
+            />
+          );
+      }
       categoriesList.push(
       <Picker
-        selectedValue={this.state.categorySelection}
-        style={{height: 50, width: 100}}
+        key={"0"}
+        selectedValue={this.state.categoriesSelected}
+        style={{height: 50, width: 200}}
         onValueChange={(itemValue, itemIndex) =>
-          this.setFilters('category', itemValue)
+          this.setState({categoriesSelected: itemValue})
         }>
-        <Picker.Item label="Java" value="java" />
-        <Picker.Item label="JavaScript" value="js" />
+        {options}
       </Picker>
       );
     }
 
+    let keywordsList = [];
+    if (this.state.keywordsList) {
+      let options = [];
+      options.push(<Picker.Item key={"0"} label='None' value='0' />);
+      for (const [tid, name] of Object.entries(this.state.keywordsList)) {
+        options.push(<Picker.Item
+            key={tid}
+            label={name}
+            value={tid}
+          />
+        );
+      }
+      keywordsList.push(
+        <Picker
+          key={"0"}
+          selectedValue={this.state.keywordsSelected}
+          style={{height: 50, width: 200}}
+          onValueChange={(itemValue, itemIndex) =>
+            this.setState({keywordsSelected: itemValue})
+          }>
+          {options}
+        </Picker>
+      );
+    }
+
+    let communityList = [];
+    if (this.state.communityList) {
+      let options = [];
+      options.push(<Picker.Item key={"0"} label='None' value='0' />);
+      for (const [nid, title] of Object.entries(this.state.communityList)) {
+        options.push(<Picker.Item
+            key={nid}
+            label={title}
+            value={nid}
+          />
+        );
+      }
+      communityList.push(
+        <Picker
+          key={"0"}
+          selectedValue={this.state.communitySelected}
+          style={{height: 50, width: 200}}
+          onValueChange={(itemValue, itemIndex) =>
+            this.setState({communitySelected: itemValue})
+          }>
+          {options}
+        </Picker>
+      );
+    }
+
+    let collectionList = [];
+    if (this.state.collectionList) {
+      let options = [];
+      options.push(<Picker.Item key={"0"} label='None' value='0' />);
+      for (const [nid, title] of Object.entries(this.state.collectionList)) {
+        options.push(<Picker.Item
+            key={nid}
+            label={title}
+            value={nid}
+          />
+        );
+      }
+      collectionList.push(
+        <Picker
+          key={"0"}
+          selectedValue={this.state.collectionSelected}
+          style={{height: 50, width: 200}}
+          onValueChange={(itemValue, itemIndex) =>
+            this.setState({collectionSelected: itemValue})
+          }>
+          {options}
+        </Picker>
+      );
+    }
+
+    const filteredContentList = this.getFilteredContentList();
+
     return (
-        <View style={styles.container}>
           <ScrollView style={styles.container}>
 
             <View>
-
-              <Text>Offline Nodes</Text>
+              <TextInput
+                style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+                onChangeText={(text) => this.setSearchText(text)}
+                value={this.state.search}
+              />
+              {categoriesList}
+              {keywordsList}
+              {communityList}
+              {collectionList}
               {
-                this.state.nodes.map((node) => (
+                filteredContentList.map((node) => (
                     <NodeTeaser key={i++} node={node} navigation={this.props.navigation} />
                 ))
               }
             </View>
 
           </ScrollView>
-
-        </View>
     );
   }
 
