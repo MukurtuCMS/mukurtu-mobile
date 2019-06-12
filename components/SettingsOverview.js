@@ -20,7 +20,7 @@ class SettingsOverview extends React.Component {
     const { navigation, screenProps } = this.props;
     this.onValueChange = this.onValueChange.bind(this);
     this.componentActive = this.componentActive.bind(this);
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: ''};
+    this.state = {switchValue: false, loggedIn: screenProps.loggedIn, token: false, user: screenProps.user, places: '', placeName: ''};
   }
 
   componentDidMount(){
@@ -28,42 +28,6 @@ class SettingsOverview extends React.Component {
   }
 
   componentActive(){
-    fetch(this.props.screenProps.siteUrl  + '/services/session/token')
-      .then((response) => {
-        let Token = response._bodyText;
-        this.setState({token: Token});
-        let data = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // 'X-CSRF-Token': this.props.user.token,
-            'Cache-Control': 'no-cache',
-            // 'Cookie': this.props.user.session_name + '=' + this.props.user.sessid
-          }
-        };
-
-        fetch(this.props.screenProps.siteUrl + '/app/system/connect', data)
-          .then((response) => response.json())
-          .then((responseJson) => {
-            //Alert.alert("my json" + responseJson.movies);
-            // console.log('SESS ID: ' + JSON.stringify(responseJson.sessid));
-            // console.log('SESS Name: ' + JSON.stringify(responseJson.session_name));
-            // console.log('Current Status' + JSON.stringify(responseJson));
-            var session = responseJson.session_name + '=' + responseJson.sessid;
-            this.props.add(responseJson.session_name + '=' + responseJson.sessid);
-/*            if (response.user.uid === 0) {
-              this.setState({loggedIn: false});
-            } else {
-              this.setState({loggedIn: true, user: responseJson});
-            }*/
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
   }
 
   render() {
@@ -74,10 +38,10 @@ class SettingsOverview extends React.Component {
       <View style={{backgroundColor:'#EFEFF4',flex:1}}>
         <View style={{backgroundColor:'#EFEFF4',flex:1}}>
           <SettingsList borderColor='#c8c7cc' defaultItemSize={50}>
-            {(this.props.user.user && parseInt(this.props.user.user.uid) > 0) ?
+            {(this.state.user.user && parseInt(this.state.user.user.uid) > 0) ?
               <SettingsList.Item
                 title='Log Out'
-                titleInfo={this.props.user.user.name}
+                titleInfo={this.state.user.user.name}
                 titleInfoStyle={styles.titleInfoStyle}
                 onPress={() =>
                   this.props.navigation.navigate('Logout')
@@ -129,22 +93,4 @@ const styles = StyleSheet.create({
   }
 });
 
-const mapStateToProps = state => {
-  return {
-    places: state.places.places,
-    user: state.user.user
-  }
-}
-
-const mapDispatchToProps = dispatch => {
-  return {
-    add: (name) => {
-      dispatch(addPlace(name))
-    },
-    addUserProp: (name) => {
-      dispatch(addUser(name))
-    }
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(SettingsOverview)
+export default SettingsOverview
