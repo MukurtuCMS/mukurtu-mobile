@@ -11,11 +11,12 @@ import LoginScreen from '../screens/LoginScreen';
 import LogoutScreen from '../screens/LogoutScreen';
 import HelpScreen from '../screens/HelpScreen';
 import AboutScreen from '../screens/AboutScreen';
-import OfflineScreen from '../screens/OfflineScreen';
 import WebviewScreen from "../screens/WebviewScreen";
+import NodeScreen from "../screens/NodeScreen";
 
 const HomeStack = createStackNavigator({
   Home: { screen: HomeScreen },
+  Node: { screen: NodeScreen}
 });
 
 HomeStack.navigationOptions = {
@@ -68,20 +69,6 @@ SettingsStack.navigationOptions = {
   }
 };
 
-const OfflineStack = createStackNavigator({
-  Offline: OfflineScreen
-});
-
-OfflineStack.navigationOptions = {
-  tabBarLabel: 'Offline',
-  tabBarIcon: ({ focused }) => (
-    <TabBarIcon
-      focused={focused}
-      name={Platform.OS === 'ios' ? 'ios-options' : 'md-options'}
-    />
-  )
-};
-
 const WebviewStack = createStackNavigator({
   Webview: { screen: WebviewScreen }
 });
@@ -106,6 +93,5 @@ export default createBottomTabNavigator({
   HomeStack,
   CreateContentStack,
   SettingsStack,
-  OfflineStack,
   WebviewStack
 });

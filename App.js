@@ -28,6 +28,7 @@ export default class App extends React.Component {
     super(props);
     this._handleSiteUrlUpdate = this._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
+    this.setDatabaseName = this.setDatabaseName.bind(this);
 
     this.state = {
       isLoadingComplete: false,
@@ -42,31 +43,35 @@ export default class App extends React.Component {
     };
   }
 
-  setDatabaseName = () => {
+  setDatabaseName() {
     const self = this;
     globalDB.transaction(tx => {
       tx.executeSql(
         'select * from user limit 1;',
         '',
         function(tx, result){
+          console.log('test');
+          let databaseName = null;
           const array = result.rows._array;
-          if (!array) {
-            self.setState({databaseName: null});
-          } else {
-            const siteUrl = array[0].siteUrl;
-            const userBlob = JSON.parse(array[0].user);
-            const databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
-
-            self.setState({databaseName: databaseName});
+          if (array) {
+            if (array[0] && array[0].user.length > 0) {
+              const siteUrl = array[0].siteUrl;
+              if (array[0].user) {
+                const userBlob = JSON.parse(array[0].user);
+                databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
+              }
+            }
           }
+          self.setState({databaseName: databaseName});
         }
       );
     });
   };
 
   componentDidMount() {
-    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    this.createGlobalTables();
     this.setDatabaseName();
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
 
     if (this.state.isConnected) {
       this.registerBackgroundSync();
@@ -85,12 +90,10 @@ export default class App extends React.Component {
 
   registerBackgroundSync = async () => {
     await BackgroundFetch.registerTaskAsync(taskName);
-    console.log('task registered');
   };
 
   logRegisteredTasks = async () => {
     const registeredTasks = await TaskManager.getRegisteredTasksAsync();
-    console.log(registeredTasks);
   };
 
   render() {
@@ -190,6 +193,18 @@ export default class App extends React.Component {
     });
   }
 
+  createGlobalTables() {
+    globalDB.transaction(tx => {
+      tx.executeSql(
+        'create table if not exists user (siteUrl primary key, user text);'
+      );
+    });
+    globalDB.transaction(tx => {
+      tx.executeSql(
+        'create table if not exists database (siteUrl primary key, databaseName text);'
+      );
+    });
+  }
 
   getToken(array) {
     if (array === undefined || array.length < 1) {

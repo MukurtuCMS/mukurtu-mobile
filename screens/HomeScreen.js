@@ -5,11 +5,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   Alert,
   Button,
-  Linking, NetInfo
+  Linking, NetInfo, Picker
 } from 'react-native';
 import {WebBrowser, SQLite} from 'expo';
 import axios from 'axios';
@@ -37,7 +38,20 @@ export default class HomeScreen extends React.Component {
       cookie: null,
       isConnected: false,
       nodes: [],
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null
+      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
+      communityFilterList: [],
+      terms: false,
+      nodeList: false,
+      categoriesList: [],
+      categoriesSelected: '0',
+      communityList: [],
+      communitySelected: '0',
+      collectionList: [],
+      collectionSelected: '0',
+      keywordsList: [],
+      keywordsSelected: '0',
+      filteredContentList: [],
+      search: ''
     }
   }
 
@@ -53,6 +67,7 @@ export default class HomeScreen extends React.Component {
     // Add listener for internet connection change
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
     this.checkInitialConnection();
+    this.componentActive();
   }
 
   checkInitialConnection = async () => {
@@ -72,13 +87,14 @@ export default class HomeScreen extends React.Component {
     if (!this.state.db) {
       this.alertNotLoggedIn();
     } else {
-      this.createGlobalTables();
       this.createNodesTable();
+      this.createTaxonomyTable();
       this.createTokenTable();
       this.createSyncTable();
       this.createNodesSavedTable();
       this.createContentTypesTable();
       this.createContentTypeTable();
+      this.createDisplayModesTable();
       if (this.state.isConnected) {
         this.update();
         this.syncContentTypes();
@@ -86,33 +102,215 @@ export default class HomeScreen extends React.Component {
 
       this.state.db.transaction(tx => {
         tx.executeSql(
-          'select * from nodes limit 10;',
+          'select * from nodes;',
           '',
           (_, {rows: {_array}}) => this.updateNodes(_array)
+        );
+      });
+
+      this.state.db.transaction(tx => {
+        tx.executeSql(
+          'select * from taxonomy;',
+          '',
+          (query, result) => this.setTaxonomy(result.rows._array)
         );
       });
     }
   }
 
-  updateNodes(array) {
-    // let's parse the json blobs before setting state
+  setTaxonomy = (array) => {
+    let termList = {};
     for (var i = 0; i < array.length; i++) {
-      array[i].entity = JSON.parse(array[i].entity);
+      termList[array[i].tid] = JSON.parse(array[i].entity)
     }
-    this.setState({nodes: array});
+    this.setState({terms: termList});
   }
 
-  createGlobalTables() {
-    globalDB.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists user (siteUrl primary key, user text);'
-      );
-    });
-    globalDB.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists database (siteUrl primary key, databaseName text);'
-      );
-    });
+  updateNodes(array) {
+    let nodeList = {};
+    // let's parse the json blobs before setting state
+    for (var i = 0; i < array.length; i++) {
+      if (array[i].entity && array[i].entity.length > 0) {
+        array[i].entity = JSON.parse(array[i].entity);
+        if (array[i]) {
+          nodeList[array[i].nid] = array[i].entity;
+        }
+      }
+    }
+
+    this.setState({nodes: array, filteredContentList: array, nodeList: nodeList});
+    this.updateFilters();
+  }
+
+  // @todo: Possibly remove this as I had to use a custom function for filtering anyways
+  preprocessFilteredContent = (array) => {
+    // we need to replace any languages with und so we can filter correctly
+    let count = 0;
+    count++;
+    let preprocessedArray = [];
+    if (array.length > 0) {
+      for (var i = 0; i < array.length; i++) {
+        count++;
+        if (array[i].entity) {
+          for (const [fieldName, fieldValue] of Object.entries(array[i].entity)) {
+            if (fieldValue && typeof fieldValue === 'object') {
+              const lang = (Object.keys(fieldValue)) ? Object.keys(fieldValue)[0] : null;
+              if (lang && lang === 'en') {
+                array[i].entity[fieldName]['und'] = array[i].entity[fieldName]['en'];
+                delete array[i].entity[fieldName][lang];
+              }
+            }
+          }
+        }
+      }
+    }
+    return array;
+  }
+
+  updateFilters = () => {
+    let categoriesList = {};
+    if (this.state.nodes.length > 0) {
+      for (var i = 0; i < this.state.nodes.length; i++) {
+        if (this.state.nodes[i].entity.field_category) {
+          const lang = Object.keys(this.state.nodes[i].entity.field_category)[0];
+          if (this.state.nodes[i].entity.field_category) {
+            const categories = this.state.nodes[i].entity.field_category[lang];
+            for (var k = 0; k < categories.length; k++) {
+              if (this.state.terms[categories[k].tid]) {
+                categoriesList[categories[k].tid] = this.state.terms[categories[k].tid].name;
+              }
+            }
+          }
+        }
+      }
+    }
+    let keywordsList = {};
+    if (this.state.nodes.length > 0) {
+      for (var i = 0; i < this.state.nodes.length; i++) {
+        if (this.state.nodes[i].entity.field_tags) {
+          const lang = Object.keys(this.state.nodes[i].entity.field_tags)[0];
+          if (this.state.nodes[i].entity.field_tags) {
+            const keywords = this.state.nodes[i].entity.field_tags[lang];
+            if (keywords) {
+              for (var k = 0; k < keywords.length; k++) {
+                if (this.state.terms[keywords[k].tid]) {
+                  keywordsList[keywords[k].tid] = this.state.terms[keywords[k].tid].name;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    let communityList = {};
+    if (this.state.nodes.length > 0) {
+      for (var i = 0; i < this.state.nodes.length; i++) {
+        if (this.state.nodes[i].entity.field_community_ref) {
+          const lang = Object.keys(this.state.nodes[i].entity.field_community_ref)[0];
+          if (this.state.nodes[i].entity.field_community_ref) {
+            const community = this.state.nodes[i].entity.field_community_ref[lang];
+            if (community) {
+              for (var k = 0; k < community.length; k++) {
+                if (this.state.nodes[community[k].nid]) {
+                  communityList[community[k].nid] = this.state.nodeList[community[k].nid].title;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    let collectionList = {};
+    if (this.state.nodes.length > 0) {
+      for (var i = 0; i < this.state.nodes.length; i++) {
+        if (this.state.nodes[i].entity.field_collection) {
+          const lang = Object.keys(this.state.nodes[i].entity.field_collection)[0];
+          if (this.state.nodes[i].entity.field_collection) {
+            const collections = this.state.nodes[i].entity.field_collection[lang];
+            if (collections) {
+              for (var k = 0; k < collections.length; k++) {
+                if (this.state.nodes[collections[k].nid]) {
+                  collectionList[collections[k].nid] = this.state.nodeList[collections[k].nid].title;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    this.setState({categoriesList: categoriesList, communityList: communityList, collectionList: collectionList, keywordsList: keywordsList});
+  }
+
+  filterCategory = (categories, tid, value='tid') => {
+    if (categories && tid) {
+      const lang = Object.keys(categories)[0];
+      if (categories[lang]) {
+        for (var i = 0; i < categories[lang].length; i++) {
+          if (categories[lang][i][value] === tid) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  setFilters = (filter, tid) => {
+    if (filter === 'category') {
+      this.setState({categoriesSelected: tid});
+      let content = this.state.nodes;
+      if (tid !== '0') {
+        content = content.filter(node => this.filterCategory(node.entity.field_category, tid));
+      }
+      this.setState({filteredContentList: content});
+    }
+    if (filter === 'community') {
+      this.setState({communitySelected: tid});
+      let content = this.state.nodes;
+      if (tid !== '0') {
+        content = content.filter(node => this.filterCategory(node.entity.field_community_ref, tid, 'nid'));
+      }
+      this.setState({filteredContentList: content});
+    }
+  }
+
+  getFilteredContentList = () => {
+    let filteredContentList = this.state.nodes;
+    if (this.state.categoriesSelected !== '0') {
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_category, this.state.categoriesSelected));
+    }
+    if (this.state.communitySelected !== '0') {
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_community_ref, this.state.communitySelected, 'nid'));
+    }
+    if (this.state.keywordsSelected !== '0') {
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_tags, this.state.keywordsSelected));
+    }
+    if (this.state.collectionSelected !== '0') {
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_collection, this.state.collectionSelected, 'nid'));
+    }
+
+    return filteredContentList;
+  }
+
+  setSearchText = (text) => {
+    this.setState({search: text});
+    if (text.length > 0) {
+      this.state.db.transaction(tx => {
+        tx.executeSql(
+          "select * from nodes where instr(upper(entity), upper(?)) > 0;",
+          [text],
+          (_, {rows: {_array}}) => this.updateNodes(_array)
+        );
+      });
+    } else {
+      this.state.db.transaction(tx => {
+        tx.executeSql(
+          "select * from nodes;",
+          '',
+          (_, {rows: {_array}}) => this.updateNodes(_array)
+        );
+      });
+    }
   }
 
   createTokenTable() {
@@ -134,7 +332,15 @@ export default class HomeScreen extends React.Component {
   createNodesTable() {
     this.state.db.transaction(tx => {
       tx.executeSql(
-          'create table if not exists nodes (nid integer primary key, title text, entity text);'
+          'create table if not exists nodes (nid integer primary key, title text, entity text, editable boolean);'
+      );
+    });
+  }
+
+  createTaxonomyTable() {
+    this.state.db.transaction(tx => {
+      tx.executeSql(
+        'create table if not exists taxonomy (tid integer primary key, title text, entity text);'
       );
     });
   }
@@ -162,6 +368,15 @@ export default class HomeScreen extends React.Component {
     this.state.db.transaction(tx => {
       tx.executeSql(
           'create table if not exists content_type (machine_name text primary key, blob text);'
+      );
+    });
+  }
+
+  // this will be a store the content type endpoint
+  createDisplayModesTable() {
+    this.state.db.transaction(tx => {
+      tx.executeSql(
+        'create table if not exists display_modes (machine_name text primary key, node_view text, list_view text);'
       );
     });
   }
@@ -233,19 +448,39 @@ export default class HomeScreen extends React.Component {
           data.method = 'GET';
 
 
-          fetch('http://mukurtucms.kanopi.cloud' + '/app/synced-nodes/retrieve', data)
+          fetch('http://mukurtucms.kanopi.cloud' + '/app/synced-entities/retrieve', data)
               .then((response) => response.json())
               .then((responseJson) => {
-                if (typeof responseJson.digital_heritage === 'object') {
-                  this.buildRemovalNids(responseJson.digital_heritage);
-                  for (const [nid, timestamp] of Object.entries(responseJson.digital_heritage)) {
+                if (typeof responseJson.nodes === 'object') {
+                  let nodes = {};
+                  for (const [type, entity] of Object.entries(responseJson.nodes)) {
+                    if (typeof responseJson.nodes[type] === 'object') {
+                      for (const [nid, object] of Object.entries(responseJson.nodes[type])) {
+                        if (typeof responseJson.nodes[type] === 'object') {
+                          nodes[nid] = object;
+                        }
+                      }
+                    }
+                  }
+                  this.buildRemovalNids(nodes);
+                  for (const [nid, object] of Object.entries(nodes)) {
                     // @todo don't update all nodes but starring a node does not save
                     // if (timestamp > this.state.syncUpdated) {
-                    this.saveNode(nid, data);
-                    this.updateSync();
+                    this.saveNode(nid, data, object.editable);
+                    // }
+                  }
+
+                  // now lets sync the taxonomy terms as well
+                }
+                if (typeof responseJson.terms === 'object') {
+                  for (const [tid, object] of Object.entries(responseJson.terms)) {
+                    // @todo don't update all nodes but starring a node does not save
+                    // if (timestamp > this.state.syncUpdated) {
+                    this.saveTaxonomy(tid, data);
                     // }
                   }
                 }
+                this.updateSync();
               })
               .catch((error) => {
                 console.error(error);
@@ -339,7 +574,7 @@ export default class HomeScreen extends React.Component {
     return loggedIn;
   }
 
-  saveNode(nid, data) {
+  saveNode(nid, data, editable) {
     fetch(this.props.screenProps.siteUrl + '/app/node/' + nid + '.json', data)
         .then((response) => response.json())
         .then((node) => {
@@ -353,8 +588,8 @@ export default class HomeScreen extends React.Component {
 
           this.state.db.transaction(
               tx => {
-                tx.executeSql('insert into nodes (nid, title, entity) values (?, ?, ?)',
-                    [node.nid, node.title, JSON.stringify(node)],
+                tx.executeSql('insert into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
+                    [node.nid, node.title, JSON.stringify(node), editable],
                     (success) => success,
                     (success, error) => ''
                 );
@@ -364,6 +599,26 @@ export default class HomeScreen extends React.Component {
         .catch((error) => {
           console.error(error);
         });
+  }
+
+  saveTaxonomy(tid, data) {
+    fetch(this.props.screenProps.siteUrl + '/app/tax-term/' + tid + '.json', data)
+      .then((response) => response.json())
+      .then((term) => {
+
+        this.state.db.transaction(
+          tx => {
+            tx.executeSql('replace into taxonomy (tid, title, entity) values (?, ?, ?)',
+              [term.tid, term.name, JSON.stringify(term)],
+              (success) => success,
+              (success, error) => ''
+            );
+          }
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   updateSync() {
@@ -467,6 +722,40 @@ export default class HomeScreen extends React.Component {
         .catch((error) => {
           console.error(error);
         });
+
+    // Now let's do the same thing for the display modes
+    fetch('http://mukurtucms.kanopi.cloud/app/viewable-types/retrieve', data)
+      .then((response) => response.json())
+      .then((responseJson) => {
+        if (typeof responseJson === 'object' && responseJson !== null) {
+
+          // now let's sync all content type display endpoints
+          for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+            fetch('http://mukurtucms.kanopi.cloud/app/node-view-fields/retrieve/' + machineName, data)
+              .then((response) => response.json())
+              .then((responseJson) => {
+
+                this.state.db.transaction(
+                  tx => {
+                    tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
+                      [machineName, JSON.stringify(responseJson)],
+                      (success) => '',
+                      (success, error) => ''
+                    );
+                  }
+                );
+
+                // @todo: We will need to grab the listing display as well
+              })
+              .catch((error) => {
+                // console.error(error);
+              });
+          }
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   buildFetchData(method = 'GET'){
@@ -488,29 +777,142 @@ export default class HomeScreen extends React.Component {
   render() {
     if (this.state.nodes.length < 1) {
       return (
-          <View><Text>No nodes were found in offline storage.</Text></View>
+          <View>
+            <TextInput
+              style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+              onChangeText={(text) => this.setSearchText(text)}
+              value={this.state.search}
+            />
+            <Text>No nodes were found in offline storage.</Text>
+          </View>
       )
     }
 
     let i = 0;
 
+    let categoriesList = [];
+    if (this.state.categoriesList) {
+      let options = [];
+      options.push(<Picker.Item key={"0"} label='None' value='0' />);
+      for (const [tid, name] of Object.entries(this.state.categoriesList)) {
+          options.push(<Picker.Item
+              key={tid}
+              label={name}
+              value={tid}
+            />
+          );
+      }
+      categoriesList.push(
+      <Picker
+        key={"0"}
+        selectedValue={this.state.categoriesSelected}
+        style={{height: 50, width: 200}}
+        onValueChange={(itemValue, itemIndex) =>
+          this.setState({categoriesSelected: itemValue})
+        }>
+        {options}
+      </Picker>
+      );
+    }
+
+    let keywordsList = [];
+    if (this.state.keywordsList) {
+      let options = [];
+      options.push(<Picker.Item key={"0"} label='None' value='0' />);
+      for (const [tid, name] of Object.entries(this.state.keywordsList)) {
+        options.push(<Picker.Item
+            key={tid}
+            label={name}
+            value={tid}
+          />
+        );
+      }
+      keywordsList.push(
+        <Picker
+          key={"0"}
+          selectedValue={this.state.keywordsSelected}
+          style={{height: 50, width: 200}}
+          onValueChange={(itemValue, itemIndex) =>
+            this.setState({keywordsSelected: itemValue})
+          }>
+          {options}
+        </Picker>
+      );
+    }
+
+    let communityList = [];
+    if (this.state.communityList) {
+      let options = [];
+      options.push(<Picker.Item key={"0"} label='None' value='0' />);
+      for (const [nid, title] of Object.entries(this.state.communityList)) {
+        options.push(<Picker.Item
+            key={nid}
+            label={title}
+            value={nid}
+          />
+        );
+      }
+      communityList.push(
+        <Picker
+          key={"0"}
+          selectedValue={this.state.communitySelected}
+          style={{height: 50, width: 200}}
+          onValueChange={(itemValue, itemIndex) =>
+            this.setState({communitySelected: itemValue})
+          }>
+          {options}
+        </Picker>
+      );
+    }
+
+    let collectionList = [];
+    if (this.state.collectionList) {
+      let options = [];
+      options.push(<Picker.Item key={"0"} label='None' value='0' />);
+      for (const [nid, title] of Object.entries(this.state.collectionList)) {
+        options.push(<Picker.Item
+            key={nid}
+            label={title}
+            value={nid}
+          />
+        );
+      }
+      collectionList.push(
+        <Picker
+          key={"0"}
+          selectedValue={this.state.collectionSelected}
+          style={{height: 50, width: 200}}
+          onValueChange={(itemValue, itemIndex) =>
+            this.setState({collectionSelected: itemValue})
+          }>
+          {options}
+        </Picker>
+      );
+    }
+
+    const filteredContentList = this.getFilteredContentList();
+
     return (
-        <View style={styles.container}>
           <ScrollView style={styles.container}>
 
             <View>
-
-              <Text>Offline Nodes</Text>
+              <TextInput
+                style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+                onChangeText={(text) => this.setSearchText(text)}
+                value={this.state.search}
+              />
+              {categoriesList}
+              {keywordsList}
+              {communityList}
+              {collectionList}
               {
-                this.state.nodes.map((node) => (
+                filteredContentList.map((node) => (
                     <NodeTeaser key={i++} node={node} navigation={this.props.navigation} />
                 ))
               }
             </View>
 
           </ScrollView>
-
-        </View>
     );
   }
 
