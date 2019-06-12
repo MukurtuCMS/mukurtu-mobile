@@ -33,7 +33,7 @@ export default class HomeScreen extends React.Component {
       syncUpdated: [],
       removeNodes: [],
       redirectUrl: null,
-      loggedIn: false,
+      loggedIn: screenProps.loggedIn,
       token: null,
       cookie: null,
       isConnected: false,
@@ -68,6 +68,7 @@ export default class HomeScreen extends React.Component {
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
     this.checkInitialConnection();
     this.componentActive();
+    console.log(this.state.loggedIn);
   }
 
   checkInitialConnection = async () => {
@@ -89,7 +90,6 @@ export default class HomeScreen extends React.Component {
     } else {
       this.createNodesTable();
       this.createTaxonomyTable();
-      this.createTokenTable();
       this.createSyncTable();
       this.createNodesSavedTable();
       this.createContentTypesTable();
@@ -311,14 +311,6 @@ export default class HomeScreen extends React.Component {
         );
       });
     }
-  }
-
-  createTokenTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists auth (id integer primary key, token text, cookie text);'
-      );
-    });
   }
 
   createSyncTable() {
