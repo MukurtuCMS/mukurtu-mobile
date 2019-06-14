@@ -41,8 +41,11 @@ class CreateContentScreen extends React.Component {
   }
 
   componentActive(){
+    // Immediately check if first time, and rout to login screen
+    if (this.props.screenProps.firstTime) {
+      this.props.navigation.navigate('Login');
+    }
     if (!this.state.db) {
-      this.alertNotLoggedIn();
     } else {
 
       // first set content types from db, then try connecting
@@ -83,7 +86,6 @@ class CreateContentScreen extends React.Component {
 
   getToken(array) {
     if (array === undefined || array.length < 1) {
-      // this.alertNotLoggedIn(); Need to replace this with a log-in prompt
       return false;
     }
     const token = array[0].token;
@@ -105,7 +107,6 @@ class CreateContentScreen extends React.Component {
         .then((response) => response.json())
         .then((responseJson) => {
           if (responseJson.user.uid === 0) {
-            // this.alertNotLoggedIn(); Need to replace this with a login prompt
             return false;
           }
           data.method = 'GET';

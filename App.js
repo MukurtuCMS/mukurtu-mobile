@@ -42,11 +42,15 @@ export default class App extends React.Component {
       isConnected: false,
       databaseName: false,
       db: null,
-      loggedIn: null
+      loggedIn: null,
+      user: {},
+      firstTime: false,
+      sync: false
     };
   }
 
   setDatabaseName() {
+    // This should always be run on app initialization. It check for the previous user object or set state to first time.
     const self = this;
     globalDB.transaction(tx => {
       tx.executeSql(
@@ -57,43 +61,57 @@ export default class App extends React.Component {
           let databaseName = null;
           let db = null;
           const array = result.rows._array;
-          if (array) {
+          if (array.length > 0) {
             if (array[0] && array[0].user.length > 0) {
               const siteUrl = array[0].siteUrl;
               if (array[0].user) {
                 const userBlob = JSON.parse(array[0].user);
-                user = userBlob
-                databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
-                db = SQLite.openDatabase(databaseName);
-                console.log(db);
+                if (typeof userBlob.user === 'object' && userBlob.user.uid > 0) {
+                  user = userBlob;
+                  databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
+                  db = SQLite.openDatabase(databaseName);
+                }
               }
             }
           }
-          self.setState({user: user, databaseName: databaseName, db: db});
+          let firstTime = false;
+          let loggedIn = null;
+          if (!user) {
+            firstTime = true;
+            databaseName = null;
+            loggedIn = false;
+          }
+          self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
         }
       );
     });
   };
 
   componentDidMount() {
+    // let's first check if this is a first time user, redirect to login
+    this.firstTimeCheck();
+
     this.createGlobalTables();
     this.setDatabaseName();
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+  }
 
-    if (this.state.isConnected && this.state.db) {
+  componentDidUpdate(prevProps, prevState) {
+    if (!prevState.db && this.state.db && this.state.isConnected) {
+      this.createTokenTable();
+      this._getAuth();
+    } else if (!prevState.db && this.state.db && !this.state.isConnected) {
+      // db and user exist, but cannot check auth
+    }
+    if (!prevState.isConnected &&- !prevState.db && this.state.isConnected && this.state.db) {
       this.registerBackgroundSync();
       this.logRegisteredTasks();
       this.createTokenTable();
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (!prevState.db && this.state.db && this.state.isConnected) {
-      this._getAuth();
-    }
-  }
-
   handleConnectivityChange = isConnected => {
+    console.log(isConnected);
     this.setState({ isConnected });
   }
 
@@ -109,6 +127,10 @@ export default class App extends React.Component {
     const registeredTasks = await TaskManager.getRegisteredTasksAsync();
   };
 
+  firstTimeCheck = () => {
+
+  }
+
   render() {
     // We need to make sure our component is not rendering until we have checked offline/online and whether user is
     // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
@@ -122,15 +144,17 @@ export default class App extends React.Component {
       return (<InitializingApp />);
     }
     let screenProps = {
-          user: this.state.user,
-          siteUrl: this.state.siteUrl,
-          isLoggedIn: this.state.isLoggedIn,
-          token: this.state.token,
-          cookie: this.state.cookie,
-          loggedIn: this.state.loggedIn,
-          databaseName: this.state.databaseName,
-          _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
-          _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
+      user: this.state.user,
+      siteUrl: this.state.siteUrl,
+      isLoggedIn: this.state.isLoggedIn,
+      token: this.state.token,
+      cookie: this.state.cookie,
+      loggedIn: this.state.loggedIn,
+      databaseName: this.state.databaseName,
+      firstTime: this.state.firstTime,
+      sync: this.state.sync,
+      _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
+      _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
         };
 
     // @todo: replace this with InitializingApp, keep now for debugging
@@ -183,7 +207,7 @@ export default class App extends React.Component {
     this.setState({ isLoadingComplete: true });
   };
 
-  _handleSiteUrlUpdate = (url, uid) => {
+  _handleSiteUrlUpdate = (url, uid, sync = false) => {
       // create database and set database name state
       const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
       const databaseName = siteUrl.replace(/\./g,'_') + '_' + uid;
@@ -194,8 +218,13 @@ export default class App extends React.Component {
         tx.executeSql('replace into database (siteUrl, databaseName) values (?, ?)',
           [siteUrl, databaseName],
           (success) => {
+              if (sync) {
+                this.setState({sync: true})
+              }
           },
           (success, error) => console.log(' ')
+
+
         );
       }
     );
@@ -234,11 +263,17 @@ export default class App extends React.Component {
       tx.executeSql(
         'select * from auth limit 1;',
         '',
-        (_, {rows: {_array}}) => this.connect(_array)
+        (_, {rows: {_array}}) => this.connect(_array),
+        (tx, error) => {this._handleAuthError(error)}
       );
     });
   }
 
+  _handleAuthError = () => {
+    if (error) {
+      // There must not be auth
+    }
+  }
   // This will try and check if the current user is logged in. This will fail if the server or client is offline.
   // If failed, we will set the loggedIn to false so we know the connection has been attempted.
   connect(array) {
@@ -246,8 +281,10 @@ export default class App extends React.Component {
     if (array === undefined || array.length < 1) {
       this.setState({
         cookie: null,
-        token: null
+        token: null,
+        loggedIn: false
       });
+
       return false;
     }
 
