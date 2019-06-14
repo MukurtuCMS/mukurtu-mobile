@@ -121,20 +121,13 @@ class LoginScreen extends React.Component {
                                 (success) => {
                                     // Set site status to logged in
                                     this._handleLoginStatusUpdate(true);
-
+                                  this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
                                 },
 
                                 (success, error) => console.log(' ')
                             );
                         }
                     );
-                  //  db.transaction(
-                  //   tx => {
-                  //     tx.executeSql('delete from auth;');
-                  //   }
-                  // );
-
-                  this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid);
 
                   this.state.db.transaction(
                     tx => {

@@ -60,9 +60,6 @@ export default class HomeScreen extends React.Component {
   };
 
   componentDidMount() {
-    if (!this.state.db) {
-      this.alertNotLoggedIn();
-    }
     this.props.navigation.addListener('willFocus', this.componentActive);
     // Add listener for internet connection change
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
@@ -85,9 +82,11 @@ export default class HomeScreen extends React.Component {
   }
 
   componentActive = () => {
-    if (!this.state.db) {
-      this.alertNotLoggedIn();
-    } else {
+    // Immediately check if first time, and rout to login screen
+    if (this.props.screenProps.firstTime) {
+      this.props.navigation.navigate('Login');
+    }
+    if (this.state.db) {
       this.createNodesTable();
       this.createTaxonomyTable();
       this.createSyncTable();
@@ -404,8 +403,6 @@ export default class HomeScreen extends React.Component {
 
   getToken(array) {
     if (array === undefined || array.length < 1) {
-
-      this.alertNotLoggedIn();
       return false;
     }
 
@@ -433,7 +430,6 @@ export default class HomeScreen extends React.Component {
         .then((response) => response.json())
         .then((responseJson) => {
           if (responseJson.user.uid === 0) {
-            this.alertNotLoggedIn();
             return false;
           }
           this.setState({loggedIn: true});
@@ -480,7 +476,6 @@ export default class HomeScreen extends React.Component {
         })
         .catch((error) => {
           this.setState({loggedIn: false})
-          this.alertNotLoggedIn();
         });
   }
 

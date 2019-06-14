@@ -20,7 +20,7 @@ class SettingsOverview extends React.Component {
     const { navigation, screenProps } = this.props;
     this.onValueChange = this.onValueChange.bind(this);
     this.componentActive = this.componentActive.bind(this);
-    this.state = {switchValue: false, loggedIn: screenProps.loggedIn, token: false, user: screenProps.user, places: '', placeName: ''};
+    this.state = {switchValue: false, loggedIn: screenProps.loggedIn, token: false, user: (screenProps.user) ? screenProps.user : {}, places: '', placeName: ''};
   }
 
   componentDidMount(){
