@@ -38,7 +38,8 @@ class LoginScreen extends React.Component {
       password: false,
       error: false,
       places: 'b',
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null
+      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
+      uid: 0,
     }
   }
 

@@ -103,11 +103,16 @@ export default class App extends React.Component {
     } else if (!prevState.db && this.state.db && !this.state.isConnected) {
       // db and user exist, but cannot check auth
     }
-    if (!prevState.isConnected &&- !prevState.db && this.state.isConnected && this.state.db) {
+
+    if (!prevState.sync && this.state.sync) {
+
+    }
+    if (!prevState.isConnected && !prevState.db && this.state.isConnected && this.state.db) {
       this.registerBackgroundSync();
       this.logRegisteredTasks();
       this.createTokenTable();
     }
+
   }
 
   handleConnectivityChange = isConnected => {
