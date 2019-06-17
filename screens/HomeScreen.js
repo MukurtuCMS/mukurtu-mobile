@@ -33,7 +33,7 @@ export default class HomeScreen extends React.Component {
       syncUpdated: [],
       removeNodes: [],
       redirectUrl: null,
-      loggedIn: false,
+      loggedIn: screenProps.loggedIn,
       token: null,
       cookie: null,
       isConnected: false,
@@ -60,14 +60,12 @@ export default class HomeScreen extends React.Component {
   };
 
   componentDidMount() {
-    if (!this.state.db) {
-      this.alertNotLoggedIn();
-    }
     this.props.navigation.addListener('willFocus', this.componentActive);
     // Add listener for internet connection change
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
     this.checkInitialConnection();
     this.componentActive();
+    console.log(this.state.loggedIn);
   }
 
   checkInitialConnection = async () => {
@@ -84,12 +82,13 @@ export default class HomeScreen extends React.Component {
   }
 
   componentActive = () => {
-    if (!this.state.db) {
-      this.alertNotLoggedIn();
-    } else {
+    // Immediately check if first time, and rout to login screen
+    if (this.props.screenProps.firstTime) {
+      this.props.navigation.navigate('Login');
+    }
+    if (this.state.db) {
       this.createNodesTable();
       this.createTaxonomyTable();
-      this.createTokenTable();
       this.createSyncTable();
       this.createNodesSavedTable();
       this.createContentTypesTable();
@@ -313,14 +312,6 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  createTokenTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists auth (id integer primary key, token text, cookie text);'
-      );
-    });
-  }
-
   createSyncTable() {
     this.state.db.transaction(tx => {
       tx.executeSql(
@@ -412,8 +403,6 @@ export default class HomeScreen extends React.Component {
 
   getToken(array) {
     if (array === undefined || array.length < 1) {
-
-      this.alertNotLoggedIn();
       return false;
     }
 
@@ -441,7 +430,6 @@ export default class HomeScreen extends React.Component {
         .then((response) => response.json())
         .then((responseJson) => {
           if (responseJson.user.uid === 0) {
-            this.alertNotLoggedIn();
             return false;
           }
           this.setState({loggedIn: true});
@@ -488,7 +476,6 @@ export default class HomeScreen extends React.Component {
         })
         .catch((error) => {
           this.setState({loggedIn: false})
-          this.alertNotLoggedIn();
         });
   }
 
