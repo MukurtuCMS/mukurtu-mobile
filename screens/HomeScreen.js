@@ -12,7 +12,8 @@ import {
   Button,
   Linking, NetInfo, Picker
 } from 'react-native';
-import {WebBrowser, SQLite} from 'expo';
+import {WebBrowser} from 'expo';
+import {SQLite} from 'expo-sqlite';
 import axios from 'axios';
 import {FontAwesome} from '@expo/vector-icons';
 import {MonoText} from '../components/StyledText';

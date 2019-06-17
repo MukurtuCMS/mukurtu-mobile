@@ -14,7 +14,8 @@ import {
 import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
 import {addUser} from '../actions/user';
-import {SQLite, WebBrowser} from 'expo';
+import {WebBrowser} from 'expo';
+import {SQLite} from 'expo-sqlite';
 
 
 // create a global db for database list and last known user

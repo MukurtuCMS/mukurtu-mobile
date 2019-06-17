@@ -1,6 +1,13 @@
 import React from 'react';
 import { Platform, StatusBar, StyleSheet, View, Text, NetInfo } from 'react-native';
-import {AppLoading, Asset, Font, Icon, SQLite, BackgroundFetch, TaskManager} from 'expo';
+import {AppLoading} from 'expo';
+import {SQLite} from 'expo-sqlite';
+import { Asset } from 'expo-asset';
+import * as BackgroundFetch from 'expo-background-fetch'
+import Constants from 'expo-constants'
+import * as Font from 'expo-font'
+import * as Icon from '@expo/vector-icons'
+import * as TaskManager from 'expo-task-manager'
 import AppNavigator from './navigation/AppNavigator';
 import { Provider } from 'react-redux';
 import {LoginText} from "./components/LoginText";
