@@ -14,7 +14,7 @@ import Location from './Location';
 import JSONTree from "react-native-json-tree";
 import {ButtonGroup, Button, Text} from "react-native-elements";
 import axios from "axios";
-import {SQLite} from "expo";
+import {SQLite} from 'expo-sqlite';
 
 const db = SQLite.openDatabase('db.db');
 

@@ -19,7 +19,8 @@ import transform from 'tcomb-json-schema';
 import t from 'tcomb-form-native';
 import ImageFactory from 'react-native-image-picker-form';
 import DigitalHeritageForm from '../endpoints/DigitalHeritage';
-import {FileSystem, SQLite} from 'expo';
+import {FileSystem} from 'expo';
+import {SQLite} from 'expo-sqlite';
 import FormComponent from '../components/FormAPI/Form'
 import axios from "axios";
 import weightSort from 'weight-sort';
