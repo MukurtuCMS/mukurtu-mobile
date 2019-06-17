@@ -146,9 +146,11 @@ export default class FormComponent extends React.Component {
       const formValues = this.state.formValues;
       // See the paragraph component for how paragraph state is formatted.
       let values = {
-        [paragraphFieldName]: {
-          "und": {
-            "0": paragraphFormState
+        "paragraphs": {
+          [paragraphFieldName]: {
+            "und": {
+              "0": paragraphFormState
+            }
           }
         }
       };
@@ -156,29 +158,57 @@ export default class FormComponent extends React.Component {
       // let values = paragraphFormState;
 
       // Format Drupal needs for submissions:
-      // "field_word_entry": {
-      //   "und": {
-      //     "0": {
-      //       "field_alternate_spelling": {
-      //         "und": {
-      //           "0": {
-      //             "value": "alternate spelling value"
+      // "paragraphs": {
+      //   "field_word_entry": {
+      //     "und": {
+      //       "0": {
+      //         "field_alternate_spelling": {
+      //           "und": {
+      //             "0": {
+      //               "value": "alternate spelling value 1"
+      //             }
+      //           }
+      //         },
+      //         "field_sample_sentence": {
+      //           "und": {
+      //             "0": {
+      //               "value": "1-1"
+      //             },
+      //             "1": {
+      //               "value": "1-2"
+      //             }
+      //           }
+      //         },
+      //         "field_source": {
+      //           "und": {
+      //             "0": {
+      //               "value": "a"
+      //             }
       //           }
       //         }
-      //       }
-      //     },
-      //     "1": {
-      //       "field_alternate_spelling": {
-      //         "und": {
-      //           "0": {
-      //             "value": "22222"
+      //       },
+      //       "1": {
+      //         "field_alternate_spelling": {
+      //           "und": {
+      //             "0": {
+      //               "value": "alternate spelling value 2"
+      //             }
+      //           }
+      //         },
+      //         "field_sample_sentence": {
+      //           "und": {
+      //             "0": {
+      //               "value": "2-1"
+      //             },
+      //             "1": {
+      //               "value": "2-2"
+      //             }
       //           }
       //         }
       //       }
       //     }
       //   }
       // },
-
 
       Object.assign(formValues, values);
 
@@ -396,7 +426,7 @@ export default class FormComponent extends React.Component {
         body: JSON.stringify(this.state.formValues)
       };
 
-      fetch('http://mukurtucms.kanopi.cloud/app/node/' + this.state.formValues.nid + '.json', data)
+      fetch(this.props.url + this.state.formValues.nid + '.json', data)
           .then((response) => response.json())
           .then((responseJson) => {
             console.log(responseJson)

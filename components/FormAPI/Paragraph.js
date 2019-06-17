@@ -46,22 +46,50 @@ export default class Paragraph extends React.Component {
       const subformValues = this.state.subformValues;
 
       // Format Drupal needs for submissions:
-      // "field_word_entry": {
-      //   "und": {
-      //     "0": {
-      //       "field_alternate_spelling": {
-      //         "und": {
-      //           "0": {
-      //             "value": "alternate spelling value"
+      //   "field_word_entry": {
+      //     "und": {
+      //       "0": {
+      //         "field_alternate_spelling": {
+      //           "und": {
+      //             "0": {
+      //               "value": "alternate spelling value 1"
+      //             }
+      //           }
+      //         },
+      //         "field_sample_sentence": {
+      //           "und": {
+      //             "0": {
+      //               "value": "1-1"
+      //             },
+      //             "1": {
+      //               "value": "1-2"
+      //             }
+      //           }
+      //         },
+      //         "field_source": {
+      //           "und": {
+      //             "0": {
+      //               "value": "a"
+      //             }
       //           }
       //         }
-      //       }
-      //     },
-      //     "1": {
-      //       "field_alternate_spelling": {
-      //         "und": {
-      //           "0": {
-      //             "value": "22222"
+      //       },
+      //       "1": {
+      //         "field_alternate_spelling": {
+      //           "und": {
+      //             "0": {
+      //               "value": "alternate spelling value 2"
+      //             }
+      //           }
+      //         },
+      //         "field_sample_sentence": {
+      //           "und": {
+      //             "0": {
+      //               "value": "2-1"
+      //             },
+      //             "1": {
+      //               "value": "2-2"
+      //             }
       //           }
       //         }
       //       }
@@ -72,15 +100,15 @@ export default class Paragraph extends React.Component {
 
       if (typeof subformValues[index] === 'undefined') {
         subformValues[index] = {};
+        subformValues[index]['und'] = {};
       }
 
 
-      subformValues[index][fieldName] = {
-        "und": {
+      // @todo swap out 'und' for actual language value
+      subformValues[index]['und'][fieldName] = {
           [subindex]: {
             [valueName]: value
           }
-        }
       };
 
 
