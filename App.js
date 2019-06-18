@@ -94,7 +94,26 @@ export default class App extends React.Component {
     });
   };
 
+  deleteAll = () => {
+    // SQLite.openDatabase('global');
+    const mainDB = SQLite.openDatabase('mukurtucms_kanopi_cloud_1');
+
+    globalDB.transaction(tx => {
+      tx.executeSql(
+        'delete from user; delete from database;'
+      );
+    });
+    mainDB.transaction(tx => {
+      tx.executeSql(
+        'delete from auth;'
+      );
+    });
+  }
+
   componentDidMount() {
+    // delete all data and start fresh
+    // this.deleteAll();
+
     // let's first check if this is a first time user, redirect to login
     this.firstTimeCheck();
 
@@ -123,7 +142,6 @@ export default class App extends React.Component {
   }
 
   handleConnectivityChange = isConnected => {
-    console.log(isConnected);
     this.setState({ isConnected });
   }
 
@@ -155,6 +173,7 @@ export default class App extends React.Component {
     if (this.state.loggedIn === null) {
       return (<InitializingApp />);
     }
+
     let screenProps = {
       user: this.state.user,
       siteUrl: this.state.siteUrl,
