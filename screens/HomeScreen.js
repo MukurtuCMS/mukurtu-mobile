@@ -66,7 +66,6 @@ export default class HomeScreen extends React.Component {
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
     this.checkInitialConnection();
     this.componentActive();
-    console.log(this.state.loggedIn);
   }
 
   checkInitialConnection = async () => {
@@ -88,17 +87,6 @@ export default class HomeScreen extends React.Component {
       this.props.navigation.navigate('Login');
     }
     if (this.state.db) {
-      this.createNodesTable();
-      this.createTaxonomyTable();
-      this.createSyncTable();
-      this.createNodesSavedTable();
-      this.createContentTypesTable();
-      this.createContentTypeTable();
-      this.createDisplayModesTable();
-      if (this.state.isConnected) {
-        this.update();
-        this.syncContentTypes();
-      }
 
       this.state.db.transaction(tx => {
         tx.executeSql(
@@ -203,7 +191,7 @@ export default class HomeScreen extends React.Component {
       }
     }
     let communityList = {};
-    if (this.state.nodes.length > 0) {
+    if (this.state.nodes.length > 0 && this.state.nodeList.length > 0) {
       for (var i = 0; i < this.state.nodes.length; i++) {
         if (this.state.nodes[i].entity.field_community_ref) {
           const lang = Object.keys(this.state.nodes[i].entity.field_community_ref)[0];
@@ -313,77 +301,6 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  createSyncTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists sync (id integer primary key, last integer);'
-      );
-    });
-  }
-
-  createNodesTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists nodes (nid integer primary key, title text, entity text, editable boolean);'
-      );
-    });
-  }
-
-  createTaxonomyTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists taxonomy (tid integer primary key, title text, entity text);'
-      );
-    });
-  }
-
-  // this will be a store for any nodes that need to be uploaded next sync
-  createNodesSavedTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists nodes_saved (nid integer primary key, title text, entity text);'
-      );
-    });
-  }
-
-  // this will be a store the content types overview endpoint
-  createContentTypesTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists content_types (id integer primary key, blob text);'
-      );
-    });
-  }
-
-  // this will be a store the content type endpoint
-  createContentTypeTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'create table if not exists content_type (machine_name text primary key, blob text);'
-      );
-    });
-  }
-
-  // this will be a store the content type endpoint
-  createDisplayModesTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists display_modes (machine_name text primary key, node_view text, list_view text);'
-      );
-    });
-  }
-
-  update() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'select * from auth limit 1;',
-          '',
-          (_, {rows: {_array}}) => this.getToken(_array)
-      );
-    });
-  }
-
-
   alertNotLoggedIn() {
     // This is done inline in some places,
     // But setting it here as well as a catch to ensure state is updated.
@@ -401,85 +318,6 @@ export default class HomeScreen extends React.Component {
         {cancelable: true}
     )
   }
-
-  getToken(array) {
-    if (array === undefined || array.length < 1) {
-      return false;
-    }
-
-    const token = array[0].token;
-    const cookie = array[0].cookie;
-
-    // Save cookie and token so we can use them to check login status
-    this.setState({
-      cookie: cookie,
-      token: token
-    });
-
-    // get last updated time
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'select * from sync limit 1;',
-          '',
-          (_, {rows: {_array}}) => this.setState({syncUpdated: _array})
-      );
-    });
-    let data = this.buildFetchData('POST');
-
-
-    fetch('http://mukurtucms.kanopi.cloud' + '/app/system/connect', data)
-        .then((response) => response.json())
-        .then((responseJson) => {
-          if (responseJson.user.uid === 0) {
-            return false;
-          }
-          this.setState({loggedIn: true});
-          data.method = 'GET';
-
-
-          fetch('http://mukurtucms.kanopi.cloud' + '/app/synced-entities/retrieve', data)
-              .then((response) => response.json())
-              .then((responseJson) => {
-                if (typeof responseJson.nodes === 'object') {
-                  let nodes = {};
-                  for (const [type, entity] of Object.entries(responseJson.nodes)) {
-                    if (typeof responseJson.nodes[type] === 'object') {
-                      for (const [nid, object] of Object.entries(responseJson.nodes[type])) {
-                        if (typeof responseJson.nodes[type] === 'object') {
-                          nodes[nid] = object;
-                        }
-                      }
-                    }
-                  }
-                  this.buildRemovalNids(nodes);
-                  for (const [nid, object] of Object.entries(nodes)) {
-                    // @todo don't update all nodes but starring a node does not save
-                    // if (timestamp > this.state.syncUpdated) {
-                    this.saveNode(nid, data, object.editable);
-                    // }
-                  }
-
-                  // now lets sync the taxonomy terms as well
-                }
-                if (typeof responseJson.terms === 'object') {
-                  for (const [tid, object] of Object.entries(responseJson.terms)) {
-                    // @todo don't update all nodes but starring a node does not save
-                    // if (timestamp > this.state.syncUpdated) {
-                    this.saveTaxonomy(tid, data);
-                    // }
-                  }
-                }
-                this.updateSync();
-              })
-              .catch((error) => {
-                console.error(error);
-              });
-        })
-        .catch((error) => {
-          this.setState({loggedIn: false})
-        });
-  }
-
 
   /**
    * Handler for button that switches to browser
@@ -561,206 +399,6 @@ export default class HomeScreen extends React.Component {
 
     return loggedIn;
   }
-
-  saveNode(nid, data, editable) {
-    fetch(this.props.screenProps.siteUrl + '/app/node/' + nid + '.json', data)
-        .then((response) => response.json())
-        .then((node) => {
-          this.state.db.transaction(tx => {
-            tx.executeSql(
-                'delete from nodes where nid = ?;',
-                [node.nid],
-                (_, {rows: {_array}}) => ''
-            );
-          });
-
-          this.state.db.transaction(
-              tx => {
-                tx.executeSql('insert into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
-                    [node.nid, node.title, JSON.stringify(node), editable],
-                    (success) => success,
-                    (success, error) => ''
-                );
-              }
-          );
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-  }
-
-  saveTaxonomy(tid, data) {
-    fetch(this.props.screenProps.siteUrl + '/app/tax-term/' + tid + '.json', data)
-      .then((response) => response.json())
-      .then((term) => {
-
-        this.state.db.transaction(
-          tx => {
-            tx.executeSql('replace into taxonomy (tid, title, entity) values (?, ?, ?)',
-              [term.tid, term.name, JSON.stringify(term)],
-              (success) => success,
-              (success, error) => ''
-            );
-          }
-        );
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }
-
-  updateSync() {
-    const time = new Date().getTime()
-    this.state.db.transaction(
-        tx => {
-          tx.executeSql('delete from sync;',
-          );
-        }
-    );
-    this.state.db.transaction(
-        tx => {
-          tx.executeSql('insert into sync (id, last) values (?, ?)',
-              [1, time],
-              (success) => success,
-              (success, error) => ''
-          );
-        }
-    );
-  }
-
-  buildRemovalNids(nids) {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'select nid from nodes;',
-          '',
-          (_, {rows: {_array}}) => this.removeNids(_array, nids)
-      );
-    });
-  }
-
-  removeNids(currentNids, newNids) {
-    const db2 = this.state.db;
-    for (var i = 0; i < currentNids.length; i++) {
-      var currentlyStarred = false;
-      for (const [nid, timestamp] of Object.entries(newNids)) {
-        if (currentNids[i].nid == nid) {
-          currentlyStarred = true;
-        }
-      }
-      if (!(currentlyStarred)) {
-        var currentNid = currentNids[i].nid;
-        db2.transaction(tx => {
-          tx.executeSql(
-              'delete from nodes where nid = ?;',
-              [currentNid],
-              (_, {rows: {_array}}) => console.log('')
-          );
-        });
-      }
-    }
-  }
-
-  syncContentTypes() {
-    if (!this.state.loggedIn) {
-      return false;
-    }
-    const data = this.buildFetchData();
-    fetch('http://mukurtucms.kanopi.cloud/app/creatable-types/retrieve', data)
-        .then((response) => response.json())
-        .then((responseJson) => {
-          if (typeof responseJson === 'object' && responseJson !== null) {
-            this.state.db.transaction(
-                tx => {
-                  tx.executeSql('delete from content_types;',
-                  );
-                }
-            );
-            this.state.db.transaction(
-                tx => {
-                  tx.executeSql('insert into content_types (id, blob) values (?, ?)',
-                      [1, JSON.stringify(responseJson)],
-                      (success) => '',
-                      (success, error) => console.log(' ')
-                  );
-                }
-            );
-
-            // now let's sync all content type endpoints
-            for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-              fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + machineName, data)
-                  .then((response) => response.json())
-                  .then((responseJson) => {
-
-                    this.state.db.transaction(
-                        tx => {
-                          tx.executeSql('insert into content_type (machine_name, blob) values (?, ?)',
-                              [machineName, JSON.stringify(responseJson)],
-                              (success) => '',
-                              (success, error) => ''
-                          );
-                        }
-                    );
-                  })
-                  .catch((error) => {
-                    // console.error(error);
-                  });
-            }
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-
-    // Now let's do the same thing for the display modes
-    fetch('http://mukurtucms.kanopi.cloud/app/viewable-types/retrieve', data)
-      .then((response) => response.json())
-      .then((responseJson) => {
-        if (typeof responseJson === 'object' && responseJson !== null) {
-
-          // now let's sync all content type display endpoints
-          for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-            fetch('http://mukurtucms.kanopi.cloud/app/node-view-fields/retrieve/' + machineName, data)
-              .then((response) => response.json())
-              .then((responseJson) => {
-
-                this.state.db.transaction(
-                  tx => {
-                    tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
-                      [machineName, JSON.stringify(responseJson)],
-                      (success) => '',
-                      (success, error) => ''
-                    );
-                  }
-                );
-
-                // @todo: We will need to grab the listing display as well
-              })
-              .catch((error) => {
-                // console.error(error);
-              });
-          }
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }
-
-  buildFetchData(method = 'GET'){
-    const token = this.state.token;
-    const cookie = this.state.cookie;
-    const data = {
-      method: method,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cookie': cookie
-      }
-    };
-    return data;
-  }
-
 
   render() {
     if (this.state.nodes.length < 1) {
