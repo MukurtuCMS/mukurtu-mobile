@@ -184,7 +184,10 @@ const buildFetchData = (method = 'GET', state) =>{
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       'X-CSRF-Token': token,
-      'Cookie': cookie
+      'Cookie': cookie,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': 0
     }
   };
   return data;
