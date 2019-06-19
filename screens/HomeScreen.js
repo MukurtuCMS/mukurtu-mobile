@@ -427,7 +427,7 @@ export default class HomeScreen extends React.Component {
     let data = this.buildFetchData('POST');
 
 
-    fetch('http://mukurtucms.kanopi.cloud' + '/app/system/connect', data)
+    fetch(this.props.screenProps.siteUrl + '/app/system/connect', data)
         .then((response) => response.json())
         .then((responseJson) => {
           if (responseJson.user.uid === 0) {
@@ -437,7 +437,7 @@ export default class HomeScreen extends React.Component {
           data.method = 'GET';
 
 
-          fetch('http://mukurtucms.kanopi.cloud' + '/app/synced-entities/retrieve', data)
+          fetch(this.props.screenProps.siteUrl + '/app/synced-entities/retrieve', data)
               .then((response) => response.json())
               .then((responseJson) => {
                 if (typeof responseJson.nodes === 'object') {
@@ -665,7 +665,7 @@ export default class HomeScreen extends React.Component {
       return false;
     }
     const data = this.buildFetchData();
-    fetch('http://mukurtucms.kanopi.cloud/app/creatable-types/retrieve', data)
+    fetch(this.props.screenProps.siteUrl + '/app/creatable-types/retrieve', data)
         .then((response) => response.json())
         .then((responseJson) => {
           if (typeof responseJson === 'object' && responseJson !== null) {
@@ -687,7 +687,7 @@ export default class HomeScreen extends React.Component {
 
             // now let's sync all content type endpoints
             for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-              fetch('http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + machineName, data)
+              fetch(this.props.screenProps.siteUrl + '/app/node-form-fields/retrieve/' + machineName, data)
                   .then((response) => response.json())
                   .then((responseJson) => {
 
@@ -712,14 +712,14 @@ export default class HomeScreen extends React.Component {
         });
 
     // Now let's do the same thing for the display modes
-    fetch('http://mukurtucms.kanopi.cloud/app/viewable-types/retrieve', data)
+    fetch(this.props.screenProps.siteUrl + '/app/viewable-types/retrieve', data)
       .then((response) => response.json())
       .then((responseJson) => {
         if (typeof responseJson === 'object' && responseJson !== null) {
 
           // now let's sync all content type display endpoints
           for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-            fetch('http://mukurtucms.kanopi.cloud/app/node-view-fields/retrieve/' + machineName, data)
+            fetch(this.props.screenProps.siteUrl + '/app/node-view-fields/retrieve/' + machineName, data)
               .then((response) => response.json())
               .then((responseJson) => {
 
