@@ -14,7 +14,8 @@ import {
 import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
 import {addUser} from '../actions/user';
-import {SQLite, WebBrowser} from 'expo';
+import {WebBrowser} from 'expo';
+import {SQLite} from 'expo-sqlite';
 
 
 // create a global db for database list and last known user
@@ -38,7 +39,8 @@ class LoginScreen extends React.Component {
       password: false,
       error: false,
       places: 'b',
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null
+      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
+      uid: 0,
     }
   }
 

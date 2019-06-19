@@ -16,7 +16,8 @@ import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
 import axios from "axios";
-import { WebBrowser, SQLite } from 'expo';
+import { WebBrowser} from 'expo';
+import {SQLite} from 'expo-sqlite';
 
 class CreateContentScreen extends React.Component {
   static navigationOptions = {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, Picker, View, Text, StyleSheet, Button } from 'react-native';
-import { DocumentPicker, ImagePicker, Permissions, Constants } from 'expo';
+import { DocumentPicker, ImagePicker, Permissions} from 'expo';
+import Constants from 'expo-constants'
 
 export default class Scald extends React.Component {
 

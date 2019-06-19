@@ -1,6 +1,13 @@
 import React from 'react';
 import { Platform, StatusBar, StyleSheet, View, Text, NetInfo } from 'react-native';
-import {AppLoading, Asset, Font, Icon, SQLite, BackgroundFetch, TaskManager} from 'expo';
+import {AppLoading} from 'expo';
+import {SQLite} from 'expo-sqlite';
+import { Asset } from 'expo-asset';
+import * as BackgroundFetch from 'expo-background-fetch'
+import Constants from 'expo-constants'
+import * as Font from 'expo-font'
+import * as Icon from '@expo/vector-icons'
+import * as TaskManager from 'expo-task-manager'
 import AppNavigator from './navigation/AppNavigator';
 import { Provider } from 'react-redux';
 import {LoginText} from "./components/LoginText";
@@ -87,7 +94,26 @@ export default class App extends React.Component {
     });
   };
 
+  deleteAll = () => {
+    // SQLite.openDatabase('global');
+    const mainDB = SQLite.openDatabase('mukurtucms_kanopi_cloud_1');
+
+    globalDB.transaction(tx => {
+      tx.executeSql(
+        'delete from user; delete from database;'
+      );
+    });
+    mainDB.transaction(tx => {
+      tx.executeSql(
+        'delete from auth;'
+      );
+    });
+  }
+
   componentDidMount() {
+    // delete all data and start fresh
+    // this.deleteAll();
+
     // let's first check if this is a first time user, redirect to login
     this.firstTimeCheck();
 
@@ -103,15 +129,19 @@ export default class App extends React.Component {
     } else if (!prevState.db && this.state.db && !this.state.isConnected) {
       // db and user exist, but cannot check auth
     }
-    if (!prevState.isConnected &&- !prevState.db && this.state.isConnected && this.state.db) {
+
+    if (!prevState.sync && this.state.sync) {
+
+    }
+    if (!prevState.isConnected && !prevState.db && this.state.isConnected && this.state.db) {
       this.registerBackgroundSync();
       this.logRegisteredTasks();
       this.createTokenTable();
     }
+
   }
 
   handleConnectivityChange = isConnected => {
-    console.log(isConnected);
     this.setState({ isConnected });
   }
 
@@ -143,6 +173,7 @@ export default class App extends React.Component {
     if (this.state.loggedIn === null) {
       return (<InitializingApp />);
     }
+
     let screenProps = {
       user: this.state.user,
       siteUrl: this.state.siteUrl,
