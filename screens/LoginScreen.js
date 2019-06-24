@@ -154,7 +154,7 @@ class LoginScreen extends React.Component {
 
                   this.props.add(responseJson.session_name + '=' + responseJson.sessid);
                   this.props.addUserProp(responseJson);
-                  this.props.navigation.navigate('Settings')
+                  this.props.navigation.navigate('Home')
 
                 })
 

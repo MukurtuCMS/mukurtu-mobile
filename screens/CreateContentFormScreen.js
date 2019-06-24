@@ -166,6 +166,7 @@ class CreateContentFormScreen extends React.Component {
           ref="form"
           type={TcombType}
           options={options}
+          screenProps={this.props.screenProps}
         />
       );
     }
@@ -220,7 +221,7 @@ class CreateContentFormScreen extends React.Component {
 
       const contentType = this.props.navigation.getParam('contentType');
       const node = this.props.navigation.getParam('node');
-      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl} node={node} />
+      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl} node={node} screenProps={this.props.screenProps}/>
     }
 
     return (

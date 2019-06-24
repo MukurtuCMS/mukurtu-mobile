@@ -14,20 +14,20 @@ import Location from './Location';
 import JSONTree from "react-native-json-tree";
 import {ButtonGroup, Button, Text} from "react-native-elements";
 import axios from "axios";
-import {SQLite} from 'expo-sqlite';
-
-const db = SQLite.openDatabase('db.db');
+import {SQLite} from 'expo-sqlite';;
 
 export default class FormComponent extends React.Component {
   constructor(props) {
     super(props);
+    const {navigation, screenProps} = this.props;
     this.state = {
       formValues: (this.props.node !== undefined) ? this.props.node : {"type": props.contentType},
       selectedIndex: 0,
       ajax: '',
       cookie: null,
       token: null,
-      formSubmitted: false
+      formSubmitted: false,
+      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.updateIndex = this.updateIndex.bind(this);
@@ -44,7 +44,7 @@ export default class FormComponent extends React.Component {
   }
 
   update() {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'select * from auth limit 1;',
           '',

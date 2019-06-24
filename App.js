@@ -12,9 +12,13 @@ import AppNavigator from './navigation/AppNavigator';
 import { Provider } from 'react-redux';
 import {LoginText} from "./components/LoginText";
 import InitializingApp from "./components/InitializingApp"
+import AjaxSpinner from "./components/AjaxSpinner"
+import * as Sync from "./components/MukurtuSync"
+import * as ManageTables from "./components/ManageTables"
 
 import configureStore from './store';
 import axios from "axios";
+import {Feather} from "@expo/vector-icons";
 
 const store = configureStore();
 const db = SQLite.openDatabase('db.db');
@@ -37,6 +41,7 @@ export default class App extends React.Component {
     this._handleSiteUrlUpdate = this._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
     this.setDatabaseName = this.setDatabaseName.bind(this);
+    this.syncCompleted = this.syncCompleted.bind(this);
 
     this.state = {
       isLoadingComplete: false,
@@ -87,6 +92,8 @@ export default class App extends React.Component {
             firstTime = true;
             databaseName = null;
             loggedIn = false;
+          } else {
+            loggedIn = true;
           }
           self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
         }
@@ -113,25 +120,40 @@ export default class App extends React.Component {
   componentDidMount() {
     // delete all data and start fresh
     // this.deleteAll();
+    ManageTables.createGlobalTables();
 
     // let's first check if this is a first time user, redirect to login
     this.firstTimeCheck();
 
-    this.createGlobalTables();
     this.setDatabaseName();
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
   }
 
+  syncCompleted (sync = false) {
+    if (sync) {
+      this.setState({sync: false});
+    } else {
+    }
+  }
+
   componentDidUpdate(prevProps, prevState) {
     if (!prevState.db && this.state.db && this.state.isConnected) {
-      this.createTokenTable();
+      // We cannot create any of our unique tables until we have our unique database created and stored in state
+      ManageTables.createUniqueTables(this.state.db);
       this._getAuth();
     } else if (!prevState.db && this.state.db && !this.state.isConnected) {
       // db and user exist, but cannot check auth
     }
 
-    if (!prevState.sync && this.state.sync) {
+    // We are connected, AND token was just set (via getAuth)
+    if (!prevState.token && this.state.token && this.state.isConnected) {
+      Sync.updateEntities(this.state.db, this.state);
+      Sync.syncContentTypes(this.state, this.syncCompleted);
+    }
 
+    if (!prevState.sync && this.state.sync) {
+      Sync.updateEntities(this.state.db, this.state);
+      Sync.syncContentTypes(this.state, this.syncCompleted);
     }
     if (!prevState.isConnected && !prevState.db && this.state.isConnected && this.state.db) {
       this.registerBackgroundSync();
@@ -166,6 +188,10 @@ export default class App extends React.Component {
     // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
 
     // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
+    if (this.state.sync) {
+      return (<AjaxSpinner />);
+    }
+
     if (this.state.databaseName === false){
       return (<InitializingApp />);
   }
@@ -266,27 +292,6 @@ export default class App extends React.Component {
   _handleLoginStatusUpdate = (status) => {
     this.setState({ isLoggedIn: status });
   };
-
-  createGlobalTables() {
-    globalDB.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists user (siteUrl primary key, user text);'
-      );
-    });
-    globalDB.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists database (siteUrl primary key, databaseName text);'
-      );
-    });
-  }
-
-  createTokenTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists auth (id integer primary key, token text, cookie text);'
-      );
-    });
-  }
 
   // This will check the database for an existing auth from the unique database
   _getAuth() {
