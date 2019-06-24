@@ -30,15 +30,14 @@ export default class WebviewScreen extends React.Component {
     header: null,
   };
 
-  componentWillMount() {
+  async componentWillMount() {
 
-    let isLoggedInBrowser = this._checkBrowserLoginStatus(this.props.screenProps.siteUrl);
+    const isLoggedInBrowser = await this._checkBrowserLoginStatus(this.props.screenProps.siteUrl);
 
     this.setState({isLoggedInBrowser: isLoggedInBrowser});
 
     // If we're logged in to app but not browser, get one-time login link
     if(this.props.screenProps.isLoggedIn && !isLoggedInBrowser) {
-
       let returnUrl = null;
       let data = {
         method: 'GET',
@@ -76,29 +75,24 @@ export default class WebviewScreen extends React.Component {
    * @returns {boolean}
    * @private
    */
-  _checkBrowserLoginStatus(url) {
+  _checkBrowserLoginStatus = async (url) => {
     let isLoggedInBrowser = false;
 
-    fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
-    })
-        .then((response) => {
-          // When the page is loaded convert it to text
-          return response.text()
-        })
-        .then((html) => {
-          // Might be better to use a dom parser
-          isLoggedInBrowser = html.includes(' logged-in');
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+      const html = await response.text();
+      // Might be better to use a dom parser
+      isLoggedInBrowser = html.includes(' logged-in');
+    } catch(e) {
+      isLoggedInBrowser = false;
+    }
 
     return isLoggedInBrowser;
   }

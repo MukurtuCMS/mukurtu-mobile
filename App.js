@@ -353,7 +353,7 @@ export default class App extends React.Component {
            try {
              // If this uid is not 0, the user is currently authenticated
              if (responseJson.user.uid !== 0) {
-               this.setState({loggedIn: true});
+               this.setState({loggedIn: true, isLoggedIn: true});
                return;
              }
            } catch(e) {
