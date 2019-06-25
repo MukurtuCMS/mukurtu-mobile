@@ -20,6 +20,7 @@ import {MonoText} from '../components/StyledText';
 import JSONTree from 'react-native-json-tree'
 import SettingsList from "react-native-settings-list";
 import NodeTeaser from "../components/Displays/nodeTeaser";
+import * as Colors from "../constants/Colors"
 
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global');
@@ -405,7 +406,7 @@ export default class HomeScreen extends React.Component {
       return (
           <View>
             <TextInput
-              style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+              style={styles.textInput}
               onChangeText={(text) => this.setSearchText(text)}
               value={this.state.search}
             />
@@ -432,7 +433,8 @@ export default class HomeScreen extends React.Component {
       <Picker
         key={"0"}
         selectedValue={this.state.categoriesSelected}
-        style={{height: 50, width: 200}}
+        style={styles.picker}
+        itemStyle={styles.pickerItem}
         onValueChange={(itemValue, itemIndex) =>
           this.setState({categoriesSelected: itemValue})
         }>
@@ -457,7 +459,8 @@ export default class HomeScreen extends React.Component {
         <Picker
           key={"0"}
           selectedValue={this.state.keywordsSelected}
-          style={{height: 50, width: 200}}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
           onValueChange={(itemValue, itemIndex) =>
             this.setState({keywordsSelected: itemValue})
           }>
@@ -482,7 +485,8 @@ export default class HomeScreen extends React.Component {
         <Picker
           key={"0"}
           selectedValue={this.state.communitySelected}
-          style={{height: 50, width: 200}}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
           onValueChange={(itemValue, itemIndex) =>
             this.setState({communitySelected: itemValue})
           }>
@@ -507,7 +511,8 @@ export default class HomeScreen extends React.Component {
         <Picker
           key={"0"}
           selectedValue={this.state.collectionSelected}
-          style={{height: 50, width: 200}}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
           onValueChange={(itemValue, itemIndex) =>
             this.setState({collectionSelected: itemValue})
           }>
@@ -523,7 +528,7 @@ export default class HomeScreen extends React.Component {
 
             <View>
               <TextInput
-                style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+                style={styles.textInput}
                 onChangeText={(text) => this.setSearchText(text)}
                 value={this.state.search}
               />
@@ -608,6 +613,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingLeft: 15,
+    paddingRight: 15
   },
   developmentModeText: {
     marginBottom: 20,
@@ -692,4 +699,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#2e78b7',
   },
+  picker: {
+    width: '100%',
+    backgroundColor: Colors.default.primary,
+    borderColor: 'black',
+    borderWidth: 1,
+    color: '#FFF',
+    marginBottom: 10
+  },
+  pickerItem: {
+  },
+  textInput: {
+    backgroundColor: Colors.default.lightGray,
+    height: 45,
+    marginBottom: 10,
+    marginTop: 10,
+    paddingLeft: 10,
+    paddingRight: 10
+  }
 });
