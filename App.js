@@ -143,6 +143,7 @@ export default class App extends React.Component {
       this._getAuth();
     } else if (!prevState.db && this.state.db && !this.state.isConnected) {
       // db and user exist, but cannot check auth
+      ManageTables.createUniqueTables(this.state.db);
     }
 
     // We are connected, AND token was just set (via getAuth)
@@ -151,14 +152,50 @@ export default class App extends React.Component {
       Sync.syncContentTypes(this.state, this.syncCompleted);
     }
 
-    if (!prevState.sync && this.state.sync) {
+/*    if (!prevState.sync && this.state.sync) {
+
+      this.setDatabaseName();
+
+    }
+    if (this.state.isConnected && !prevState.db && this.state.db && this.state.sync) {
+      this._getAuth();
+    }
+    if (this.state.isConnected && !prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
       Sync.updateEntities(this.state.db, this.state);
       Sync.syncContentTypes(this.state, this.syncCompleted);
+    } else if (this.state.isConnected && prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
+      this.syncCompleted();
     }
     if (!prevState.isConnected && !prevState.db && this.state.isConnected && this.state.db) {
       this.registerBackgroundSync();
       this.logRegisteredTasks();
       this.createTokenTable();
+    }*/
+
+    if (this.state.sync) {
+      if (this.state.isConnected) {
+        if (!this.state.user) {
+          'inserting user'
+          this._insertUser();
+        } else {
+          if (!this.state.db) {
+            console.log('set the database');
+            this.setDatabaseName();
+          } else {
+            console.log('database is set');
+            ManageTables.createUniqueTables(this.state.db);
+
+            if (!this.state.loggedIn) {
+              console.log('lets login');
+              this._insertAuth();
+            } else {
+              console.log('we are logged in');
+              Sync.updateEntities(this.state.db, this.state);
+              Sync.syncContentTypes(this.state, this.syncCompleted);
+            }
+          }
+        }
+      }
     }
 
   }
@@ -208,6 +245,7 @@ export default class App extends React.Component {
       cookie: this.state.cookie,
       loggedIn: this.state.loggedIn,
       databaseName: this.state.databaseName,
+      isConnected: this.state.isConnected,
       firstTime: this.state.firstTime,
       sync: this.state.sync,
       _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
@@ -290,7 +328,7 @@ export default class App extends React.Component {
   };
 
   _handleLoginStatusUpdate = (status) => {
-    this.setState({ isLoggedIn: status });
+    this.setState({ isLoggedIn: status, loggedIn: status });
   };
 
   // This will check the database for an existing auth from the unique database
@@ -303,6 +341,49 @@ export default class App extends React.Component {
         (tx, error) => {this._handleAuthError(error)}
       );
     });
+  }
+
+  _insertUser() {
+    globalDB.transaction(
+      tx => {
+        tx.executeSql('select * from user;',
+          '',
+          (success, array) => {
+            if (array.rows._array.user) {
+              this.setState({user: JSON.parse(array.rows._array.user)});
+            }
+          }
+        );
+      }
+    );
+  }
+
+  _insertAuth() {
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('delete from auth;',
+        );
+      }
+    );
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('insert into auth (token, cookie) values (?, ?)',
+          [this.state.user.token, this.state.user.session_name + '=' + this.state.user.sessid],
+          (success) => {
+            // Set site status to logged in
+            this.setState({
+              token: this.state.user.token,
+              cookie: this.state.user.session_name + '=' + this.state.user.sessid,
+              loggedIn: true,
+              isLoggedIn: true
+            });
+
+          },
+
+          (success, error) => console.log(' ')
+        );
+      }
+    );
   }
 
   _handleAuthError = () => {

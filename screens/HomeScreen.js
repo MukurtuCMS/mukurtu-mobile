@@ -705,7 +705,7 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     borderWidth: 1,
     color: '#FFF',
-    marginBottom: 10
+    marginBottom: 10,
   },
   pickerItem: {
   },

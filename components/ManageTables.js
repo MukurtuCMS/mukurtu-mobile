@@ -12,6 +12,7 @@ export const createUniqueTables = (db) => {
   createContentTypesTable(db);
   createContentTypeTable(db);
   createDisplayModesTable(db);
+  createSavedOfflineTable(db);
 };
 
 export const createGlobalTables = () => {
@@ -89,6 +90,20 @@ const createDisplayModesTable = (db) => {
   db.transaction(tx => {
     tx.executeSql(
       'create table if not exists display_modes (machine_name text primary key, node_view text, list_view text);'
+    );
+  });
+}
+
+const createSavedOfflineTable = (db) => {
+/*  console.log(db);
+  db.transaction(tx => {
+    tx.executeSql(
+      'drop table if exists saved_offline;'
+    );
+  });*/
+  db.transaction(tx => {
+    tx.executeSql(
+      'create table if not exists saved_offline (id integer primary key, blob text, saved boolean, error text);'
     );
   });
 }

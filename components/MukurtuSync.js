@@ -80,6 +80,7 @@ const getCreatableTypes = async (state, data, complete) => {
 
         // now let's sync all content type endpoints
         let urls = [];
+        console.log(responseJson);
         for (const [machineName, TypeObject] of Object.entries(responseJson)) {
           urls.push({url: 'http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + machineName, machineName: machineName});
         }
@@ -88,7 +89,7 @@ const getCreatableTypes = async (state, data, complete) => {
             .then(checkStatus)
             .then(parseJSON)
             .then((response) => insertContentType(response, state, url.machineName))
-            .catch(error => console.log('There was a problem!', error))
+            .catch(error => console.log(error))
         ))
           .then(data => {
             complete(true);
@@ -98,6 +99,7 @@ const getCreatableTypes = async (state, data, complete) => {
 }
 
 const checkStatus = (response) => {
+  console.log(response);
   if (response.ok) {
     return Promise.resolve(response);
   } else {
@@ -288,4 +290,17 @@ const updateSync = (state) => {
       );
     }
   );
+}
+
+export const getSavedOffline = (state) => {
+  return new Promise((resolve, reject) => {
+    state.db.transaction(
+      tx => {
+        tx.executeSql(
+          'select * from saved_offline;',
+          '',
+          (_, {rows: {_array}}) => resolve( _array )
+        );
+      }, null, null);
+  });
 }

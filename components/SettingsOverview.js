@@ -65,6 +65,10 @@ class SettingsOverview extends React.Component {
               title='About'
               onPress={() => this.props.navigation.navigate('About')}
             />
+            <SettingsList.Item
+              title='Queue'
+              onPress={() => this.props.navigation.navigate('Offline')}
+            />
           </SettingsList>
         </View>
       </View>

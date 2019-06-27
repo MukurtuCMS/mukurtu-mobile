@@ -34,17 +34,12 @@ class CreateContentFormScreen extends React.Component {
   constructor(props){
     super(props);
     const { navigation, screenProps } = this.props;
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: '', isConnected: false, db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null};
+    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: '', db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null};
     this.onPress = this.onPress.bind(this);
   }
 
   componentDidMount(){
     this.props.navigation.addListener('willFocus', this.componentActive)
-    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
-  }
-
-  componentWillUnmount() {
-    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
   retrieveContentType(array) {
@@ -221,13 +216,14 @@ class CreateContentFormScreen extends React.Component {
 
       const contentType = this.props.navigation.getParam('contentType');
       const node = this.props.navigation.getParam('node');
-      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl} node={node} screenProps={this.props.screenProps}/>
+      const formState = this.props.navigation.getParam('formState');
+      const did = this.props.navigation.getParam('did');
+      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl} node={node} screenProps={this.props.screenProps} formState={formState} did={did}  />
     }
 
     return (
       <View style={{backgroundColor:'#EFEFF4',flex:1, padding: '5%'}}>
         <ScrollView style={{backgroundColor:'#EFEFF4',flex:1}}>
-          {/*<JSONTree data={this.state.oldForm} />*/}
           { nodeForm }
         </ScrollView>
       </View>
