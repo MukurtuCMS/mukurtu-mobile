@@ -173,9 +173,11 @@ export default class App extends React.Component {
     }*/
 
     if (this.state.sync) {
+      console.log('sync');
       if (this.state.isConnected) {
+        console.log('connected');
         if (!this.state.user) {
-          'inserting user'
+          console.log('inserting user');
           this._insertUser();
         } else {
           if (!this.state.db) {
@@ -349,8 +351,9 @@ export default class App extends React.Component {
         tx.executeSql('select * from user;',
           '',
           (success, array) => {
-            if (array.rows._array.user) {
-              this.setState({user: JSON.parse(array.rows._array.user)});
+            if (array.rows._array.length > 0) {
+              console.log(array.rows._array[0].user);
+              this.setState({user: JSON.parse(array.rows._array[0].user)});
             }
           }
         );
