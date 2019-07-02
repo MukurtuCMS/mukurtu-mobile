@@ -1,0 +1,328 @@
+
+{
+  "header": {
+    "event": "Allocation failed - JavaScript heap out of memory",
+    "trigger": "FatalError",
+    "filename": "report.20190627.160536.39556.0.001.json",
+    "dumpEventTime": "2019-06-27T16:05:36Z",
+    "processId": 39556,
+    "cwd": "C:\\Users\\tesli\\.babun\\cygwin\\home\\tesli\\Work\\mukurtu-mobile",
+    "commandLine": [
+      "C:\\Program Files\\nodejs\\\\node.exe",
+      "C:\\Program Files\\nodejs\\\\node_modules\\expo-cli\\bin\\expo.js",
+      "start"
+    ],
+    "nodejsVersion": "v11.14.0",
+    "wordSize": 64,
+    "arch": "x64",
+    "platform": "win32",
+    "componentVersions": {
+      "node": "11.14.0",
+      "v8": "7.0.276.38-node.18",
+      "uv": "1.27.0",
+      "zlib": "1.2.11",
+      "brotli": "1.0.7",
+      "ares": "1.15.0",
+      "modules": "67",
+      "nghttp2": "1.37.0",
+      "napi": "4",
+      "llhttp": "1.1.1",
+      "http_parser": "2.8.0",
+      "openssl": "1.1.1b",
+      "cldr": "34.0",
+      "icu": "63.1",
+      "tz": "2018e",
+      "unicode": "11.0"
+    },
+    "release": {
+      "name": "node",
+      "headersUrl": "https://nodejs.org/download/release/v11.14.0/node-v11.14.0-headers.tar.gz",
+      "sourceUrl": "https://nodejs.org/download/release/v11.14.0/node-v11.14.0.tar.gz",
+      "libUrl": "https://nodejs.org/download/release/v11.14.0/win-x64/node.lib"
+    },
+    "osName": "Windows_NT",
+    "osRelease": "10.0.17763",
+    "osVersion": "Windows 10 Home",
+    "osMachine": "x86_64",
+    "host": "DESKTOP-D0FA2Q2"
+  },
+  "javascriptStack": {
+    "message": "No stack.",
+    "stack": [
+      "Unavailable."
+    ]
+  },
+  "nativeStack": [
+    {
+      "pc": "0x00007ff6e17bd24e",
+      "symbol": "std::basic_ios<char,std::char_traits<char> >::fill+16366"
+    },
+    {
+      "pc": "0x00007ff6e17bc0f9",
+      "symbol": "std::basic_ios<char,std::char_traits<char> >::fill+11929"
+    },
+    {
+      "pc": "0x00007ff6e17bb923",
+      "symbol": "std::basic_ios<char,std::char_traits<char> >::fill+9923"
+    },
+    {
+      "pc": "0x00007ff6e18ac1d2",
+      "symbol": "uv_loop_fork+89362"
+    },
+    {
+      "pc": "0x00007ff6e1cd454e",
+      "symbol": "v8::internal::FatalProcessOutOfMemory+798"
+    },
+    {
+      "pc": "0x00007ff6e1cd4487",
+      "symbol": "v8::internal::FatalProcessOutOfMemory+599"
+    },
+    {
+      "pc": "0x00007ff6e1d87f64",
+      "symbol": "v8::internal::Heap::RootIsImmortalImmovable+14068"
+    },
+    {
+      "pc": "0x00007ff6e1d7dd72",
+      "symbol": "v8::internal::Heap::CollectGarbage+7234"
+    },
+    {
+      "pc": "0x00007ff6e1d7c588",
+      "symbol": "v8::internal::Heap::CollectGarbage+1112"
+    },
+    {
+      "pc": "0x00007ff6e1d85eb7",
+      "symbol": "v8::internal::Heap::RootIsImmortalImmovable+5703"
+    },
+    {
+      "pc": "0x00007ff6e1d85f36",
+      "symbol": "v8::internal::Heap::RootIsImmortalImmovable+5830"
+    },
+    {
+      "pc": "0x00007ff6e1ebde01",
+      "symbol": "v8::internal::Factory::NewFillerObject+49"
+    },
+    {
+      "pc": "0x00007ff6e1f77cd6",
+      "symbol": "v8::internal::StoreBuffer::StoreBufferOverflow+27190"
+    },
+    {
+      "pc": "0x0000000015bd0481",
+      "symbol": ""
+    }
+  ],
+  "javascriptHeap": {
+    "totalMemory": 1493721088,
+    "totalCommittedMemory": 1493721088,
+    "usedMemory": 1436252928,
+    "availableMemory": 35400776,
+    "memoryLimit": 1526909922,
+    "heapSpaces": {
+      "read_only_space": {
+        "memorySize": 524288,
+        "committedMemory": 524288,
+        "capacity": 515584,
+        "used": 33520,
+        "available": 482064
+      },
+      "new_space": {
+        "memorySize": 4194304,
+        "committedMemory": 4194304,
+        "capacity": 2062336,
+        "used": 53192,
+        "available": 2009144
+      },
+      "old_space": {
+        "memorySize": 1469255680,
+        "committedMemory": 1469255680,
+        "capacity": 1423479008,
+        "used": 1423443424,
+        "available": 35584
+      },
+      "code_space": {
+        "memorySize": 3670016,
+        "committedMemory": 3670016,
+        "capacity": 2773344,
+        "used": 2773344,
+        "available": 0
+      },
+      "map_space": {
+        "memorySize": 9973760,
+        "committedMemory": 9973760,
+        "capacity": 5211760,
+        "used": 5211760,
+        "available": 0
+      },
+      "large_object_space": {
+        "memorySize": 6103040,
+        "committedMemory": 6103040,
+        "capacity": 37611672,
+        "used": 4737688,
+        "available": 32873984
+      },
+      "new_large_object_space": {
+        "memorySize": 0,
+        "committedMemory": 0,
+        "capacity": 0,
+        "used": 0,
+        "available": 0
+      }
+    }
+  },
+  "resourceUsage": {
+    "userCpuSeconds": 69.625,
+    "kernelCpuSeconds": 4.89,
+    "cpuConsumptionPercent": 51.3897,
+    "maxRss": 1576374272,
+    "pageFaults": {
+      "IORequired": 806934,
+      "IONotRequired": 0
+    },
+    "fsActivity": {
+      "reads": 16884,
+      "writes": 20
+    }
+  },
+  "libuv": [
+  ],
+  "environmentVariables": {
+    "=C:": "C:\\Users\\tesli\\.babun\\cygwin\\home\\tesli\\Work\\mukurtu-mobile",
+    "=ExitCode": "00000000",
+    "ALLUSERSPROFILE": "C:\\ProgramData",
+    "APPDATA": "C:\\Users\\tesli\\AppData\\Roaming",
+    "CommonProgramFiles": "C:\\Program Files\\Common Files",
+    "CommonProgramFiles(x86)": "C:\\Program Files (x86)\\Common Files",
+    "CommonProgramW6432": "C:\\Program Files\\Common Files",
+    "COMPUTERNAME": "DESKTOP-D0FA2Q2",
+    "ComSpec": "C:\\Windows\\system32\\cmd.exe",
+    "DriverData": "C:\\Windows\\System32\\Drivers\\DriverData",
+    "GYP_MSVS_VERSION": "2015",
+    "HOMEDRIVE": "C:",
+    "HOMEPATH": "\\Users\\tesli",
+    "LOCALAPPDATA": "C:\\Users\\tesli\\AppData\\Local",
+    "LOGONSERVER": "\\\\DESKTOP-D0FA2Q2",
+    "NUMBER_OF_PROCESSORS": "12",
+    "NVM_HOME": "C:\\Users\\tesli\\AppData\\Roaming\\nvm",
+    "NVM_SYMLINK": "C:\\Program Files\\nodejs",
+    "OneDrive": "C:\\Users\\tesli\\OneDrive",
+    "OneDriveConsumer": "C:\\Users\\tesli\\OneDrive",
+    "OS": "Windows_NT",
+    "Path": "C:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\iCLS\\;C:\\Program Files\\Intel\\Intel(R) Management Engine Components\\iCLS\\;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Program Files\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\IPT;C:\\Program Files\\Intel\\Intel(R) Management Engine Components\\IPT;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\NVIDIA NvDLISR;C:\\Users\\tesli\\AppData\\Roaming\\nvm;C:\\Program Files\\nodejs;C:\\Program Files\\Git\\cmd;C:\\Users\\tesli\\.windows-build-tools\\python27\\;C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\npm\\node_modules\\npm-lifecycle\\node-gyp-bin;C:\\Program Files\\nodejs\\node_modules\\windows-build-tools\\node_modules\\.bin;C:\\Program Files\\nodejs\\node_modules\\.bin;C:\\Users\\tesli\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\tesli\\.babun;C:\\Users\\tesli\\AppData\\Local\\Android\\Sdk\\platform-tools;C:\\Users\\tesli\\AppData\\Local\\watchman",
+    "PATHEXT": ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC",
+    "PROCESSOR_ARCHITECTURE": "AMD64",
+    "PROCESSOR_IDENTIFIER": "Intel64 Family 6 Model 158 Stepping 10, GenuineIntel",
+    "PROCESSOR_LEVEL": "6",
+    "PROCESSOR_REVISION": "9e0a",
+    "ProgramData": "C:\\ProgramData",
+    "ProgramFiles": "C:\\Program Files",
+    "ProgramFiles(x86)": "C:\\Program Files (x86)",
+    "ProgramW6432": "C:\\Program Files",
+    "PROMPT": "$P$G",
+    "PSModulePath": "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules",
+    "PUBLIC": "C:\\Users\\Public",
+    "REACT_NATIVE_PACKAGER_HOSTNAME": "localhost",
+    "SystemDrive": "C:",
+    "SystemRoot": "C:\\Windows",
+    "TEMP": "C:\\Users\\tesli\\AppData\\Local\\Temp",
+    "TMP": "C:\\Users\\tesli\\AppData\\Local\\Temp",
+    "USERDOMAIN": "DESKTOP-D0FA2Q2",
+    "USERDOMAIN_ROAMINGPROFILE": "DESKTOP-D0FA2Q2",
+    "USERNAME": "tesli",
+    "USERPROFILE": "C:\\Users\\tesli",
+    "VBOX_MSI_INSTALL_PATH": "C:\\Program Files\\Oracle\\VirtualBox\\",
+    "VIPSHOME": "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release",
+    "VS140COMNTOOLS": "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools\\",
+    "windir": "C:\\Windows"
+  },
+  "sharedObjects": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "C:\\Windows\\SYSTEM32\\ntdll.dll",
+    "C:\\Windows\\System32\\KERNEL32.DLL",
+    "C:\\Windows\\System32\\KERNELBASE.dll",
+    "C:\\Windows\\System32\\PSAPI.DLL",
+    "C:\\Windows\\System32\\WS2_32.dll",
+    "C:\\Windows\\System32\\RPCRT4.dll",
+    "C:\\Windows\\System32\\ADVAPI32.dll",
+    "C:\\Windows\\System32\\msvcrt.dll",
+    "C:\\Windows\\System32\\sechost.dll",
+    "C:\\Windows\\System32\\USER32.dll",
+    "C:\\Windows\\System32\\win32u.dll",
+    "C:\\Windows\\System32\\GDI32.dll",
+    "C:\\Windows\\SYSTEM32\\dbghelp.dll",
+    "C:\\Windows\\System32\\gdi32full.dll",
+    "C:\\Windows\\System32\\ucrtbase.dll",
+    "C:\\Windows\\System32\\msvcp_win.dll",
+    "C:\\Windows\\System32\\CRYPT32.dll",
+    "C:\\Windows\\System32\\MSASN1.dll",
+    "C:\\Windows\\System32\\bcrypt.dll",
+    "C:\\Windows\\SYSTEM32\\IPHLPAPI.DLL",
+    "C:\\Windows\\SYSTEM32\\USERENV.dll",
+    "C:\\Windows\\SYSTEM32\\WINMM.dll",
+    "C:\\Windows\\System32\\profapi.dll",
+    "C:\\Windows\\SYSTEM32\\WINMMBASE.dll",
+    "C:\\Windows\\System32\\cfgmgr32.dll",
+    "C:\\Windows\\System32\\IMM32.DLL",
+    "C:\\Windows\\System32\\powrprof.dll",
+    "C:\\Windows\\system32\\uxtheme.dll",
+    "C:\\Windows\\System32\\combase.dll",
+    "C:\\Windows\\System32\\bcryptPrimitives.dll",
+    "C:\\Windows\\system32\\mswsock.dll",
+    "C:\\Windows\\System32\\kernel.appcore.dll",
+    "C:\\Windows\\system32\\napinsp.dll",
+    "C:\\Windows\\system32\\pnrpnsp.dll",
+    "C:\\Windows\\SYSTEM32\\DNSAPI.dll",
+    "C:\\Windows\\System32\\NSI.dll",
+    "C:\\Windows\\System32\\winrnr.dll",
+    "C:\\Windows\\system32\\NLAapi.dll",
+    "C:\\Windows\\system32\\wshbth.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\sharp.node",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libvips-cpp.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libvips-42.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libglib-2.0-0.dll",
+    "C:\\Windows\\System32\\ole32.dll",
+    "C:\\Windows\\System32\\SHELL32.dll",
+    "C:\\Windows\\System32\\shcore.dll",
+    "C:\\Windows\\System32\\windows.storage.dll",
+    "C:\\Windows\\System32\\shlwapi.dll",
+    "C:\\Windows\\System32\\cryptsp.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libcairo-2.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libexif-12.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libexpat-1.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libfontconfig-1.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libgif-7.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libgmodule-2.0-0.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libintl-8.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libgobject-2.0-0.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libgsf-1-114.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libjpeg-62.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\liblcms2-2.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\liborc-0.4-0.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libpango-1.0-0.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libpangoft2-1.0-0.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\librsvg-2-2.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libpng16-16.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libtiff-5.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libwebp-7.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libz.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libwebpmux-3.dll",
+    "C:\\Windows\\SYSTEM32\\MSIMG32.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libgcc_s_seh-1.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libfreetype-6.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libpixman-1-0.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libffi-6.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libgio-2.0-0.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libiconv-2.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libxml2-2.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libharfbuzz-0.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libgdk_pixbuf-2.0-0.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libcroco-0.6-3.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libpangocairo-1.0-0.dll",
+    "C:\\Windows\\WinSxS\\amd64_microsoft.windows.gdiplus_6595b64144ccf1df_1.1.17763.557_none_36a1324d61b0d56d\\gdiplus.dll",
+    "\\\\?\\C:\\Users\\tesli\\AppData\\Roaming\\nvm\\v11.14.0\\node_modules\\expo-cli\\node_modules\\sharp\\build\\Release\\libpangowin32-1.0-0.dll",
+    "C:\\Windows\\SYSTEM32\\USP10.dll",
+    "C:\\Windows\\SYSTEM32\\CRYPTBASE.DLL",
+    "C:\\Windows\\SYSTEM32\\dhcpcsvc6.DLL",
+    "C:\\Windows\\SYSTEM32\\dhcpcsvc.DLL",
+    "C:\\Windows\\System32\\rasadhlp.dll",
+    "C:\\Windows\\System32\\fwpuclnt.dll"
+  ]
+}

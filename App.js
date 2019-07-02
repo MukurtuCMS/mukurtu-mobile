@@ -12,9 +12,13 @@ import AppNavigator from './navigation/AppNavigator';
 import { Provider } from 'react-redux';
 import {LoginText} from "./components/LoginText";
 import InitializingApp from "./components/InitializingApp"
+import AjaxSpinner from "./components/AjaxSpinner"
+import * as Sync from "./components/MukurtuSync"
+import * as ManageTables from "./components/ManageTables"
 
 import configureStore from './store';
 import axios from "axios";
+import {Feather} from "@expo/vector-icons";
 
 const store = configureStore();
 const db = SQLite.openDatabase('db.db');
@@ -37,6 +41,7 @@ export default class App extends React.Component {
     this._handleSiteUrlUpdate = this._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
     this.setDatabaseName = this.setDatabaseName.bind(this);
+    this.syncCompleted = this.syncCompleted.bind(this);
 
     this.state = {
       isLoadingComplete: false,
@@ -87,6 +92,8 @@ export default class App extends React.Component {
             firstTime = true;
             databaseName = null;
             loggedIn = false;
+          } else {
+            loggedIn = true;
           }
           self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
         }
@@ -113,30 +120,84 @@ export default class App extends React.Component {
   componentDidMount() {
     // delete all data and start fresh
     // this.deleteAll();
+    ManageTables.createGlobalTables();
 
     // let's first check if this is a first time user, redirect to login
     this.firstTimeCheck();
 
-    this.createGlobalTables();
     this.setDatabaseName();
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
   }
 
+  syncCompleted (sync = false) {
+    if (sync) {
+      this.setState({sync: false});
+    } else {
+    }
+  }
+
   componentDidUpdate(prevProps, prevState) {
     if (!prevState.db && this.state.db && this.state.isConnected) {
-      this.createTokenTable();
+      // We cannot create any of our unique tables until we have our unique database created and stored in state
+      ManageTables.createUniqueTables(this.state.db);
       this._getAuth();
     } else if (!prevState.db && this.state.db && !this.state.isConnected) {
       // db and user exist, but cannot check auth
+      ManageTables.createUniqueTables(this.state.db);
     }
 
-    if (!prevState.sync && this.state.sync) {
+    // We are connected, AND token was just set (via getAuth)
+    if (!prevState.token && this.state.token && this.state.isConnected) {
+      Sync.updateEntities(this.state.db, this.state);
+      Sync.syncContentTypes(this.state, this.syncCompleted);
+    }
 
+/*    if (!prevState.sync && this.state.sync) {
+
+      this.setDatabaseName();
+
+    }
+    if (this.state.isConnected && !prevState.db && this.state.db && this.state.sync) {
+      this._getAuth();
+    }
+    if (this.state.isConnected && !prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
+      Sync.updateEntities(this.state.db, this.state);
+      Sync.syncContentTypes(this.state, this.syncCompleted);
+    } else if (this.state.isConnected && prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
+      this.syncCompleted();
     }
     if (!prevState.isConnected && !prevState.db && this.state.isConnected && this.state.db) {
       this.registerBackgroundSync();
       this.logRegisteredTasks();
       this.createTokenTable();
+    }*/
+
+    if (this.state.sync) {
+      console.log('sync');
+      if (this.state.isConnected) {
+        console.log('connected');
+        if (!this.state.user) {
+          console.log('inserting user');
+          this._insertUser();
+        } else {
+          if (!this.state.db) {
+            console.log('set the database');
+            this.setDatabaseName();
+          } else {
+            console.log('database is set');
+            ManageTables.createUniqueTables(this.state.db);
+
+            if (!this.state.loggedIn) {
+              console.log('lets login');
+              this._insertAuth();
+            } else {
+              console.log('we are logged in');
+              Sync.updateEntities(this.state.db, this.state);
+              Sync.syncContentTypes(this.state, this.syncCompleted);
+            }
+          }
+        }
+      }
     }
 
   }
@@ -166,6 +227,10 @@ export default class App extends React.Component {
     // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
 
     // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
+    if (this.state.sync) {
+      return (<AjaxSpinner />);
+    }
+
     if (this.state.databaseName === false){
       return (<InitializingApp />);
   }
@@ -182,6 +247,7 @@ export default class App extends React.Component {
       cookie: this.state.cookie,
       loggedIn: this.state.loggedIn,
       databaseName: this.state.databaseName,
+      isConnected: this.state.isConnected,
       firstTime: this.state.firstTime,
       sync: this.state.sync,
       _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
@@ -264,29 +330,8 @@ export default class App extends React.Component {
   };
 
   _handleLoginStatusUpdate = (status) => {
-    this.setState({ isLoggedIn: status });
+    this.setState({ isLoggedIn: status, loggedIn: status });
   };
-
-  createGlobalTables() {
-    globalDB.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists user (siteUrl primary key, user text);'
-      );
-    });
-    globalDB.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists database (siteUrl primary key, databaseName text);'
-      );
-    });
-  }
-
-  createTokenTable() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists auth (id integer primary key, token text, cookie text);'
-      );
-    });
-  }
 
   // This will check the database for an existing auth from the unique database
   _getAuth() {
@@ -298,6 +343,50 @@ export default class App extends React.Component {
         (tx, error) => {this._handleAuthError(error)}
       );
     });
+  }
+
+  _insertUser() {
+    globalDB.transaction(
+      tx => {
+        tx.executeSql('select * from user;',
+          '',
+          (success, array) => {
+            if (array.rows._array.length > 0) {
+              console.log(array.rows._array[0].user);
+              this.setState({user: JSON.parse(array.rows._array[0].user)});
+            }
+          }
+        );
+      }
+    );
+  }
+
+  _insertAuth() {
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('delete from auth;',
+        );
+      }
+    );
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('insert into auth (token, cookie) values (?, ?)',
+          [this.state.user.token, this.state.user.session_name + '=' + this.state.user.sessid],
+          (success) => {
+            // Set site status to logged in
+            this.setState({
+              token: this.state.user.token,
+              cookie: this.state.user.session_name + '=' + this.state.user.sessid,
+              loggedIn: true,
+              isLoggedIn: true
+            });
+
+          },
+
+          (success, error) => console.log(' ')
+        );
+      }
+    );
   }
 
   _handleAuthError = () => {
@@ -348,7 +437,7 @@ export default class App extends React.Component {
            try {
              // If this uid is not 0, the user is currently authenticated
              if (responseJson.user.uid !== 0) {
-               this.setState({loggedIn: true});
+               this.setState({loggedIn: true, isLoggedIn: true});
                return;
              }
            } catch(e) {

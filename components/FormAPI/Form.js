@@ -16,19 +16,20 @@ import JSONTree from "react-native-json-tree";
 import {ButtonGroup, Button, Text} from "react-native-elements";
 import axios from "axios";
 import {SQLite} from 'expo-sqlite';
-
-const db = SQLite.openDatabase('db.db');
+import * as Sync from "../MukurtuSync"
 
 export default class FormComponent extends React.Component {
   constructor(props) {
     super(props);
+    const {navigation, screenProps} = this.props;
     this.state = {
-      formValues: (this.props.node !== undefined) ? this.props.node : {"type": props.contentType},
+      formValues: (this.props.formState !== undefined) ? this.props.formState : {"type": props.contentType},
       selectedIndex: 0,
       ajax: '',
       cookie: null,
       token: null,
-      formSubmitted: false
+      formSubmitted: false,
+      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.updateIndex = this.updateIndex.bind(this);
@@ -45,7 +46,7 @@ export default class FormComponent extends React.Component {
   }
 
   update() {
-    db.transaction(tx => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
           'select * from auth limit 1;',
           '',
@@ -402,7 +403,52 @@ export default class FormComponent extends React.Component {
   }
 
   saveNode() {
+    if (!this.props.screenProps.isConnected) {
+      if (this.props.did) {
+        this.state.db.transaction(
+          tx => {
+            tx.executeSql('replace into saved_offline (id, blob, saved) values (?, ?, 0)',
+              [this.props.did, JSON.stringify(this.state.formValues)],
+              (success) => this.setState({formSubmitted: true}),
+              (success, error) => console.log(error)
+            );
+          }
+        );
+      } else {
+        this.state.db.transaction(
+          tx => {
+            tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
+              [JSON.stringify(this.state.formValues)],
+              (success) => this.setState({formSubmitted: true}),
+              (success, error) => console.log(error)
+            );
+          }
+        );
+      }
+    } else {
+      if (this.state.formValues.nid) {
+        console.log(this.state.formValues['field_category']);
+        console.log(this.props.node['field_category']);
 
+        // I have to do this right now because I am getting errors trying to use the postData method
+        const token = this.state.token;
+        const cookie = this.state.cookie;
+        const data = {
+          method: 'PUT',
+          mode: 'cors',
+          cache: 'no-cache',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': token,
+            'Cookie': cookie
+          },
+          redirect: 'follow',
+          referrer: 'no-referrer',
+          body: JSON.stringify(this.state.formValues)
+        };
+
+<<<<<<< HEAD
 
     if (this.state.formValues.nid) {
       console.log(this.state.formValues['field_category']);
@@ -435,18 +481,19 @@ export default class FormComponent extends React.Component {
             console.error(error);
           });
 
-    } else {
+      } else {
 
-      this.postData(this.props.url + '/app/node.json', this.state.formValues)
-      // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
+        this.postData(this.props.url + '/app/node.json', this.state.formValues)
+        // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
           .then(
-              (response) => {
-                this.setState({
-                  formSubmitted: true
-                })
-              }
+            (response) => {
+              this.setState({
+                formSubmitted: true
+              })
+            }
           )
           .catch(error => console.error(error));
+      }
     }
   }
 
@@ -722,17 +769,27 @@ export default class FormComponent extends React.Component {
     let formDisplay;
 
     if (this.state.formSubmitted) {
-      formDisplay = <View>
-        <Text>Your content has been submitted successfully.</Text>
-        <Button
+      if (!this.props.screenProps.isConnected) {
+        formDisplay = <View>
+          <Text>Your content has been queued for saving when connected.</Text>
+          <Button
             title="Submit Another"
             onPress={this.resetForm}
-        />
-      </View>
+          />
+        </View>
+      } else {
+        formDisplay = <View>
+          <Text>Your content has been submitted successfully.</Text>
+          <Button
+            title="Submit Another"
+            onPress={this.resetForm}
+          />
+        </View>
+      }
 
     } else {
       formDisplay = <View>
-        <JSONTree data={this.props.form}/>
+{/*        <JSONTree data={this.props.form}/>*/}
         {buttonGroup}
         {form[this.state.selectedIndex]}
         <Button

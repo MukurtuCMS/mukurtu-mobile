@@ -121,8 +121,6 @@ class LoginScreen extends React.Component {
                             tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
                                 [url, JSON.stringify(responseJson)],
                                 (success) => {
-                                    // Set site status to logged in
-                                    this._handleLoginStatusUpdate(true);
                                   this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
                                 },
 
@@ -131,30 +129,9 @@ class LoginScreen extends React.Component {
                         }
                     );
 
-                  this.state.db.transaction(
-                    tx => {
-                      tx.executeSql('delete from auth;',
-                      );
-                    }
-                  );
-                  this.state.db.transaction(
-                    tx => {
-                      tx.executeSql('insert into auth (token, cookie) values (?, ?)',
-                        [responseJson.token, responseJson.session_name + '=' + responseJson.sessid],
-                        (success) => {
-                          // Set site status to logged in
-                          this._handleLoginStatusUpdate(true);
-
-                        },
-
-                        (success, error) => console.log(' ')
-                      );
-                    }
-                  );
-
                   this.props.add(responseJson.session_name + '=' + responseJson.sessid);
                   this.props.addUserProp(responseJson);
-                  this.props.navigation.navigate('Settings')
+                  this.props.navigation.navigate('Home')
 
                 })
 
