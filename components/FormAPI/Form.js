@@ -406,26 +406,28 @@ export default class FormComponent extends React.Component {
     if (!this.props.screenProps.isConnected) {
       if (this.props.did) {
         this.state.db.transaction(
-          tx => {
-            tx.executeSql('replace into saved_offline (id, blob, saved) values (?, ?, 0)',
-              [this.props.did, JSON.stringify(this.state.formValues)],
-              (success) => this.setState({formSubmitted: true}),
-              (success, error) => console.log(error)
-            );
-          }
+            tx => {
+              tx.executeSql('replace into saved_offline (id, blob, saved) values (?, ?, 0)',
+                  [this.props.did, JSON.stringify(this.state.formValues)],
+                  (success) => this.setState({formSubmitted: true}),
+                  (success, error) => console.log(error)
+              );
+            }
         );
       } else {
         this.state.db.transaction(
-          tx => {
-            tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
-              [JSON.stringify(this.state.formValues)],
-              (success) => this.setState({formSubmitted: true}),
-              (success, error) => console.log(error)
-            );
-          }
+            tx => {
+              tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
+                  [JSON.stringify(this.state.formValues)],
+                  (success) => this.setState({formSubmitted: true}),
+                  (success, error) => console.log(error)
+              );
+            }
         );
       }
     } else {
+
+
       if (this.state.formValues.nid) {
         console.log(this.state.formValues['field_category']);
         console.log(this.props.node['field_category']);
@@ -448,52 +450,29 @@ export default class FormComponent extends React.Component {
           body: JSON.stringify(this.state.formValues)
         };
 
-<<<<<<< HEAD
-
-    if (this.state.formValues.nid) {
-      console.log(this.state.formValues['field_category']);
-      console.log(this.props.node['field_category']);
-
-      // I have to do this right now because I am getting errors trying to use the postData method
-      const token = this.state.token;
-      const cookie = this.state.cookie;
-      const data = {
-        method: 'PUT',
-        mode: 'cors',
-        cache: 'no-cache',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': token,
-          'Cookie': cookie
-        },
-        redirect: 'follow',
-        referrer: 'no-referrer',
-        body: JSON.stringify(this.state.formValues)
-      };
-
-      fetch(this.props.url + this.state.formValues.nid + '.json', data)
-          .then((response) => response.json())
-          .then((responseJson) => {
-            console.log(responseJson)
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+        fetch(this.props.url + this.state.formValues.nid + '.json', data)
+            .then((response) => response.json())
+            .then((responseJson) => {
+              console.log(responseJson)
+            })
+            .catch((error) => {
+              console.error(error);
+            });
 
       } else {
 
         this.postData(this.props.url + '/app/node.json', this.state.formValues)
         // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
-          .then(
-            (response) => {
-              this.setState({
-                formSubmitted: true
-              })
-            }
-          )
-          .catch(error => console.error(error));
+            .then(
+                (response) => {
+                  this.setState({
+                    formSubmitted: true
+                  })
+                }
+            )
+            .catch(error => console.error(error));
       }
+
     }
   }
 
@@ -503,11 +482,13 @@ export default class FormComponent extends React.Component {
 
 
   postData(url = '', data = {}, method = 'POST') {
+
+    data = JSON.stringify(data);
     return fetch(url, {
       method: method,
 
-      mode: 'cors',
-      cache: 'no-cache',
+      // mode: 'cors',
+      // cache: 'no-cache',
       // credentials: 'same-origin',
       headers: {
         'Accept': 'application/json',
@@ -517,9 +498,11 @@ export default class FormComponent extends React.Component {
       },
       redirect: 'follow',
       referrer: 'no-referrer',
-      body: JSON.stringify(data),
+      body: data,
     })
-        .then(response => console.log(response))
+        .then((response) => {
+          console.log(response)
+        })
         .catch(error => console.error(error)); // parses JSON response into native Javascript objects
   }
 
@@ -634,8 +617,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                 />);
-              }
-              else if(fieldArray['#columns'] !== undefined) {
+              } else if (fieldArray['#columns'] !== undefined) {
                 form[i].push(<Textfield
                     formValues={this.state.formValues}
                     fieldName={fieldName}
@@ -644,8 +626,7 @@ export default class FormComponent extends React.Component {
                     setFormValue={this.setFormValue}
                 />);
 
-              }
-              else if (fieldArray['#type'] === 'textfield') {
+              } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
                     formValues={this.state.formValues}
                     fieldName={fieldName}
@@ -773,23 +754,23 @@ export default class FormComponent extends React.Component {
         formDisplay = <View>
           <Text>Your content has been queued for saving when connected.</Text>
           <Button
-            title="Submit Another"
-            onPress={this.resetForm}
+              title="Submit Another"
+              onPress={this.resetForm}
           />
         </View>
       } else {
         formDisplay = <View>
           <Text>Your content has been submitted successfully.</Text>
           <Button
-            title="Submit Another"
-            onPress={this.resetForm}
+              title="Submit Another"
+              onPress={this.resetForm}
           />
         </View>
       }
 
     } else {
       formDisplay = <View>
-{/*        <JSONTree data={this.props.form}/>*/}
+        {/*        <JSONTree data={this.props.form}/>*/}
         {buttonGroup}
         {form[this.state.selectedIndex]}
         <Button
