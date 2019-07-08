@@ -373,7 +373,7 @@ export default class FormComponent extends React.Component {
           body: JSON.stringify(this.state.formValues)
         };
 
-        fetch('http://mukurtucms.kanopi.cloud/app/node/' + this.state.formValues.nid + '.json', data)
+        fetch(this.props.url + '/app/node/' + this.state.formValues.nid + '.json', data)
           .then((response) => response.json())
           .then((responseJson) => {
             console.log(responseJson)
