@@ -80,7 +80,6 @@ const getCreatableTypes = async (state, data, complete) => {
 
         // now let's sync all content type endpoints
         let urls = [];
-        console.log(responseJson);
         for (const [machineName, TypeObject] of Object.entries(responseJson)) {
           urls.push({url: 'http://mukurtucms.kanopi.cloud/app/node-form-fields/retrieve/' + machineName, machineName: machineName});
         }
@@ -99,7 +98,6 @@ const getCreatableTypes = async (state, data, complete) => {
 }
 
 const checkStatus = (response) => {
-  console.log(response);
   if (response.ok) {
     return Promise.resolve(response);
   } else {

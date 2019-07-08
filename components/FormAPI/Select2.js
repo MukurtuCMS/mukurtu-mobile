@@ -2,6 +2,7 @@ import React from 'react';
 import {StyleSheet, View, Text, TouchableOpacity, Button} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import Autocomplete from 'react-native-autocomplete-input';
+import * as Colors from "../../constants/Colors";
 
 export default class Select2 extends React.Component {
 
@@ -41,13 +42,39 @@ export default class Select2 extends React.Component {
   }
 
   render() {
+    let error = null;
+    let formErrorString = null;
+    let lang = 'und';
+
+    if (this.props.formValues[this.props.fieldName]) {
+      lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
+    }
+
+    const fieldName = this.props.fieldName;
+    if (this.props.formErrors) {
+      if (fieldName) {
+        formErrorString = fieldName + '][' + lang;
+        if (this.props.formErrors[formErrorString]) {
+          error = this.props.formErrors[formErrorString].replace(/<[^>]*>?/gm, '');
+        }
+      }
+    }
+
+    let titleTextStyle = styles.titleTextStyle;
+    let textfieldStyle = styles.textfieldStyle;
+    let errorTextStyle = styles.errorTextStyle;
+    if (error) {
+      titleTextStyle = styles.titleTextStyleError;
+      textfieldStyle = styles.textfieldStyleError;
+      errorTextStyle = styles.errorTextStyleError;
+    }
+
     const field = this.props.field;
     const options = field['#select2']['data'];
     // we need to determine if this is normal select options or entity refs
     let defaultSelect = true;
     // set value key, defaulted to value
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
-    let lang = 'und';
 
     let autocompleteFields = [];
     for (var i = 0; i < this.state.count; i++) {
@@ -101,7 +128,7 @@ export default class Select2 extends React.Component {
               <TouchableOpacity
                   onPress={
                     () => {
-                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, key, options, lang)
+                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, key, options, lang, formErrorString)
                       this.updateAutocomplete(key, true)
                     }
 
@@ -114,9 +141,15 @@ export default class Select2 extends React.Component {
       />);
     }
 
+    let errorMarkup = [];
+    if (error) {
+      errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
+    }
+
     return (
         <View style={styles.container}>
-          <Text>{field['#title']}</Text>
+          <Text style={titleTextStyle}>{field['#title']}</Text>
+          {errorMarkup}
           {autocompleteFields}
           <Button title={'Add another'} onPress={() => {
             this.updateAutocomplete(this.state.count, false);
@@ -177,41 +210,33 @@ const styles = StyleSheet.create({
   },
   openingText: {
     textAlign: 'center'
+  },
+  titleTextStyle: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  titleTextStyleError: {
+    color: Colors.default.errorBackground,
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  errorTextStyle: {
+    color: '#000'
+  },
+  errorTextStyleError: {
+    color: Colors.default.errorBackground,
+    marginBottom: 10
+  },
+  textfieldStyle: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1
+  },
+  textfieldStyleError: {
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 1,
+    borderColor: Colors.default.errorBackground
   }
 });
-
-/*    render() {
-        const field = this.props.field;
-        let options = [];
-        // we need to determine if this is normal select options or entity refs
-        let defaultSelect = true;
-        // set value key, defaulted to value
-        const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
-
-        for (var i = 0; i < field['#select2']['data'].length; i++) {
-            const value = field['#select2']['data'][i]['id'];
-            const label = field['#select2']['data'][i]['text'];
-            if (typeof label === "string") {
-                options.push(<Picker.Item
-                        key={value}
-                        label={label}
-                        value={value}
-                    />
-                );
-            } else {
-                console.log(fieldName);
-            }
-        }
-
-
-        return <View>
-            <Text>{field['#title']}</Text>
-            <Picker
-                style={{height: 50, width: 'auto'}}
-                onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey)}
-                selectedValue={(this.props.formValues[this.props.fieldName]) ? this.props.formValues[this.props.fieldName][0][valueKey] : ''}
-            >
-                {options}
-            </Picker>
-        </View>;
-    }*/

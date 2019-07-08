@@ -29,6 +29,7 @@ export default class FormComponent extends React.Component {
       token: null,
       formSubmitted: false,
       db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
+      formErrors: null
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.updateIndex = this.updateIndex.bind(this);
@@ -38,6 +39,23 @@ export default class FormComponent extends React.Component {
 
   componentDidMount() {
     this.update();
+    this.preprocessNodeForSaving();
+  }
+
+  preprocessNodeForSaving = () => {
+    let node = this.props.node;
+    if (node) {
+      this.setState({formValues: node});
+    }
+/*    for (const [machineName, groupObject] of Object.entries(node)) {
+      if (groupObject) {
+        const lang = Object.keys(groupObject)[0];
+        if (lang) {
+          console.log(groupObject[lang]);
+        }
+      }
+
+    }*/
   }
 
   updateIndex(selectedIndex) {
@@ -92,7 +110,7 @@ export default class FormComponent extends React.Component {
 
   }
 
-  setFormValue(newFieldName, newValue, valueKey) {
+  setFormValue(newFieldName, newValue, valueKey, lang = 'und', error = null) {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
       if (newFieldName === 'title') {
@@ -103,7 +121,7 @@ export default class FormComponent extends React.Component {
         // This is the format Drupal needs for text fields
         let values = {
           [newFieldName]: {
-            "und": {
+            [lang]: {
               "0": {[valueKey]: newValue}
             }
           }
@@ -114,10 +132,19 @@ export default class FormComponent extends React.Component {
       // save value to state
       this.setState({formValues: formValues});
     }
+    if (error) {
+      let newErrors = this.state.formErrors;
+      if (this.state.formErrors) {
+        if (this.state.formErrors[error]) {
+          delete newErrors[error];
+          this.setState({formErrors: newErrors});
+        }
+      }
+    }
   }
 
 
-  setFormValueCheckbox(newFieldName, newValue, valueKey) {
+  setFormValueCheckbox(newFieldName, newValue, valueKey, error = null) {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
 
@@ -138,6 +165,15 @@ export default class FormComponent extends React.Component {
 
       // save value to state
       this.setState({formValues: formValues});
+    }
+    if (error) {
+      let newErrors = this.state.formErrors;
+      if (this.state.formErrors) {
+        if (this.state.formErrors[error]) {
+          delete newErrors[error];
+          this.setState({formErrors: newErrors});
+        }
+      }
     }
   }
 
@@ -312,7 +348,7 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueCheckboxes(newFieldName, newValue, valueKey, lang = 'und') {
+  setFormValueCheckboxes(newFieldName, newValue, valueKey, lang = 'und', error = null) {
     // need different function for checkbox so we can unset values
     if (this.state.formValues) {
       const formValues = this.state.formValues;
@@ -324,6 +360,15 @@ export default class FormComponent extends React.Component {
       }
       // save value to state
       this.setState({formValues: formValues});
+    }
+    if (error) {
+      let newErrors = this.state.formErrors;
+      if (this.state.formErrors) {
+        if (this.state.formErrors[error]) {
+          delete newErrors[error];
+          this.setState({formErrors: newErrors});
+        }
+      }
     }
   }
 
@@ -352,8 +397,6 @@ export default class FormComponent extends React.Component {
       }
     } else {
       if (this.state.formValues.nid) {
-        console.log(this.state.formValues['field_category']);
-        console.log(this.props.node['field_category']);
 
         // I have to do this right now because I am getting errors trying to use the postData method
         const token = this.state.token;
@@ -376,24 +419,16 @@ export default class FormComponent extends React.Component {
         fetch('http://mukurtucms.kanopi.cloud/app/node/' + this.state.formValues.nid + '.json', data)
           .then((response) => response.json())
           .then((responseJson) => {
-            console.log(responseJson)
+            if (responseJson.form_errors) {
+              this.setState({formErrors: responseJson.form_errors})
+            }
           })
           .catch((error) => {
             console.error(error);
           });
 
       } else {
-
-        this.postData(this.props.url + '/app/node.json', this.state.formValues)
-        // .then(data => console.log(JSON.stringify(data))) // JSON-string from `response.json()` call
-          .then(
-            (response) => {
-              this.setState({
-                formSubmitted: true
-              })
-            }
-          )
-          .catch(error => console.error(error));
+        this.postData(this.props.url + '/app/node.json', this.state.formValues);
       }
     }
   }
@@ -404,7 +439,7 @@ export default class FormComponent extends React.Component {
 
 
   postData(url = '', data = {}, method = 'POST') {
-    return fetch(url, {
+    fetch(url, {
       method: method,
 
       mode: 'cors',
@@ -420,8 +455,17 @@ export default class FormComponent extends React.Component {
       referrer: 'no-referrer',
       body: JSON.stringify(data),
     })
-        .then(response => console.log(response))
-        .catch(error => console.error(error)); // parses JSON response into native Javascript objects
+      .then((response) => response.json())
+      .then((responseJson) => {
+        console.log(responseJson);
+        if (responseJson.form_errors) {
+          this.setState({formErrors: responseJson.form_errors})
+        } else {
+          this.setState({
+            formSubmitted: true
+          });
+        }
+      });
   }
 
 
@@ -493,6 +537,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValue}
+                    formErrors={this.state.formErrors}
                 />);
               } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
@@ -501,6 +546,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValue}
+                    formErrors={this.state.formErrors}
                 />);
               } else if (fieldArray['#type'] === 'text_format') {
                 form[i].push(<Textarea
@@ -509,6 +555,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValue}
+                    formErrors={this.state.formErrors}
                 />);
               } else if (fieldArray['#type'] === 'textarea') {
                 form[i].push(<Textarea
@@ -517,6 +564,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValue}
+                    formErrors={this.state.formErrors}
                 />);
               } else if (fieldArray['#type'] === 'radios') {
                 form[i].push(<Radios
@@ -525,6 +573,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValueCheckboxes.bind(this)}
+                    formErrors={this.state.formErrors}
                 />);
               } else if (fieldArray['#type'] === 'checkboxes') {
                 form[i].push(<Checkboxes
@@ -533,6 +582,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValueCheckboxes.bind(this)}
+                    formErrors={this.state.formErrors}
                 />);
               } else if (fieldArray['#type'] === 'checkbox') {
                 form[i].push(<Checkbox
@@ -541,6 +591,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValueCheckbox.bind(this)}
+                    formErrors={this.state.formErrors}
                 />);
               }
               // OG group gets special conditional select. Can expand to other conditional fields as needed
@@ -551,6 +602,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValueConditionalSelect.bind(this)}
+                    formErrors={this.state.formErrors}
                 />);
 
               } else if (fieldArray['#type'] === 'select') {
@@ -560,6 +612,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValue}
+                    formErrors={this.state.formErrors}
                 />);
               } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
                 form[i].push(<Date
@@ -569,6 +622,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     fieldType={fieldArray['#type']}
                     setFormValue={this.setFormValueDate.bind(this)}
+                    formErrors={this.state.formErrors}
                 />);
               } else if (fieldArray['#type'] === 'geofield_latlon') {
                 form[i].push(<Location
@@ -577,6 +631,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValueLocation.bind(this)}
+                    formErrors={this.state.formErrors}
                 />);
               } else if (fieldArray['#type'] === 'select2_hidden') {
                 form[i].push(<Select2
@@ -585,6 +640,7 @@ export default class FormComponent extends React.Component {
                     field={fieldArray}
                     key={fieldName}
                     setFormValue={this.setFormValueSelect2.bind(this)}
+                    formErrors={this.state.formErrors}
                 />);
               }
             } else {

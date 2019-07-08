@@ -352,7 +352,6 @@ export default class App extends React.Component {
           '',
           (success, array) => {
             if (array.rows._array.length > 0) {
-              console.log(array.rows._array[0].user);
               this.setState({user: JSON.parse(array.rows._array[0].user)});
             }
           }
