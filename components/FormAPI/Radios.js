@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CheckBox} from "react-native-elements";
 import * as Colors from "../../constants/Colors"
+import FieldDescription from "./FieldDescription";
 
 export default class Radios extends React.Component {
 
@@ -67,6 +68,7 @@ export default class Radios extends React.Component {
         return <View>
             <Text style={titleTextStyle}>{field['#title']}</Text>
             {errorMarkup}
+            <FieldDescription description={(this.props.description) ? this.props.description : null} />
             {checkboxes}
         </View>;
     }

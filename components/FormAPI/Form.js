@@ -475,6 +475,7 @@ export default class FormComponent extends React.Component {
     let tabView = [];
     let buttons = [];
     let buttonGroup = [];
+    let description = null;
     const {selectedIndex} = this.state;
 
 
@@ -495,6 +496,15 @@ export default class FormComponent extends React.Component {
 
 
           var fieldArray = childrenFields[k];
+
+          description = fieldArray['#description'];
+          if (!description && fieldArray['und']) {
+            description = fieldArray['und']['#description'];
+
+            if (!description && fieldArray['und'][0]) {
+              description = fieldArray['und'][0]['#description'];
+            }
+          }
 
           if (fieldArray['#type'] !== undefined) {
 
@@ -538,6 +548,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
@@ -547,6 +558,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               } else if (fieldArray['#type'] === 'text_format') {
                 form[i].push(<Textarea
@@ -556,6 +568,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               } else if (fieldArray['#type'] === 'textarea') {
                 form[i].push(<Textarea
@@ -565,6 +578,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               } else if (fieldArray['#type'] === 'radios') {
                 form[i].push(<Radios
@@ -574,6 +588,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckboxes.bind(this)}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               } else if (fieldArray['#type'] === 'checkboxes') {
                 form[i].push(<Checkboxes
@@ -583,6 +598,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckboxes.bind(this)}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               } else if (fieldArray['#type'] === 'checkbox') {
                 form[i].push(<Checkbox
@@ -592,6 +608,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckbox.bind(this)}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               }
               // OG group gets special conditional select. Can expand to other conditional fields as needed
@@ -603,6 +620,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueConditionalSelect.bind(this)}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
 
               } else if (fieldArray['#type'] === 'select') {
@@ -613,6 +631,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
                 form[i].push(<Date
@@ -623,6 +642,7 @@ export default class FormComponent extends React.Component {
                     fieldType={fieldArray['#type']}
                     setFormValue={this.setFormValueDate.bind(this)}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               } else if (fieldArray['#type'] === 'geofield_latlon') {
                 form[i].push(<Location
@@ -632,6 +652,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueLocation.bind(this)}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               } else if (fieldArray['#type'] === 'select2_hidden') {
                 form[i].push(<Select2
@@ -641,6 +662,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueSelect2.bind(this)}
                     formErrors={this.state.formErrors}
+                    description={description}
                 />);
               }
             } else {
@@ -691,7 +713,7 @@ export default class FormComponent extends React.Component {
 
     } else {
       formDisplay = <View>
-{/*        <JSONTree data={this.props.form}/>*/}
+        <JSONTree data={this.props.form}/>
         {buttonGroup}
         {form[this.state.selectedIndex]}
         <Button

@@ -4,6 +4,7 @@ import {View, Text, Button} from "react-native";
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
+import FieldDescription from "./FieldDescription";
 
 
 export default class LocationComponent extends React.Component {
@@ -60,6 +61,7 @@ export default class LocationComponent extends React.Component {
     return(
         <View style={{flex: 1/2, height: 250}}>
           {text}
+          <FieldDescription description={(this.props.description) ? this.props.description : null} />
           {setMyLocationButton}
           {mapPicker}
         </View>

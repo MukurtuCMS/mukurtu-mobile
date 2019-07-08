@@ -1,6 +1,7 @@
 import React from 'react';
 import {TextInput, View, Text, StyleSheet} from 'react-native';
 import * as Colors from "../../constants/Colors";
+import FieldDescription from "./FieldDescription"
 
 export default class Textfield extends React.Component {
     constructor(props) {
@@ -61,6 +62,7 @@ export default class Textfield extends React.Component {
         return <View>
             <Text style={titleTextStyle}>{field['#title']}</Text>
             {errorMarkup}
+            <FieldDescription description={(this.props.description) ? this.props.description : null} />
             <TextInput
                 style={textfieldStyle}
                 onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, formErrorString)}
