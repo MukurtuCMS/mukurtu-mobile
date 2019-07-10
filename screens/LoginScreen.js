@@ -85,8 +85,9 @@ class LoginScreen extends React.Component {
     }, () => {
 
       fetch(this.state.url + '/services/session/token')
-          .then((response) => {
-            let Token = response._bodyText;
+        .then((response) => response.text())
+        .then((response) => {
+            let Token = response;
 
             let data = {
               method: 'POST',
@@ -98,12 +99,14 @@ class LoginScreen extends React.Component {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': Token,
-                'Cookie': this.props.places
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': 0
               }
             };
 
             fetch(this.state.url + '/app/user/login.json', data)
-                .then((response) => response.json())
+              .then((response) => response.json())
                 .then((responseJson) => {
                     // remove http:// from url
                     const url = this.state.url.replace(/(^\w+:|^)\/\//, '');
@@ -137,7 +140,22 @@ class LoginScreen extends React.Component {
 
 
                 .catch((error) => {
-                  // console.error(error);
+                  if (error.response) {
+                    // The request was made and the server responded with a status code
+                    // that falls out of the range of 2xx
+                    console.log(error.response.data);
+                    console.log(error.response.status);
+                    console.log(error.response.headers);
+                  } else if (error.request) {
+                    // The request was made but no response was received
+                    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                    // http.ClientRequest in node.js
+                    console.log(error.request);
+                  } else {
+                    // Something happened in setting up the request that triggered an Error
+                    console.log('Error', error.message);
+                  }
+                  console.log(error.config);
                 });
           })
           .catch((error) => {
