@@ -28,7 +28,7 @@ export const syncContentTypes = (state, complete) => {
 
         // now let's sync all content type display endpoints
         for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-          fetch(state.siteUrl + '/app/node-view-fields/retrieve/' + machineName, data)
+          fetch(state.siteUrl  + '/app/node-view-fields/retrieve/' + machineName, data)
             .then((response) => response.json())
             .then((responseJson) => {
               returnData = 'success';
@@ -80,9 +80,8 @@ const getCreatableTypes = async (state, data, complete) => {
 
         // now let's sync all content type endpoints
         let urls = [];
-        console.log(responseJson);
         for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-          urls.push({url: state.siteUrl + '/app/node-form-fields/retrieve/' + machineName, machineName: machineName});
+          urls.push({url: state.siteUrl  + '/app/node-form-fields/retrieve/' + machineName, machineName: machineName});
         }
         Promise.all(urls.map(url =>
           fetch(url.url, data)
@@ -99,7 +98,6 @@ const getCreatableTypes = async (state, data, complete) => {
 }
 
 const checkStatus = (response) => {
-  console.log(response);
   if (response.ok) {
     return Promise.resolve(response);
   } else {

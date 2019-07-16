@@ -2,6 +2,8 @@ import React from 'react';
 import {StyleSheet, View, Text, TouchableOpacity, Button} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import Autocomplete from 'react-native-autocomplete-input';
+import * as Colors from "../../constants/Colors";
+import FieldDescription from "./FieldDescription";
 
 export default class Select2 extends React.Component {
 
@@ -41,58 +43,76 @@ export default class Select2 extends React.Component {
   }
 
   render() {
+    let error = null;
+    let formErrorString = null;
+    let lang = 'und';
+
+    if (this.props.formValues[this.props.fieldName]) {
+      lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
+    }
+
+    const fieldName = this.props.fieldName;
+    if (this.props.formErrors) {
+      if (fieldName) {
+        formErrorString = fieldName + '][' + lang;
+        if (this.props.formErrors[formErrorString]) {
+          error = this.props.formErrors[formErrorString].replace(/<[^>]*>?/gm, '');
+        }
+      }
+    }
+
+    let titleTextStyle = styles.titleTextStyle;
+    let textfieldStyle = styles.textfieldStyle;
+    let errorTextStyle = styles.errorTextStyle;
+    if (error) {
+      titleTextStyle = styles.titleTextStyleError;
+      textfieldStyle = styles.textfieldStyleError;
+      errorTextStyle = styles.errorTextStyleError;
+    }
+
     const field = this.props.field;
     const options = field['#select2']['data'];
     // we need to determine if this is normal select options or entity refs
     let defaultSelect = true;
     // set value key, defaulted to value
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
-    let lang = 'und';
 
     let autocompleteFields = [];
-    for (let i = 0; i < this.state.count; i++) {
+    for (var i = 0; i < this.state.count; i++) {
       const key = i;
       let query = '';
-
       if (this.props.formValues[this.props.fieldName] !== undefined) {
         // set the language key as initial key
-        lang = Object.keys(this.props.formValues[this.props.fieldName]);
+        lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
         if (lang !== undefined) {
           // this is our lookup id, we need to find the text value for the id
-          if (this.props.formValues[this.props.fieldName][lang][key] !== undefined) {
-            let id = this.props.formValues[this.props.fieldName][lang][key];
-
-          let term = {};
-
-            term = options.filter(function(option) {
-              return option.id === id;
-            });
-
+          const id = this.props.formValues[this.props.fieldName][lang][key][valueKey];
+          let term = '';
+          for (var i = 0; i < options.length; i++) {
+            if (options[i].id == id) {
+              term = options[i].text;
+            }
+          }
           if (term.length > 0) {
             query = term;
           }
-        }
         } else {
           const lang = 'und';
         }
       }
 
       // We store the option ID for Drupal purposes, but need to set value to the text for React Purposes
-      let defaultValue = (this.props.formValues[this.props.fieldName]) ? this.props.formValues[this.props.fieldName][lang][key] : '';
+      let defaultValue = query;
       let selected = options.filter(function(option) {
-        return option.id === defaultValue;
+        return option.id === query;
       });
       if(selected.length !== 0) {
         defaultValue = selected[0].text;
       }
 
-      const sortedOptions = this.findFilm(defaultValue, options);
-      const comp = (a, b) => {
-        if(typeof a !== "string" || typeof b !== "string") {
-          return false;
-        }
-        return a.toLowerCase().trim() === b.toLowerCase().trim()
-      };
+
+      const sortedOptions = this.findFilm(query, options);
+      const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
       const placeholder = 'Enter ' + field['#title'];
 
       autocompleteFields.push(<Autocomplete
@@ -109,8 +129,8 @@ export default class Select2 extends React.Component {
               <TouchableOpacity
                   onPress={
                     () => {
-                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, key, options, lang);
-                      this.updateAutocomplete(key, true);
+                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, key, options, lang, formErrorString)
+                      this.updateAutocomplete(key, true)
                     }
 
                   }>
@@ -122,9 +142,16 @@ export default class Select2 extends React.Component {
       />);
     }
 
+    let errorMarkup = [];
+    if (error) {
+      errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
+    }
+
     return (
         <View style={styles.container}>
-          <Text>{field['#title']}</Text>
+          <Text style={titleTextStyle}>{field['#title']}</Text>
+          {errorMarkup}
+          <FieldDescription description={(field['#description']) ? field['#description'] : null} />
           {autocompleteFields}
           <Button title={'Add another'} onPress={() => {
             this.updateAutocomplete(this.state.count, false);
@@ -185,41 +212,33 @@ const styles = StyleSheet.create({
   },
   openingText: {
     textAlign: 'center'
+  },
+  titleTextStyle: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  titleTextStyleError: {
+    color: Colors.default.errorBackground,
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  errorTextStyle: {
+    color: '#000'
+  },
+  errorTextStyleError: {
+    color: Colors.default.errorBackground,
+    marginBottom: 10
+  },
+  textfieldStyle: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1
+  },
+  textfieldStyleError: {
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 1,
+    borderColor: Colors.default.errorBackground
   }
 });
-
-/*    render() {
-        const field = this.props.field;
-        let options = [];
-        // we need to determine if this is normal select options or entity refs
-        let defaultSelect = true;
-        // set value key, defaulted to value
-        const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
-
-        for (var i = 0; i < field['#select2']['data'].length; i++) {
-            const value = field['#select2']['data'][i]['id'];
-            const label = field['#select2']['data'][i]['text'];
-            if (typeof label === "string") {
-                options.push(<Picker.Item
-                        key={value}
-                        label={label}
-                        value={value}
-                    />
-                );
-            } else {
-                console.log(fieldName);
-            }
-        }
-
-
-        return <View>
-            <Text>{field['#title']}</Text>
-            <Picker
-                style={{height: 50, width: 'auto'}}
-                onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey)}
-                selectedValue={(this.props.formValues[this.props.fieldName]) ? this.props.formValues[this.props.fieldName][0][valueKey] : ''}
-            >
-                {options}
-            </Picker>
-        </View>;
-    }*/
