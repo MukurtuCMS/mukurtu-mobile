@@ -508,15 +508,7 @@ export default class FormComponent extends React.Component {
             });
 
       } else {
-        this.postData(this.props.url + '/app/node.json', this.state.formValues)
-            .then(
-                (response) => {
-                  this.setState({
-                    formSubmitted: true
-                  })
-                }
-            )
-            .catch(error => console.error(error));
+        this.postData(this.props.url + '/app/node.json', this.state.formValues);
 
       }
 
