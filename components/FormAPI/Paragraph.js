@@ -111,7 +111,9 @@ export default class Paragraph extends React.Component {
 
       let subformvalue = {};
       // If this field already has a value, just overwrite this subindex
-      if(typeof subformValues[paragraphFieldName][this.props.lang][index][fieldName] !== 'undefined') {
+      if(typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined' &&
+        typeof subformValues[paragraphFieldName][this.props.lang][index][fieldName] !== 'undefined'
+      ) {
         let currentSubIndexForm = subformValues[paragraphFieldName][this.props.lang][index][fieldName][this.props.lang];
         let newValue = {
           [subindex]: {
@@ -139,8 +141,10 @@ export default class Paragraph extends React.Component {
       }
 
 
-      let currentIndexSubForm = subformValues[paragraphFieldName][this.props.lang][index];
-
+      let currentIndexSubForm = {};
+      if(typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined') {
+        currentIndexSubForm = subformValues[paragraphFieldName][this.props.lang][index];
+      }
       Object.assign(currentIndexSubForm, subformvalue);
 
       subformValues[paragraphFieldName][this.props.lang][index] = currentIndexSubForm;

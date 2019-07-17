@@ -26,7 +26,7 @@ export default class Textfield extends React.Component {
     let formErrorString = null;
     let lang = 'und';
 
-    if (this.props.formValues[this.props.fieldName]) {
+    if (typeof this.props.formValues !== 'undefined' && this.props.formValues[this.props.fieldName]) {
       lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
     }
 
@@ -63,7 +63,6 @@ export default class Textfield extends React.Component {
     }
 
 
-
     let numbers = [];
     for (let i = 0; i < this.state.numberOfValues; i++) {
       numbers.push(i);
@@ -82,16 +81,19 @@ export default class Textfield extends React.Component {
         value = this.props.formValues[this.props.fieldName][initialKey][i][valueKey];
       }
       // If there's a parent field, we're dealing with a paragraph and need to dig into the array to get the value
-      else if (typeof this.props.parentField !== "undefined") {
-        if (typeof this.props.formValues[this.props.parentField] !== "undefined" &&
-            typeof this.props.formValues[this.props.parentField]['und'][this.props.index][this.props.fieldName] !== 'undefined' &&
-            typeof this.props.formValues[this.props.parentField]['und'][this.props.index][this.props.fieldName]['und'][i] !== 'undefined'
-        ) {
-          value = this.props.formValues[this.props.parentField]['und'][this.props.index][this.props.fieldName]['und'][i][valueKey];
-        }
+      else if (typeof this.props.parentField !== "undefined" &&
+          typeof this.props.formValues !== 'undefined' &&
+          typeof this.props.formValues[this.props.parentField] !== "undefined" &&
+          typeof this.props.formValues[this.props.parentField][lang] !== 'undefined' &&
+          typeof this.props.formValues[this.props.parentField][lang][this.props.index] !== 'undefined' &&
+          typeof this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName] !== 'undefined' &&
+          typeof this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName][lang][i] !== 'undefined'
+      ) {
+        value = this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName][lang][i][valueKey];
       }
 
-      return(
+
+      return (
           <TextInput
               index={i}
               style={textfieldStyle}
