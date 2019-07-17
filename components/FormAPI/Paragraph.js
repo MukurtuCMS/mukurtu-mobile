@@ -199,6 +199,13 @@ export default class Paragraph extends React.Component {
         cardinality = Number(originalSubField[this.props.lang]['#cardinality']);
       }
 
+      // If there's add more button text, pass that as a prop.
+      // Is only used if there's cardinality other than -1
+      let addMoreText;
+      if (typeof originalSubField[this.props.lang] !== 'undefined' && typeof originalSubField[this.props.lang]['add_more'] !== 'undefined') {
+        addMoreText = originalSubField[this.props.lang]['add_more']['#value'];
+      }
+
       // Multiple value text fields store title here
       if (typeof originalSubField[this.props.lang] !== "undefined" && typeof originalSubField[this.props.lang]['#title'] !== "undefined") {
         fieldTitle = originalSubField[this.props.lang]['#title'];
@@ -226,7 +233,7 @@ export default class Paragraph extends React.Component {
               setFormValue={this.setParagraphValue.bind(this)}
               title={fieldTitle}
               cardinality={cardinality}
-              // onChangeText={(text) => this.setParagraphValue(subfield['#field_name'], text, subfield['#field_name'], 0).bind(this)}
+              addMoreText={addMoreText}
           />);
         }
       }

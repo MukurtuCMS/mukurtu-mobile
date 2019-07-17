@@ -107,16 +107,27 @@ export default class Textfield extends React.Component {
     }, this);
 
     let addMoreButton;
+    let addMoreText = 'Add Another'; // Default in case it's not passed in props
+    if(this.props.addMoreText) {
+      addMoreText = this.props.addMoreText;
+    }
     if (this.props.cardinality === -1) {
       addMoreButton = <Button
-          title={'Add Another'}
+          title={addMoreText}
           onPress={this.addItem.bind(this)}
       />
     }
 
+    // in most cases field['#title'] works, but for a multiple value field within a paragraph (sample sentences),
+    // it was stored elsewhere, so it's passed as a prop.
+    let title = field['#title'];
+    if(this.props.title) {
+      title = this.props.title;
+    }
+
 
     return <View>
-      <Text style={titleTextStyle}>{field['#title']}</Text>
+      <Text style={titleTextStyle}>{title}</Text>
       {errorMarkup}
       <FieldDescription description={(this.props.description) ? this.props.description : null}/>
       <Required required={this.props.required}/>
