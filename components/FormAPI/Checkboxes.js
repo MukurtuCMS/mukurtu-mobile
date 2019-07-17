@@ -3,6 +3,7 @@ import {View, Text, StyleSheet} from 'react-native';
 import { CheckBox} from "react-native-elements";
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
+import Required from "./Required";
 
 export default class Checkboxes extends React.Component {
 
@@ -71,6 +72,7 @@ export default class Checkboxes extends React.Component {
             <Text style={titleTextStyle}>{field['#title']}</Text>
             {errorMarkup}
             <FieldDescription description={(this.props.description) ? this.props.description : null} />
+            <Required required={this.props.required}/>
             {checkboxes}
         </View>;
     }

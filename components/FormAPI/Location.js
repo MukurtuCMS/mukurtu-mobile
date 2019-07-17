@@ -5,6 +5,7 @@ import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
 import FieldDescription from "./FieldDescription";
+import Required from "./Required";
 
 
 export default class LocationComponent extends React.Component {
@@ -62,6 +63,7 @@ export default class LocationComponent extends React.Component {
         <View style={{flex: 1/2, height: 250}}>
           {text}
           <FieldDescription description={(this.props.description) ? this.props.description : null} />
+          <Required required={this.props.required}/>
           {setMyLocationButton}
           {mapPicker}
         </View>

@@ -684,9 +684,9 @@ export default class FormComponent extends React.Component {
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
-                    required={required}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'text_format') {
@@ -697,6 +697,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'textarea') {
@@ -707,6 +708,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'radios') {
@@ -717,6 +719,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckboxes.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'checkboxes') {
@@ -727,6 +730,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckboxes.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'checkbox') {
@@ -737,6 +741,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckbox.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               }
@@ -749,6 +754,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueConditionalSelect.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
 
@@ -760,6 +766,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
@@ -771,6 +778,7 @@ export default class FormComponent extends React.Component {
                     fieldType={fieldArray['#type']}
                     setFormValue={this.setFormValueDate.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'geofield_latlon') {
@@ -781,6 +789,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueLocation.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'select2_hidden') {
@@ -791,6 +800,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueSelect2.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#columns'] !== undefined) {
@@ -799,6 +809,7 @@ export default class FormComponent extends React.Component {
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
+                    required={required}
                     setFormValue={this.setFormValue}
                 />);
 

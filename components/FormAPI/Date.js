@@ -3,6 +3,7 @@ import DatePicker from 'react-native-datepicker'
 import {StyleSheet, Text, View} from "react-native";
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
+import Required from "./Required";
 
 export default class Date extends React.Component {
   constructor(props) {
@@ -54,6 +55,7 @@ export default class Date extends React.Component {
         <Text style={titleTextStyle}>{field['#title']}</Text>
         {errorMarkup}
         <FieldDescription description={(this.props.description) ? this.props.description : null} />
+        <Required required={this.props.required}/>
         <DatePicker
           style={{width: 200}}
           date={this.state.date}

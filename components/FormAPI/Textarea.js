@@ -2,6 +2,7 @@ import React from 'react';
 import {TextInput, View, Text, StyleSheet} from 'react-native';
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
+import Required from "./Required";
 
 export default class Textarea extends React.Component {
 
@@ -54,6 +55,7 @@ export default class Textarea extends React.Component {
             <Text style={titleTextStyle}>{field['#title']}</Text>
             {errorMarkup}
             <FieldDescription description={(this.props.description) ? this.props.description : null} />
+            <Required required={this.props.required}/>
             <TextInput
                 style={textfieldStyle}
                 onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString)}

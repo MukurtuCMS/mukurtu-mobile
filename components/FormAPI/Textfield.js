@@ -1,7 +1,8 @@
 import React from 'react';
 import {TextInput, View, Text, StyleSheet} from 'react-native';
 import * as Colors from "../../constants/Colors";
-import FieldDescription from "./FieldDescription"
+import FieldDescription from "./FieldDescription";
+import Required from "./Required";
 import {Button} from "react-native-elements";
 
 export default class Textfield extends React.Component {
@@ -118,6 +119,7 @@ export default class Textfield extends React.Component {
       <Text style={titleTextStyle}>{field['#title']}</Text>
       {errorMarkup}
       <FieldDescription description={(this.props.description) ? this.props.description : null}/>
+      <Required required={this.props.required}/>
       {textInputs}
       {addMoreButton}
     </View>;

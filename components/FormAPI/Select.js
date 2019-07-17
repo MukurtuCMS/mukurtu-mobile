@@ -1,6 +1,7 @@
 import React from 'react';
 import {Picker, View, Text} from 'react-native';
 import {CheckBox} from "react-native-elements";
+import Required from "./Required";
 
 export default class Select extends React.Component {
 
@@ -56,6 +57,7 @@ export default class Select extends React.Component {
 
     return <View>
       <Text>{field['#title']}</Text>
+      <Required required={this.props.required}/>
       <Picker
           style={{height: 250, width: 'auto'}}
           onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text)}

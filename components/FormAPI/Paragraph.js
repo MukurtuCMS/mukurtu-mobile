@@ -102,11 +102,6 @@ export default class Paragraph extends React.Component {
       //     }
       //   }
 
-      //
-      // if (typeof subformValues[index] === 'undefined') {
-      //   subformValues[index] = {};
-      //   subformValues[index]['und'] = {};
-      // }
 
 
       let subformvalue = {};

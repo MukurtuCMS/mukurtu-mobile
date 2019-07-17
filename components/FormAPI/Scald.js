@@ -2,6 +2,7 @@ import React from 'react';
 import { Image, Picker, View, Text, StyleSheet, Button } from 'react-native';
 import { DocumentPicker, ImagePicker, Permissions} from 'expo';
 import Constants from 'expo-constants'
+import Required from "./Required";
 
 export default class Scald extends React.Component {
 
@@ -71,6 +72,7 @@ export default class Scald extends React.Component {
                 <Text>
                     {field['#title']}
                 </Text>
+                <Required required={this.props.required}/>
                 <View style={{
                     flexDirection:'row'
                 }}>
