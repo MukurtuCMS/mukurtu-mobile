@@ -108,15 +108,36 @@ export default class Paragraph extends React.Component {
       //   subformValues[index]['und'] = {};
       // }
 
-      let subformvalue = {
-              [fieldName]: {
-                [this.props.lang]: {
-                  [subindex]: {
-                    [valueName]: value
-                  }
-                }
+
+      let subformvalue = {};
+      // If this field already has a value, just overwrite this subindex
+      if(typeof subformValues[paragraphFieldName][this.props.lang][index][fieldName] !== 'undefined') {
+        let currentSubIndexForm = subformValues[paragraphFieldName][this.props.lang][index][fieldName][this.props.lang];
+        let newValue = {
+          [subindex]: {
+            [valueName]: value
+          }
+        };
+
+        Object.assign(currentSubIndexForm, newValue);
+        subformvalue = {
+          [fieldName]: {
+            [this.props.lang]: currentSubIndexForm
+          }
+        };
+
+      } else {
+        subformvalue = {
+          [fieldName]: {
+            [this.props.lang]: {
+              [subindex]: {
+                [valueName]: value
               }
-            };
+            }
+          }
+        };
+      }
+
 
       let currentIndexSubForm = subformValues[paragraphFieldName][this.props.lang][index];
 
