@@ -9,7 +9,13 @@ export default class Paragraph extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      subformValues: {},
+      subformValues: {
+        'field_word_entry': {
+          [this.props.lang]: {
+            '0': {}
+          }
+        }
+      },
       numberOfForms: 1
     };
 
@@ -39,13 +45,13 @@ export default class Paragraph extends React.Component {
   }
 
 
-  setParagraphValue(fieldName, value, valueName, index, subindex = 0) {
+  setParagraphValue(fieldName, value, valueName, formErrorString, index, subindex = 0) {
     if (this.state.subformValues) {
       // Will need to get this dynamically
-      let paragraphFieldName = 'field_word_entry';
-      const subformValues = this.state.subformValues;
+      let paragraphFieldName = this.props.fieldName;
+      let subformValues = this.state.subformValues;
 
-      // Format Drupal needs for submissions:
+      // Format Drupal needs for subform values:
       //   "field_word_entry": {
       //     "und": {
       //       "0": {
@@ -95,21 +101,28 @@ export default class Paragraph extends React.Component {
       //       }
       //     }
       //   }
-      // },
 
+      //
+      // if (typeof subformValues[index] === 'undefined') {
+      //   subformValues[index] = {};
+      //   subformValues[index]['und'] = {};
+      // }
 
-      if (typeof subformValues[index] === 'undefined') {
-        subformValues[index] = {};
-        subformValues[index]['und'] = {};
-      }
+      let subformvalue = {
+              [fieldName]: {
+                [this.props.lang]: {
+                  [subindex]: {
+                    [valueName]: value
+                  }
+                }
+              }
+            };
 
+      let currentIndexSubForm = subformValues[paragraphFieldName][this.props.lang][index];
 
-      // @todo swap out 'und' for actual language value
-      subformValues[index]['und'][fieldName] = {
-          [subindex]: {
-            [valueName]: value
-          }
-      };
+      Object.assign(currentIndexSubForm, subformvalue);
+
+      subformValues[paragraphFieldName][this.props.lang][index] = currentIndexSubForm;
 
 
       this.setState({subformValues: subformValues}, () => {
@@ -123,6 +136,7 @@ export default class Paragraph extends React.Component {
   createParagraphForm(index) {
     let paragraphForm = [];
     let fields = this.props.field;
+    let parentField = this.props.fieldName;
 
     // First put the relevant field values into an array so we can sort them by weight
     // For full nodes this is done before the component function, but it seems tidier to isolate all the paragraph functionality.
@@ -134,7 +148,7 @@ export default class Paragraph extends React.Component {
     }
 
     // Sort by weight
-    formFields.sort(function(a, b) {
+    formFields.sort(function (a, b) {
       return a['#weight'] - b['#weight'];
     });
 
@@ -142,8 +156,8 @@ export default class Paragraph extends React.Component {
 
       let originalSubField = subfield;
 
-      if (subfield['#type'] === 'container' && subfield['und'] !== undefined) {
-        subfield = subfield['und'];
+      if (subfield['#type'] === 'container' && subfield[this.props.lang] !== undefined) {
+        subfield = subfield[this.props.lang];
         if (subfield[0] !== undefined) {
           subfield = subfield[0];
         }
@@ -155,46 +169,47 @@ export default class Paragraph extends React.Component {
       }
 
       let fieldTitle = '';
-      if(typeof subfield !== 'undefined' && typeof subfield['#title'] !== 'undefined') {
+      if (typeof subfield !== 'undefined' && typeof subfield['#title'] !== 'undefined') {
         fieldTitle = subfield['#title'];
       }
 
       //
       let cardinality = 1;
-      if(typeof originalSubField['und'] !== 'undefined' && typeof originalSubField['und']['#cardinality'] !== 'undefined') {
-        cardinality = Number(originalSubField['und']['#cardinality']);
+      if (typeof originalSubField[this.props.lang] !== 'undefined' && typeof originalSubField[this.props.lang]['#cardinality'] !== 'undefined') {
+        cardinality = Number(originalSubField[this.props.lang]['#cardinality']);
       }
 
       // Multiple value text fields store title here
-      if(typeof originalSubField['und'] !== "undefined" && typeof originalSubField['und']['#title'] !== "undefined") {
-        fieldTitle = originalSubField['und']['#title'];
+      if (typeof originalSubField[this.props.lang] !== "undefined" && typeof originalSubField[this.props.lang]['#title'] !== "undefined") {
+        fieldTitle = originalSubField[this.props.lang]['#title'];
       }
 
-        if (subfield !== undefined && subfield['#columns'] !== undefined) {
-          if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
-            paragraphForm.push(<Select2
-                formValues={this.state.subformValues}
-                fieldName={fieldName}
-                field={subfield}
-                key={fieldName}
-                setFormValue={this.setParagraphValue.bind(this)}
-                cardinality={cardinality}
-            />);
-          } else {
+      if (subfield !== undefined && subfield['#columns'] !== undefined) {
+        if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
+          paragraphForm.push(<Select2
+              formValues={this.state.subformValues}
+              fieldName={fieldName}
+              field={subfield}
+              key={fieldName}
+              setFormValue={this.setParagraphValue.bind(this)}
+              cardinality={cardinality}
+          />);
+        } else {
 
-            paragraphForm.push(<Textfield
-                index={index}
-                formValues={this.state.subformValues}
-                fieldName={fieldName}
-                field={subfield}
-                key={fieldName}
-                setFormValue={this.setParagraphValue.bind(this)}
-                title={fieldTitle}
-                cardinality={cardinality}
-                // onChangeText={(text) => this.setParagraphValue(subfield['#field_name'], text)}
-            />);
-          }
+          paragraphForm.push(<Textfield
+              index={index}
+              formValues={this.state.subformValues}
+              fieldName={fieldName}
+              field={subfield}
+              parentField={parentField}
+              key={fieldName}
+              setFormValue={this.setParagraphValue.bind(this)}
+              title={fieldTitle}
+              cardinality={cardinality}
+              // onChangeText={(text) => this.setParagraphValue(subfield['#field_name'], text, subfield['#field_name'], 0).bind(this)}
+          />);
         }
+      }
       // }
     });
 

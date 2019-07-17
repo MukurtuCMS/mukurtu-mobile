@@ -184,17 +184,19 @@ export default class FormComponent extends React.Component {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
       // See the paragraph component for how paragraph state is formatted.
-      let values = {
-        "paragraphs": {
-          [paragraphFieldName]: {
-            "und": {
-              "0": paragraphFormState
-            }
-          }
-        }
-      };
+      // let values = {
+      //   "paragraphs": {
+      //     [paragraphFieldName]: {
+      //       "und": {
+      //         "0": paragraphFormState
+      //       }
+      //     }
+      //   }
+      // };
 
-      // let values = paragraphFormState;
+      let values = {
+        'paragraphs': paragraphFormState
+      };
 
       // Format Drupal needs for submissions:
       // "paragraphs": {
@@ -635,6 +637,7 @@ export default class FormComponent extends React.Component {
                         fieldName={fieldName}
                         field={fieldArray}
                         key={fieldName}
+                        lang={fieldArray['#language']}
                         setFormValue={this.setFormValueParagraph.bind(this)}
                         addMoreText={addMoreText}
                         paragraphTitle={paragraphTitle}
@@ -675,16 +678,7 @@ export default class FormComponent extends React.Component {
                     formErrors={this.state.formErrors}
                     description={description}
                 />);
-              } else if (fieldArray['#columns'] !== undefined) {
-                form[i].push(<Textfield
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValue}
-                />);
-
-              } else if (fieldArray['#type'] === 'textfield') {
+              }  else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
                     formValues={this.state.formValues}
                     fieldName={fieldName}
@@ -799,6 +793,15 @@ export default class FormComponent extends React.Component {
                     formErrors={this.state.formErrors}
                     description={description}
                 />);
+              } else if (fieldArray['#columns'] !== undefined) {
+                form[i].push(<Textfield
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    setFormValue={this.setFormValue}
+                />);
+
               }
             } else {
               console.log(fieldArray['#title']);

@@ -53,6 +53,12 @@ export default class Textfield extends React.Component {
             const initialKey = Object.keys(this.props.formValues[this.props.fieldName])[0];
             value = this.props.formValues[this.props.fieldName][initialKey][0][valueKey];
         }
+        // If there's a parent field, we're dealing with a paragraph and need to dig into the array to get the value
+        else if(typeof this.props.parentField !== "undefined") {
+            if(typeof this.props.formValues[this.props.parentField] !== "undefined" && typeof this.props.formValues[this.props.parentField]['und'][this.props.index][this.props.fieldName] !== 'undefined')
+            value = this.props.formValues[this.props.parentField]['und'][this.props.index][this.props.fieldName]['und'][0][valueKey];
+        }
+
 
         let errorMarkup = [];
         if (error) {
@@ -65,7 +71,7 @@ export default class Textfield extends React.Component {
             <FieldDescription description={(this.props.description) ? this.props.description : null} />
             <TextInput
                 style={textfieldStyle}
-                onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, formErrorString)}
+                onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, formErrorString, this.props.index)}
                 value={value}
                 defaultValue={field['#default_value']}
                 maxLength={field['#maxlength']}
