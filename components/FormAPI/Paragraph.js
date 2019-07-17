@@ -144,7 +144,6 @@ export default class Paragraph extends React.Component {
 
       subformValues[paragraphFieldName][this.props.lang][index] = currentIndexSubForm;
 
-
       this.setState({subformValues: subformValues}, () => {
         // Then when we're done setting paragraph values, add the paragraph state to the parent form state
         this.props.setFormValue(paragraphFieldName, this.state.subformValues);
@@ -216,10 +215,18 @@ export default class Paragraph extends React.Component {
         description = originalSubField['und']['#description'];
       }
 
+      // If there are parent form values, we need to get subform values from there.
+      // Otherwise subform values won't be saved if you tab between secstions
+      let currentFormValues = this.state.subformValues;
+      if(typeof this.props.formValues['paragraphs'] !== 'undefined') {
+        currentFormValues = this.props.formValues['paragraphs'];
+      }
+
+
       if (subfield !== undefined && subfield['#columns'] !== undefined) {
         if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
           paragraphForm.push(<Select2
-              formValues={this.state.subformValues}
+              formValues={currentFormValues}
               fieldName={fieldName}
               field={subfield}
               key={fieldName}
@@ -231,7 +238,7 @@ export default class Paragraph extends React.Component {
 
           paragraphForm.push(<Textfield
               index={index}
-              formValues={this.state.subformValues}
+              formValues={currentFormValues}
               fieldName={fieldName}
               field={subfield}
               parentField={parentField}
@@ -245,7 +252,7 @@ export default class Paragraph extends React.Component {
         }
       }
       // }
-    });
+    }, this);
 
     // Add remove button if this isn't the first one
     if (index > 0) {
