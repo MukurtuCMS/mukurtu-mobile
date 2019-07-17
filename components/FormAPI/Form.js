@@ -584,9 +584,6 @@ export default class FormComponent extends React.Component {
           var field = childrenFields[k];
           var fieldName = childrenFields[k]['machine_name'];
 
-          //
-
-
           var fieldArray = childrenFields[k];
 
 

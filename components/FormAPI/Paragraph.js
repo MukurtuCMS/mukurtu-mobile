@@ -211,6 +211,11 @@ export default class Paragraph extends React.Component {
         fieldTitle = originalSubField[this.props.lang]['#title'];
       }
 
+      let description = '';
+      if (originalSubField['und']) {
+        description = originalSubField['und']['#description'];
+      }
+
       if (subfield !== undefined && subfield['#columns'] !== undefined) {
         if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
           paragraphForm.push(<Select2
@@ -220,6 +225,7 @@ export default class Paragraph extends React.Component {
               key={fieldName}
               setFormValue={this.setParagraphValue.bind(this)}
               cardinality={cardinality}
+              description={description}
           />);
         } else {
 
@@ -234,6 +240,7 @@ export default class Paragraph extends React.Component {
               title={fieldTitle}
               cardinality={cardinality}
               addMoreText={addMoreText}
+              description={description}
           />);
         }
       }
