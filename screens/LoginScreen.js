@@ -16,6 +16,7 @@ import {addPlace} from '../actions/place';
 import {addUser} from '../actions/user';
 import {WebBrowser} from 'expo';
 import {SQLite} from 'expo-sqlite';
+import Validator from 'validator';
 
 
 // create a global db for database list and last known user
@@ -41,6 +42,7 @@ class LoginScreen extends React.Component {
       places: 'b',
       db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
       uid: 0,
+      urlInvalid: false,
     }
   }
 
@@ -71,8 +73,8 @@ class LoginScreen extends React.Component {
     if (this.state.password !== false) {
       var pass = this.state.password.toLowerCase().trim();
     }
-    if (this.state.url === false) {
-      // Will need error handling/validation
+    if (this.state.url === false || !Validator.isURL(this.state.url)) {
+      this.setState({'urlInvalid': true});
       return;
 
     }
@@ -172,6 +174,11 @@ class LoginScreen extends React.Component {
       showError = <Text>{this.state.error}</Text>
     }
 
+    let urlInvalid = '';
+    if(this.state.urlInvalid) {
+      urlInvalid = 'Please Enter a Valid URL';
+    }
+
     return (
         <View style={styles.container}>
           <View style={styles.inputContainer}>
@@ -191,11 +198,22 @@ class LoginScreen extends React.Component {
                        onChangeText={(password) => this.setState({password})}/>
           </View>
 
+          <View>
+            <Text>{urlInvalid}</Text>
+          </View>
+
+
           <View style={styles.inputContainer}>
+
             <TextInput style={styles.inputs}
                        placeholder="Url"
                        underlineColorAndroid='transparent'
-                       onChangeText={(url) => this.setState({url})}/>
+                       onChangeText={
+                         (url) => {
+                             this.setState({url});
+                             this.setState({'urlInvalid': false})
+                         }
+                         }/>
           </View>
 
           <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
