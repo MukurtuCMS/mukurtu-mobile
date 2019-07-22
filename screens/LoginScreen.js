@@ -88,6 +88,8 @@ class LoginScreen extends React.Component {
     }
 
     var url = this.state.url.toLowerCase().trim();
+    // Remove trailing slash from url
+    url = url.replace(/\/$/, "");
 
     // Set a component URL state for now, then once login is complete set the app-wide URL
     this.setState({
@@ -95,8 +97,8 @@ class LoginScreen extends React.Component {
     }, () => {
 
       fetch(this.state.url + '/services/session/token')
-        .then((response) => response.text())
-        .then((response) => {
+          .then((response) => response.text())
+          .then((response) => {
             let Token = response;
 
             let data = {
@@ -116,15 +118,16 @@ class LoginScreen extends React.Component {
             };
 
             fetch(this.state.url + '/app/user/login.json', data)
-              .then((response) => response.json())
+                .then((response) => response.json())
                 .then((responseJson) => {
 
                   // Check for user in response. If there's no user, the response is an error message.
-                  if(typeof responseJson.user === 'undefined') {
+                  if (typeof responseJson.user === 'undefined') {
                     this.handleLoginError(responseJson);
                   } else {
                     // remove http:// from url
                     const url = this.state.url.replace(/(^\w+:|^)\/\//, '');
+
 
                     // we need to update our global user
                     globalDB.transaction(
@@ -142,7 +145,9 @@ class LoginScreen extends React.Component {
                                 this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
                               },
 
-                              (success, error) => console.log(' ')
+                              (success, error) => {
+                                console.log('error');
+                              }
                           );
                         }
                     );
@@ -180,7 +185,7 @@ class LoginScreen extends React.Component {
             // console.error(error);
           });
 
-    });
+    }, this);
   }
 
   render() {
@@ -191,13 +196,13 @@ class LoginScreen extends React.Component {
     }
 
     let urlInvalid = '';
-    if(this.state.urlInvalid) {
+    if (this.state.urlInvalid) {
       urlInvalid = 'Please Enter a Valid URL';
     }
 
 
     let loginError = '';
-    if(this.state.loginError) {
+    if (this.state.loginError) {
       loginError = this.state.loginErrorMessage;
     }
 
@@ -232,10 +237,10 @@ class LoginScreen extends React.Component {
                        underlineColorAndroid='transparent'
                        onChangeText={
                          (url) => {
-                             this.setState({url});
-                             this.setState({'urlInvalid': false})
+                           this.setState({url});
+                           this.setState({'urlInvalid': false})
                          }
-                         }/>
+                       }/>
           </View>
 
           <View>

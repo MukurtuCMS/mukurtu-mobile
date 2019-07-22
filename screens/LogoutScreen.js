@@ -25,7 +25,7 @@ class LogoutScreen extends React.Component {
 
   constructor(props) {
     super(props);
-    const { navigation, screenProps } = this.props;
+    const {navigation, screenProps} = this.props;
     this.state = {db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
     this.handleLoginClick = this.handleLoginClick.bind(this);
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
@@ -33,8 +33,28 @@ class LogoutScreen extends React.Component {
     this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
   }
 
+
   handleLogoutClick(viewId) {
-    // We'll probably abstract the getToken method at some point, so adding an extra function layer here
+    this.state.db.transaction(
+        tx => {
+          tx.executeSql('delete from auth;',
+          );
+        }
+    );
+
+    // we need to remove our global user
+    globalDB.transaction(
+        tx => {
+          tx.executeSql('delete from user;',
+          );
+        }
+    );
+
+
+    this._handleLoginStatusUpdate(false);
+    this._handleSiteUrlUpdate('');
+
+
     this.getToken(viewId);
     //
   }
@@ -61,36 +81,11 @@ class LogoutScreen extends React.Component {
       }
     };
     // Log out of app
-    // @todo log user out of browser as well
     fetch(this.props.screenProps.siteUrl + '/app/user/logout', data)
         .then((response) => response.json())
-        .then((responseJson) => {
-          this.state.db.transaction(
-              tx => {
-                tx.executeSql('delete from auth;',
-                );
-              }
-          );
-
-          // we need to remove our global user
-          globalDB.transaction(
-            tx => {
-              tx.executeSql('delete from user;',
-              );
-            }
-          );
-        })
-
-        .then(() => {
-              this._handleLoginStatusUpdate(false);
-              this._handleSiteUrlUpdate('');
-            }
-        )
         .catch((error) => {
           console.error(error);
         });
-
-
   }
 
 

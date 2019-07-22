@@ -319,7 +319,9 @@ export default class App extends React.Component {
                 this.setState({sync: true})
               }
           },
-          (success, error) => console.log(' ')
+          (success, error) => {
+            console.log(error);
+          }
 
 
         );
