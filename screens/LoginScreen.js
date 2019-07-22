@@ -43,7 +43,15 @@ class LoginScreen extends React.Component {
       db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
       uid: 0,
       urlInvalid: false,
+      loginError: false,
+      loginErrorMessage: '',
     }
+  }
+
+
+  handleLoginError(message = '') {
+    this.setState({'loginErrorMessage': message});
+    this.setState({'loginError': true});
   }
 
 
@@ -110,38 +118,45 @@ class LoginScreen extends React.Component {
             fetch(this.state.url + '/app/user/login.json', data)
               .then((response) => response.json())
                 .then((responseJson) => {
+
+                  // Check for user in response. If there's no user, the response is an error message.
+                  if(typeof responseJson.user === 'undefined') {
+                    this.handleLoginError(responseJson);
+                  } else {
                     // remove http:// from url
                     const url = this.state.url.replace(/(^\w+:|^)\/\//, '');
 
                     // we need to update our global user
                     globalDB.transaction(
                         tx => {
-                            tx.executeSql('delete from user;',
-                            );
+                          tx.executeSql('delete from user;',
+                          );
                         }
                     );
 
                     globalDB.transaction(
                         tx => {
-                            tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
-                                [url, JSON.stringify(responseJson)],
-                                (success) => {
-                                  this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
-                                },
+                          tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
+                              [url, JSON.stringify(responseJson)],
+                              (success) => {
+                                this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                              },
 
-                                (success, error) => console.log(' ')
-                            );
+                              (success, error) => console.log(' ')
+                          );
                         }
                     );
 
-                  this.props.add(responseJson.session_name + '=' + responseJson.sessid);
-                  this.props.addUserProp(responseJson);
-                  this.props.navigation.navigate('Home')
+                    this.props.add(responseJson.session_name + '=' + responseJson.sessid);
+                    this.props.addUserProp(responseJson);
+                    this.props.navigation.navigate('Home')
+                  }
 
                 })
 
 
                 .catch((error) => {
+                  this.handleLoginError('Error logging in.');
                   if (error.response) {
                     // The request was made and the server responded with a status code
                     // that falls out of the range of 2xx
@@ -161,6 +176,7 @@ class LoginScreen extends React.Component {
                 });
           })
           .catch((error) => {
+            this.handleLoginError('Error logging in.');
             // console.error(error);
           });
 
@@ -177,6 +193,12 @@ class LoginScreen extends React.Component {
     let urlInvalid = '';
     if(this.state.urlInvalid) {
       urlInvalid = 'Please Enter a Valid URL';
+    }
+
+
+    let loginError = '';
+    if(this.state.loginError) {
+      loginError = this.state.loginErrorMessage;
     }
 
     return (
@@ -214,6 +236,10 @@ class LoginScreen extends React.Component {
                              this.setState({'urlInvalid': false})
                          }
                          }/>
+          </View>
+
+          <View>
+            <Text>{loginError}</Text>
           </View>
 
           <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
