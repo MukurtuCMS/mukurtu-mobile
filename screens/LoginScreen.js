@@ -34,7 +34,6 @@ class LoginScreen extends React.Component {
     const siteUrl = screenProps.siteUrl;
     this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
-    this._handleLogoutStatusUpdate = screenProps._handleLogoutStatusUpdate.bind(this);
     this.state = {
       url: siteUrl,
       name: false,
