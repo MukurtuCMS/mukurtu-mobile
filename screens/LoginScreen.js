@@ -34,6 +34,7 @@ class LoginScreen extends React.Component {
     const siteUrl = screenProps.siteUrl;
     this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
+    this._handleLogoutStatusUpdate = screenProps._handleLogoutStatusUpdate.bind(this);
     this.state = {
       url: siteUrl,
       name: false,
@@ -154,6 +155,7 @@ class LoginScreen extends React.Component {
 
                     this.props.add(responseJson.session_name + '=' + responseJson.sessid);
                     this.props.addUserProp(responseJson);
+                    this._handleLoginStatusUpdate();
                     this.props.navigation.navigate('Home')
                   }
 

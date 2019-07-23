@@ -31,6 +31,7 @@ class LogoutScreen extends React.Component {
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
     this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
+    this._handleLogoutStatusUpdate = screenProps._handleLogoutStatusUpdate.bind(this);
   }
 
 
@@ -51,9 +52,8 @@ class LogoutScreen extends React.Component {
     );
 
 
-    this._handleLoginStatusUpdate(false);
+    this._handleLogoutStatusUpdate(false);
     this._handleSiteUrlUpdate('');
-
 
     this.getToken(viewId);
     //

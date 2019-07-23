@@ -40,6 +40,7 @@ export default class App extends React.Component {
     super(props);
     this._handleSiteUrlUpdate = this._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
+    this._handleLogoutStatusUpdate = this._handleLogoutStatusUpdate.bind(this);
     this.setDatabaseName = this.setDatabaseName.bind(this);
     this.syncCompleted = this.syncCompleted.bind(this);
 
@@ -148,8 +149,8 @@ export default class App extends React.Component {
 
     // We are connected, AND token was just set (via getAuth)
     if (!prevState.token && this.state.token && this.state.isConnected) {
-      Sync.updateEntities(this.state.db, this.state);
-      Sync.syncContentTypes(this.state, this.syncCompleted);
+        Sync.updateEntities(this.state.db, this.state);
+        Sync.syncContentTypes(this.state, this.syncCompleted);
     }
 
 /*    if (!prevState.sync && this.state.sync) {
@@ -252,6 +253,7 @@ export default class App extends React.Component {
       sync: this.state.sync,
       _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
+      _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
         };
 
     // @todo: replace this with InitializingApp, keep now for debugging
@@ -332,8 +334,35 @@ export default class App extends React.Component {
   };
 
   _handleLoginStatusUpdate = (status) => {
-    this.setState({ isLoggedIn: status, loggedIn: status });
+    // If we've logged in or re-logged in, we need to re-sync
+    this.setState({
+      isLoggedIn: true,
+      loggedIn: true,
+      sync: true,
+      isConnected: true
+    });
   };
+
+
+  _handleLogoutStatusUpdate = (status) => {
+    // Not positive if we want this — when we log out it nukes the database. Might be able to drop this if it causes
+    // problems, but right now it seems like a good safeguard.
+    this.deleteAll();
+    this.setState(
+        {
+          isLoggedIn: false,
+          token: false,
+          cookie: false,
+          isConnected: false,
+          databaseName: false,
+          db: null,
+          loggedIn: false,
+          user: {},
+          sync: false
+        }
+    );
+  };
+
 
   // This will check the database for an existing auth from the unique database
   _getAuth() {
