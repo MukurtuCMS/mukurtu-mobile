@@ -4,6 +4,7 @@ import {CheckBox} from "react-native-elements";
 import Autocomplete from 'react-native-autocomplete-input';
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
+import Required from "./Required";
 
 export default class Select2 extends React.Component {
 
@@ -152,6 +153,7 @@ export default class Select2 extends React.Component {
           <Text style={titleTextStyle}>{field['#title']}</Text>
           {errorMarkup}
           <FieldDescription description={(field['#description']) ? field['#description'] : null} />
+          <Required required={this.props.required}/>
           {autocompleteFields}
           <Button title={'Add another'} onPress={() => {
             this.updateAutocomplete(this.state.count, false);

@@ -1,106 +1,169 @@
 import React from 'react';
 import {TextInput, View, Text, StyleSheet} from 'react-native';
 import * as Colors from "../../constants/Colors";
-import FieldDescription from "./FieldDescription"
+import FieldDescription from "./FieldDescription";
+import Required from "./Required";
+import {Button} from "react-native-elements";
 
 export default class Textfield extends React.Component {
-    constructor(props) {
-        super(props);
+  constructor(props) {
+    super(props);
+    this.state = {
+      numberOfValues: 1
+    };
+  }
+
+  addItem() {
+    let currentIndex = this.state.numberOfValues;
+
+    this.setState({numberOfValues: currentIndex + 1}, () => {
+
+    })
+  }
+
+
+  render() {
+    let error = null;
+    let formErrorString = null;
+    let lang = 'und';
+
+    if (typeof this.props.formValues !== 'undefined' && this.props.formValues[this.props.fieldName]) {
+      lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
     }
 
-    render() {
-        let error = null;
-        let formErrorString = null;
-        let lang = 'und';
-
-        if (this.props.formValues[this.props.fieldName]) {
-            lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
+    const fieldName = this.props.fieldName;
+    if (this.props.formErrors) {
+      if (fieldName) {
+        if (fieldName === 'title') {
+          formErrorString = fieldName;
+        } else {
+          formErrorString = fieldName + '][' + lang;
         }
-
-        const fieldName = this.props.fieldName;
-        if (this.props.formErrors) {
-            if (fieldName) {
-                if (fieldName === 'title') {
-                    formErrorString = fieldName;
-                } else {
-                    formErrorString = fieldName + '][' + lang;
-                }
-                if (this.props.formErrors[formErrorString]) {
-                    error = this.props.formErrors[formErrorString]
-                }
-            }
+        if (this.props.formErrors[formErrorString]) {
+          error = this.props.formErrors[formErrorString]
         }
-
-        let titleTextStyle = styles.titleTextStyle;
-        let textfieldStyle = styles.textfieldStyle;
-        let errorTextStyle = styles.errorTextStyle;
-        if (error) {
-            titleTextStyle = styles.titleTextStyleError;
-            textfieldStyle = styles.textfieldStyleError;
-            errorTextStyle = styles.errorTextStyleError;
-        }
-
-        const field = this.props.field;
-        const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
-        let value = '';
-        if (this.props.fieldName === 'title' && this.props.formValues[this.props.fieldName] !== undefined) {
-            if(this.props.formValues[this.props.fieldName].length > 0) {
-                value = this.props.formValues[this.props.fieldName];
-            }
-        }
-        else if(typeof this.props.formValues[this.props.fieldName] !== 'undefined') {
-            // set the language key as initial key
-            const initialKey = Object.keys(this.props.formValues[this.props.fieldName])[0];
-            value = this.props.formValues[this.props.fieldName][initialKey][0][valueKey];
-        }
-
-        let errorMarkup = [];
-        if (error) {
-            errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
-        }
-
-        return <View>
-            <Text style={titleTextStyle}>{field['#title']}</Text>
-            {errorMarkup}
-            <FieldDescription description={(this.props.description) ? this.props.description : null} />
-            <TextInput
-                style={textfieldStyle}
-                onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, formErrorString)}
-                value={value}
-                defaultValue={field['#default_value']}
-                maxLength={field['#maxlength']}
-            />
-        </View>;
+      }
     }
+
+    let titleTextStyle = styles.titleTextStyle;
+    let textfieldStyle = styles.textfieldStyle;
+    let errorTextStyle = styles.errorTextStyle;
+    if (error) {
+      titleTextStyle = styles.titleTextStyleError;
+      textfieldStyle = styles.textfieldStyleError;
+      errorTextStyle = styles.errorTextStyleError;
+    }
+
+    const field = this.props.field;
+    const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
+
+
+    let errorMarkup = [];
+    if (error) {
+      errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
+    }
+
+
+    let numbers = [];
+    for (let i = 0; i < this.state.numberOfValues; i++) {
+      numbers.push(i);
+    }
+
+    let textInputs = numbers.map((i) => {
+
+      let value = '';
+      if (this.props.fieldName === 'title' && this.props.formValues[this.props.fieldName] !== undefined) {
+        if (this.props.formValues[this.props.fieldName].length > 0) {
+          value = this.props.formValues[this.props.fieldName];
+        }
+      } else if (typeof this.props.formValues[this.props.fieldName] !== 'undefined') {
+        // set the language key as initial key
+        const initialKey = Object.keys(this.props.formValues[this.props.fieldName])[i];
+        value = this.props.formValues[this.props.fieldName][initialKey][i][valueKey];
+      }
+      // If there's a parent field, we're dealing with a paragraph and need to dig into the array to get the value
+      else if (typeof this.props.parentField !== "undefined" &&
+          typeof this.props.formValues !== 'undefined' &&
+          typeof this.props.formValues[this.props.parentField] !== "undefined" &&
+          typeof this.props.formValues[this.props.parentField][lang] !== 'undefined' &&
+          typeof this.props.formValues[this.props.parentField][lang][this.props.index] !== 'undefined' &&
+          typeof this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName] !== 'undefined' &&
+          typeof this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName][lang][i] !== 'undefined'
+      ) {
+        value = this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName][lang][i][valueKey];
+      }
+
+
+      return (
+          <TextInput
+              index={i}
+              style={textfieldStyle}
+              onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, formErrorString, this.props.index, i)}
+              value={value}
+              defaultValue={field['#default_value']}
+              maxLength={field['#maxlength']}
+          />);
+
+    }, this);
+
+    let addMoreButton;
+    let addMoreText = 'Add Another'; // Default in case it's not passed in props
+    if(this.props.addMoreText) {
+      addMoreText = this.props.addMoreText;
+    }
+    if (this.props.cardinality === -1) {
+      addMoreButton = <Button
+          title={addMoreText}
+          onPress={this.addItem.bind(this)}
+      />
+    }
+
+    // in most cases field['#title'] works, but for a multiple value field within a paragraph (sample sentences),
+    // it was stored elsewhere, so it's passed as a prop.
+    let title = field['#title'];
+    if(this.props.title) {
+      title = this.props.title;
+    }
+
+
+    return <View>
+      <Text style={titleTextStyle}>{title}</Text>
+      {errorMarkup}
+      <FieldDescription description={(this.props.description) ? this.props.description : null}/>
+      <Required required={this.props.required}/>
+      {textInputs}
+      {addMoreButton}
+    </View>;
+  }
 }
 
 const styles = StyleSheet.create({
-    titleTextStyle: {
-        color: '#000',
-        fontSize: 20,
-        fontWeight: 'bold'
-    },
-    titleTextStyleError: {
-        color: Colors.default.errorBackground,
-        fontSize: 20,
-        fontWeight: 'bold'
-    },
-    errorTextStyle: {
-        color: '#000'
-    },
-    errorTextStyleError: {
-        color: Colors.default.errorBackground,
-        marginBottom: 10
-    },
-    textfieldStyle: {
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1
-    },
-    textfieldStyleError: {
-        height: 40,
-        borderWidth: 1,
-        borderRadius: 1,
-        borderColor: Colors.default.errorBackground
-    }
+  titleTextStyle: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  titleTextStyleError: {
+    color: Colors.default.errorBackground,
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  errorTextStyle: {
+    color: '#000'
+  },
+  errorTextStyleError: {
+    color: Colors.default.errorBackground,
+    marginBottom: 10
+  },
+  textfieldStyle: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1
+  },
+  textfieldStyleError: {
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 1,
+    borderColor: Colors.default.errorBackground
+  }
 });

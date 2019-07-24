@@ -12,9 +12,9 @@ import {
   TouchableHighlight, NetInfo,
 } from 'react-native';
 import SettingsList from 'react-native-settings-list';
-import { connect } from 'react-redux';
-import { addPlace } from '../actions/place';
-import { addUser } from '../actions/user';
+import {connect} from 'react-redux';
+import {addPlace} from '../actions/place';
+import {addUser} from '../actions/user';
 import transform from 'tcomb-json-schema';
 import t from 'tcomb-form-native';
 import ImageFactory from 'react-native-image-picker-form';
@@ -27,18 +27,18 @@ import weightSort from 'weight-sort';
 import JSONTree from "react-native-json-tree";
 
 class CreateContentFormScreen extends React.Component {
-  static navigationOptions = ({ navigation }) => ({
+  static navigationOptions = ({navigation}) => ({
     title: 'Create ' + `${navigation.getParam('contentTypeLabel')}`,
   });
 
-  constructor(props){
+  constructor(props) {
     super(props);
     const { navigation, screenProps } = this.props;
     this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: '', db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null};
     this.onPress = this.onPress.bind(this);
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.props.navigation.addListener('willFocus', this.componentActive)
   }
 
@@ -86,7 +86,7 @@ class CreateContentFormScreen extends React.Component {
     let data = {
       method: 'GET',
       headers: {
-        'Accept':       'application/json',
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-CSRF-Token': token,
         'Cookie': cookie
@@ -167,55 +167,61 @@ class CreateContentFormScreen extends React.Component {
     }
 
     let nodeForm = [];
-    let sortedNodeForm = [];
     const formObject = Object.entries(this.state.form).length;
     if (formObject > 0) {
 
       // we need to order the form by groups and fields
       let sortedNodeForm = [];
       let sortGroups = [];
-      let groups = this.state.form['#groups']['group_tabs'].children;
-      for (var i = 0; i < groups.length; i++) {
-        var group = groups[i];
-        sortGroups.push({'name': group, 'weight': this.state.form['#groups'][group]['weight']});
-      }
-      sortGroups = weightSort(sortGroups);
-      for (var i = 0; i < sortGroups.length; i++) {
-        var group = sortGroups[i]['name'];
-        sortedNodeForm.push(this.state.form['#groups'][group]);
-      };
 
-      // now we need to sort the children fields for all groups
-      for (var i = 0; i < sortedNodeForm.length; i++) {
-        let group = sortedNodeForm[i]['group_name'];
-        let fields = sortedNodeForm[i].children;
-        let sortFields = [];
-        sortedNodeForm[i]['childrenFields'] = []
-        for (var k = 0; k < fields.length; k++) {
-          var field = fields[k];
-          try {
-            sortFields.push({'name': field, 'weight': this.state.form[field]['#weight']});
-          } catch(e) {
-            // console.log(field);
+      if (this.state.form['#groups'].length === 0) {
+        sortedNodeForm = Object.values(this.state.form);
+      } else {
+        let groups = this.state.form['#groups']['group_tabs'].children;
+        for (var i = 0; i < groups.length; i++) {
+          var group = groups[i];
+          sortGroups.push({'name': group, 'weight': this.state.form['#groups'][group]['weight']});
+        }
+        sortGroups = weightSort(sortGroups);
+        for (var i = 0; i < sortGroups.length; i++) {
+          var group = sortGroups[i]['name'];
+          sortedNodeForm.push(this.state.form['#groups'][group]);
+        }
+
+
+        // now we need to sort the children fields for all groups
+        for (var i = 0; i < sortedNodeForm.length; i++) {
+          let group = sortedNodeForm[i]['group_name'];
+          let fields = sortedNodeForm[i].children;
+          let sortFields = [];
+          sortedNodeForm[i]['childrenFields'] = []
+          for (var k = 0; k < fields.length; k++) {
+            var field = fields[k];
+            try {
+              sortFields.push({'name': field, 'weight': this.state.form[field]['#weight']});
+            } catch (e) {
+              // console.log(field);
+            }
+          }
+          sortFields = weightSort(sortFields);
+          for (var k = 0; k < sortFields.length; k++) {
+            var field = sortFields[k]['name'];
+            var fieldArray = this.state.form[field];
+
+            try {
+              fieldArray['machine_name'] = field;
+            } catch (e) {
+              // console.log(field);
+            }
+            sortedNodeForm[i]['childrenFields'].push(fieldArray);
           }
         }
-        sortFields = weightSort(sortFields);
-        for (var k = 0; k < sortFields.length; k++) {
-          var field = sortFields[k]['name'];
-          var fieldArray = this.state.form[field];
-
-          try {
-            fieldArray['machine_name'] = field;
-          } catch(e) {
-            // console.log(field);
-          }
-          sortedNodeForm[i]['childrenFields'].push(fieldArray);
-        };
       }
 
 
       const contentType = this.props.navigation.getParam('contentType');
       const node = this.props.navigation.getParam('node');
+
       const formState = this.props.navigation.getParam('formState');
       const did = this.props.navigation.getParam('did');
       nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl} node={node} screenProps={this.props.screenProps} formState={formState} did={did}  />
@@ -227,7 +233,6 @@ class CreateContentFormScreen extends React.Component {
           { nodeForm }
         </ScrollView>
       </View>
-
     );
   }
 }
