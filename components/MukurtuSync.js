@@ -1,5 +1,6 @@
 import React from 'react';
 import {SQLite} from 'expo-sqlite';
+import * as FileSystem from 'expo-file-system';
 
 export const Sync = () => {
 
@@ -58,9 +59,13 @@ export const syncContentTypes = (state, complete) => {
 }
 
 const getCreatableTypes = async (state, data, complete) => {
+  console.log(state);
   fetch(state.siteUrl + '/app/creatable-types/retrieve', data)
     .then((response) => response.json())
     .then((responseJson) => {
+      if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
+        console.log('access denied');
+      }
       if (typeof responseJson === 'object' && responseJson !== null) {
         state.db.transaction(
           tx => {
@@ -168,6 +173,14 @@ const getToken = (array, state) => {
           // }
         }
       }
+      if (typeof responseJson.atoms === 'object') {
+        for (const [sid, object] of Object.entries(responseJson.atoms)) {
+          // @todo don't update all nodes but starring a node does not save
+          // if (timestamp > this.state.syncUpdated) {
+          saveAtom(sid, data, state);
+          // }
+        }
+      }
       updateSync(state);
     })
     .catch((error) => {
@@ -234,6 +247,39 @@ const saveTaxonomy = (tid, data, state) => {
           );
         }
       );
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
+const saveAtom = (sid, data, state) => {
+  fetch(state.siteUrl + '/app/scald/retrieve/' + sid + '.json', data)
+    .then((response) => response.json())
+    .then((atom) => {
+
+      state.db.transaction(
+        tx => {
+          tx.executeSql('replace into atom (sid, title, entity) values (?, ?, ?)',
+            [atom.sid, atom.title, JSON.stringify(atom)],
+            (success) => success,
+            (success, error) => ''
+          );
+        }
+      );
+
+      const fid = atom.base_entity.fid;
+      if (fid) {
+        // now grab file blob and save to filesystem
+        fetch(state.siteUrl + '/app/file/' + fid + '.json', data)
+          .then((response) => response.json())
+          .then(async (file) => {
+            const savedFile = await FileSystem.writeAsStringAsync(FileSystem.documentDirectory + file.filename, file.file);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
     })
     .catch((error) => {
       console.error(error);

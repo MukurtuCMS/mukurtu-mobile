@@ -14,14 +14,16 @@ import AboutScreen from '../screens/AboutScreen';
 import OfflineScreen from '../screens/OfflineScreen';
 import WebviewScreen from "../screens/WebviewScreen";
 import NodeScreen from "../screens/NodeScreen";
+import NodeListing from "../screens/NodeListingScreen";
 
 const HomeStack = createStackNavigator({
   Home: { screen: HomeScreen },
-  Node: { screen: NodeScreen}
+  Node: { screen: NodeScreen},
+  NodeListing: { screen: NodeListing},
 });
 
 HomeStack.navigationOptions = {
-  tabBarLabel: 'Home',
+  tabBarLabel: 'View Content',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
@@ -94,6 +96,6 @@ WebviewStack.navigationOptions = {
 export default createBottomTabNavigator({
   HomeStack,
   CreateContentStack,
-  SettingsStack,
-  WebviewStack
+  WebviewStack,
+  SettingsStack
 });

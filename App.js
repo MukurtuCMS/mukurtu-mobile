@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, View, Text, NetInfo } from 'react-native';
+import { Platform, StatusBar, StyleSheet, View, Text, NetInfo, YellowBox } from 'react-native';
 import {AppLoading} from 'expo';
 import {SQLite} from 'expo-sqlite';
 import { Asset } from 'expo-asset';
@@ -118,6 +118,16 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
+    YellowBox.ignoreWarnings(['Setting a timer']);
+    var self = this;
+
+    setInterval(() => {
+      if(self.state.db !== null && self.state.loggedIn && self.state.isConnected){
+        Sync.updateEntities(this.state.db, this.state);
+        Sync.syncContentTypes(this.state, this.syncCompleted);
+      };
+    }, 15 * 60 * 1000);
+
     // delete all data and start fresh
     // this.deleteAll();
     ManageTables.createGlobalTables();
@@ -147,7 +157,7 @@ export default class App extends React.Component {
     }
 
     // We are connected, AND token was just set (via getAuth)
-    if (!prevState.token && this.state.token && this.state.isConnected) {
+    if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn) {
       Sync.updateEntities(this.state.db, this.state);
       Sync.syncContentTypes(this.state, this.syncCompleted);
     }

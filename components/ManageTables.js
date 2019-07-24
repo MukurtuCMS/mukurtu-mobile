@@ -8,6 +8,7 @@ export const createUniqueTables = (db) => {
   createSyncTable(db);
   createNodesTable(db);
   createTaxonomyTable(db);
+  createAtomTable(db);
   createNodesSavedTable(db);
   createContentTypesTable(db);
   createContentTypeTable(db);
@@ -58,6 +59,14 @@ const createTaxonomyTable = (db) => {
   db.transaction(tx => {
     tx.executeSql(
       'create table if not exists taxonomy (tid integer primary key, title text, entity text);'
+    );
+  });
+}
+
+const createAtomTable = (db) => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'create table if not exists atom (sid integer primary key, title text, entity text);'
     );
   });
 }
