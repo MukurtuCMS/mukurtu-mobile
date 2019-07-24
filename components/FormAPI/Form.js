@@ -9,6 +9,7 @@ import Select from './Select';
 import Date from './Date';
 import Scald from './Scald';
 import Select2 from './Select2';
+import Paragraph from './Paragraph';
 import ConditionalSelect from './ConditionalSelect';
 import Location from './Location';
 import JSONTree from "react-native-json-tree";
@@ -33,8 +34,8 @@ export default class FormComponent extends React.Component {
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.updateIndex = this.updateIndex.bind(this);
-    this.saveNode = this.saveNode.bind(this)
-    this.resetForm = this.resetForm.bind(this)
+    this.saveNode = this.saveNode.bind(this);
+    this.resetForm = this.resetForm.bind(this);
   }
 
   componentDidMount() {
@@ -47,15 +48,15 @@ export default class FormComponent extends React.Component {
     if (node) {
       this.setState({formValues: node});
     }
-/*    for (const [machineName, groupObject] of Object.entries(node)) {
-      if (groupObject) {
-        const lang = Object.keys(groupObject)[0];
-        if (lang) {
-          console.log(groupObject[lang]);
-        }
-      }
+    /*    for (const [machineName, groupObject] of Object.entries(node)) {
+          if (groupObject) {
+            const lang = Object.keys(groupObject)[0];
+            if (lang) {
+              console.log(groupObject[lang]);
+            }
+          }
 
-    }*/
+        }*/
   }
 
   updateIndex(selectedIndex) {
@@ -110,7 +111,9 @@ export default class FormComponent extends React.Component {
 
   }
 
-  setFormValue(newFieldName, newValue, valueKey, lang = 'und', error = null) {
+
+  setFormValue(newFieldName, newValue, valueKey, lang = 'und', error = null, index = '0') {
+
     if (this.state.formValues) {
       const formValues = this.state.formValues;
       if (newFieldName === 'title') {
@@ -122,7 +125,7 @@ export default class FormComponent extends React.Component {
         let values = {
           [newFieldName]: {
             [lang]: {
-              "0": {[valueKey]: newValue}
+              [index]: {[valueKey]: newValue}
             }
           }
         };
@@ -174,6 +177,84 @@ export default class FormComponent extends React.Component {
           this.setState({formErrors: newErrors});
         }
       }
+    }
+  }
+
+  setFormValueParagraph(paragraphFieldName, paragraphFormState) {
+    if (this.state.formValues) {
+      const formValues = this.state.formValues;
+      // See the paragraph component for how paragraph state is formatted.
+      // let values = {
+      //   "paragraphs": {
+      //     [paragraphFieldName]: {
+      //       "und": {
+      //         "0": paragraphFormState
+      //       }
+      //     }
+      //   }
+      // };
+
+      let values = {
+        'paragraphs': paragraphFormState
+      };
+
+      // Format Drupal needs for submissions:
+      // "paragraphs": {
+      //   "field_word_entry": {
+      //     "und": {
+      //       "0": {
+      //         "field_alternate_spelling": {
+      //           "und": {
+      //             "0": {
+      //               "value": "alternate spelling value 1"
+      //             }
+      //           }
+      //         },
+      //         "field_sample_sentence": {
+      //           "und": {
+      //             "0": {
+      //               "value": "1-1"
+      //             },
+      //             "1": {
+      //               "value": "1-2"
+      //             }
+      //           }
+      //         },
+      //         "field_source": {
+      //           "und": {
+      //             "0": {
+      //               "value": "a"
+      //             }
+      //           }
+      //         }
+      //       },
+      //       "1": {
+      //         "field_alternate_spelling": {
+      //           "und": {
+      //             "0": {
+      //               "value": "alternate spelling value 2"
+      //             }
+      //           }
+      //         },
+      //         "field_sample_sentence": {
+      //           "und": {
+      //             "0": {
+      //               "value": "2-1"
+      //             },
+      //             "1": {
+      //               "value": "2-2"
+      //             }
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
+      // },
+
+      Object.assign(formValues, values);
+
+      // save value to state
+      this.setState({formValues: formValues});
     }
   }
 
@@ -277,7 +358,6 @@ export default class FormComponent extends React.Component {
   }
 
 
-
   setFormValueConditionalSelect(newFieldName, val) {
 
     if (this.state.formValues) {
@@ -297,12 +377,12 @@ export default class FormComponent extends React.Component {
 
       let values = {
         ['oggroup_fieldset']: {
-            "0": {
-              "dropdown_first": "2",
-              "dropdown_second": {
-                "target_id": val
-              }
+          "0": {
+            "dropdown_first": "2",
+            "dropdown_second": {
+              "target_id": val
             }
+          }
 
         }
       };
@@ -326,20 +406,19 @@ export default class FormComponent extends React.Component {
 
       if (!(formValues[newFieldName]) || formValues[newFieldName].length < 1) {
         formValues[newFieldName] = {};
-        formValues[newFieldName][lang] = [];
-        formValues[newFieldName][lang][0] = {};
+        formValues[newFieldName][lang] = {};
       }
 
       // Convert text from react to id for Drupal. Inverse is done in select2.js
-      let selectedOption = options.filter(function(option) {
+      let selectedOption = options.filter(function (option) {
         return option.text === newValue;
       });
       let nid = newValue;
       if (selectedOption !== undefined && selectedOption.length !== 0) {
-       nid = selectedOption[0].id;
+        nid = selectedOption[0].id;
       }
 
-      formValues[newFieldName][lang][0][valueKey] = nid;
+      formValues[newFieldName][lang][key] = nid;
 
       // save value to state
       this.setState({formValues: formValues});
@@ -353,10 +432,10 @@ export default class FormComponent extends React.Component {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
       // check if we are unchecking the box
-      if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][0][valueKey]) {
-        Object.assign(formValues, {[newFieldName]: {[lang]: [{[valueKey]: ''}]}});
+      if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][valueKey]) {
+        Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: ''}}});
       } else {
-        Object.assign(formValues, {[newFieldName]: {[lang]: [{[valueKey]: newValue}]}});
+        Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: newValue}}});
       }
       // save value to state
       this.setState({formValues: formValues});
@@ -376,26 +455,28 @@ export default class FormComponent extends React.Component {
     if (!this.props.screenProps.isConnected) {
       if (this.props.did) {
         this.state.db.transaction(
-          tx => {
-            tx.executeSql('replace into saved_offline (id, blob, saved) values (?, ?, 0)',
-              [this.props.did, JSON.stringify(this.state.formValues)],
-              (success) => this.setState({formSubmitted: true}),
-              (success, error) => console.log(error)
-            );
-          }
+            tx => {
+              tx.executeSql('replace into saved_offline (id, blob, saved) values (?, ?, 0)',
+                  [this.props.did, JSON.stringify(this.state.formValues)],
+                  (success) => this.setState({formSubmitted: true}),
+                  (success, error) => console.log(error)
+              );
+            }
         );
       } else {
         this.state.db.transaction(
-          tx => {
-            tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
-              [JSON.stringify(this.state.formValues)],
-              (success) => this.setState({formSubmitted: true}),
-              (success, error) => console.log(error)
-            );
-          }
+            tx => {
+              tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
+                  [JSON.stringify(this.state.formValues)],
+                  (success) => this.setState({formSubmitted: true}),
+                  (success, error) => console.log(error)
+              );
+            }
         );
       }
     } else {
+
+
       if (this.state.formValues.nid) {
 
         // I have to do this right now because I am getting errors trying to use the postData method
@@ -416,20 +497,23 @@ export default class FormComponent extends React.Component {
           body: JSON.stringify(this.state.formValues)
         };
 
-        fetch('http://mukurtucms.kanopi.cloud/app/node/' + this.state.formValues.nid + '.json', data)
-          .then((response) => response.json())
-          .then((responseJson) => {
-            if (responseJson.form_errors) {
-              this.setState({formErrors: responseJson.form_errors})
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+
+        fetch(this.props.url + '/app/node/' + this.state.formValues.nid + '.json', data)
+            .then((response) => response.json())
+            .then((responseJson) => {
+              if (responseJson.form_errors) {
+                this.setState({formErrors: responseJson.form_errors})
+              }
+            })
+            .catch((error) => {
+              console.error(error);
+            });
 
       } else {
         this.postData(this.props.url + '/app/node.json', this.state.formValues);
+
       }
+
     }
   }
 
@@ -455,17 +539,17 @@ export default class FormComponent extends React.Component {
       referrer: 'no-referrer',
       body: JSON.stringify(data),
     })
-      .then((response) => response.json())
-      .then((responseJson) => {
-        console.log(responseJson);
-        if (responseJson.form_errors) {
-          this.setState({formErrors: responseJson.form_errors})
-        } else {
-          this.setState({
-            formSubmitted: true
-          });
-        }
-      });
+        .then((response) => response.json())
+        .then((responseJson) => {
+          console.log(responseJson);
+          if (responseJson.form_errors) {
+            this.setState({formErrors: responseJson.form_errors})
+          } else {
+            this.setState({
+              formSubmitted: true
+            });
+          }
+        });
   }
 
 
@@ -483,19 +567,28 @@ export default class FormComponent extends React.Component {
     for (var i = 0; i < this.props.form.length; i++) {
       // @TODO: we will add a tabbed wrapper component here based on group name
       form[i] = [];
-      buttons.push(this.props.form[i]['label']);
+      if (this.props.form[i]['label'] !== undefined) {
+        buttons.push(this.props.form[i]['label']);
+      }
 
       try {
-        var childrenFields = this.props.form[i].childrenFields;
+        let childrenFields;
+        if (this.props.form[i].childrenFields === undefined) {
+          childrenFields = this.props.form;
+        } else {
+          childrenFields = this.props.form[i].childrenFields;
+        }
+
 
         for (var k = 0; k < childrenFields.length; k++) {
           var field = childrenFields[k];
           var fieldName = childrenFields[k]['machine_name'];
 
-          //
-
-
           var fieldArray = childrenFields[k];
+
+
+          // Save original field array so we can access add more text for paragraph
+          let originalFieldArray = fieldArray;
 
           description = fieldArray['#description'];
           if (!description && fieldArray['und']) {
@@ -506,12 +599,12 @@ export default class FormComponent extends React.Component {
             }
           }
 
+
           if (fieldArray['#type'] !== undefined) {
 
             // If field type is container, we need to drill down and find the form to render
             if (fieldArray['#type'] === 'container') {
               fieldArray = field['und'];
-
 
               if (fieldArray['#type'] === undefined) {
 
@@ -519,7 +612,37 @@ export default class FormComponent extends React.Component {
 
                 if (fieldArray && fieldArray['#type'] === undefined) {
 
-                  if (fieldArray['target_id'] !== undefined) {
+
+                  if (fieldArray['#entity_type'] !== undefined && fieldArray['#entity_type'] === 'paragraphs_item') {
+
+                    // Default add more text in case it's not present in array
+                    let addMoreText = 'Add Another';
+                    let paragraphTitle = '';
+                    if (originalFieldArray['und'] !== undefined) {
+
+                      if (originalFieldArray['und']['#title'] !== undefined) {
+                        paragraphTitle = originalFieldArray['und']['#title'];
+                      }
+
+                      if (originalFieldArray['und']['add_more'] !== undefined && originalFieldArray['und']['add_more']['add_more'] !== undefined) {
+                        addMoreText = originalFieldArray['und']['add_more']['add_more']['#value'];
+                      }
+                    }
+
+                    let paragraph = <Paragraph
+                        formValues={this.state.formValues}
+                        fieldName={fieldName}
+                        field={fieldArray}
+                        key={fieldName}
+                        lang={fieldArray['#language']}
+                        setFormValue={this.setFormValueParagraph.bind(this)}
+                        addMoreText={addMoreText}
+                        paragraphTitle={paragraphTitle}
+                    />;
+
+                    form[i].push(paragraph);
+
+                  } else if (fieldArray['target_id'] !== undefined) {
                     fieldArray = fieldArray['target_id'];
                   } else if (fieldArray['nid'] !== undefined) {
                     fieldArray = field['und'][0]['nid'];
@@ -536,6 +659,8 @@ export default class FormComponent extends React.Component {
               }
             }
 
+            // Set required values
+            let required = fieldArray['#required'];
 
             if (typeof fieldArray === 'object' && fieldArray['#type']) {
 
@@ -550,7 +675,7 @@ export default class FormComponent extends React.Component {
                     formErrors={this.state.formErrors}
                     description={description}
                 />);
-              } else if (fieldArray['#type'] === 'textfield') {
+              }  else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
                     formValues={this.state.formValues}
                     fieldName={fieldName}
@@ -558,6 +683,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'text_format') {
@@ -568,6 +694,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'textarea') {
@@ -578,6 +705,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'radios') {
@@ -588,6 +716,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckboxes.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'checkboxes') {
@@ -598,6 +727,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckboxes.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'checkbox') {
@@ -608,6 +738,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueCheckbox.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               }
@@ -620,6 +751,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueConditionalSelect.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
 
@@ -631,6 +763,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValue}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
@@ -642,6 +775,7 @@ export default class FormComponent extends React.Component {
                     fieldType={fieldArray['#type']}
                     setFormValue={this.setFormValueDate.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'geofield_latlon') {
@@ -652,6 +786,7 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueLocation.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
               } else if (fieldArray['#type'] === 'select2_hidden') {
@@ -662,13 +797,26 @@ export default class FormComponent extends React.Component {
                     key={fieldName}
                     setFormValue={this.setFormValueSelect2.bind(this)}
                     formErrors={this.state.formErrors}
+                    required={required}
                     description={description}
                 />);
+              } else if (fieldArray['#columns'] !== undefined) {
+                form[i].push(<Textfield
+                    formValues={this.state.formValues}
+                    fieldName={fieldName}
+                    field={fieldArray}
+                    key={fieldName}
+                    required={required}
+                    setFormValue={this.setFormValue}
+                />);
+
               }
             } else {
               console.log(fieldArray['#title']);
             }
           }
+
+
         }
       } catch (e) {
         // console.log(e);
@@ -697,23 +845,25 @@ export default class FormComponent extends React.Component {
         formDisplay = <View>
           <Text>Your content has been queued for saving when connected.</Text>
           <Button
-            title="Submit Another"
-            onPress={this.resetForm}
+              title="Submit Another"
+              onPress={this.resetForm}
           />
         </View>
       } else {
         formDisplay = <View>
           <Text>Your content has been submitted successfully.</Text>
           <Button
-            title="Submit Another"
-            onPress={this.resetForm}
+              title="Submit Another"
+              onPress={this.resetForm}
           />
         </View>
       }
 
     } else {
       formDisplay = <View>
+
         <JSONTree data={this.props.form}/>
+
         {buttonGroup}
         {form[this.state.selectedIndex]}
         <Button

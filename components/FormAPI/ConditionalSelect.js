@@ -1,6 +1,7 @@
 import React from 'react';
 import {Picker, View, Text} from 'react-native';
 import FieldDescription from "./FieldDescription";
+import Required from "./Required";
 
 export default class ConditionalSelect extends React.Component {
 
@@ -99,6 +100,7 @@ export default class ConditionalSelect extends React.Component {
     return <View>
       <Text>{field['#title']}</Text>
       <FieldDescription description={(this.props.description) ? this.props.description : null} />
+      <Required required={this.props.required}/>
       <Picker
           style={{height: 250, width: 'auto'}}
           // onValueChange={(val) => this.props.setFormValue(this.props.fieldName, val)}

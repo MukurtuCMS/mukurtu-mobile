@@ -3,15 +3,18 @@ import {View, Text, StyleSheet} from 'react-native';
 import { CheckBox} from "react-native-elements";
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
+import Required from "./Required";
 
 export default class Checkboxes extends React.Component {
 
     determineCheckboxValue(fieldName, fieldValue, fieldKey) {
         if (this.props.formValues[fieldName]) {
-            // set the language key as initial key
-            const lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
 
-            if (this.props.formValues[fieldName][lang][0][fieldKey] === fieldValue) {
+
+            // set the language key as initial key
+            const lang = Object.keys(this.props.formValues[fieldName]);
+
+            if (this.props.formValues[fieldName][lang][fieldKey] === fieldValue) {
                 return true;
             }
         }
@@ -24,7 +27,7 @@ export default class Checkboxes extends React.Component {
         let lang = 'und';
 
         if (this.props.formValues[this.props.fieldName]) {
-            lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
+            lang = Object.keys(this.props.formValues[this.props.fieldName]);
         }
 
         const fieldName = this.props.fieldName;
@@ -69,6 +72,7 @@ export default class Checkboxes extends React.Component {
             <Text style={titleTextStyle}>{field['#title']}</Text>
             {errorMarkup}
             <FieldDescription description={(this.props.description) ? this.props.description : null} />
+            <Required required={this.props.required}/>
             {checkboxes}
         </View>;
     }
