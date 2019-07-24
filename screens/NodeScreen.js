@@ -10,6 +10,7 @@ import {SQLite} from 'expo-sqlite';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
 import HTML from 'react-native-render-html';
+import {Star} from "../components/Star";
 
 
 // create a global db for database list and last known user
@@ -201,8 +202,10 @@ class NodeScreen extends React.Component {
       }
     }
 
+    console.log('node screen');
     return (
         <ScrollView style={styles.container}>
+          <Star starred={false}/>
           {renderedNode}
         </ScrollView>
     );
