@@ -12,5 +12,7 @@ export default {
   noticeBackground: tintColor,
   noticeText: '#fff',
   primary: '#159EC4',
-  lightGray: '#EEECEC'
+  lightGray: '#EEECEC',
+  mediumGray: '#D0D0D0',
+  gold: '#E6AB49'
 };

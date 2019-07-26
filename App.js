@@ -281,8 +281,6 @@ export default class App extends React.Component {
       return (
         <Provider store={store}>
           <View style={styles.container}>
-            {/*{Platform.OS === 'ios' && <StatusBar barStyle="default" />}*/}
-            <LoginText loggedIn={this.state.isLoggedIn} url={this.state.siteUrl} />
             <AppNavigator screenProps={screenProps} />
           </View>
         </Provider>

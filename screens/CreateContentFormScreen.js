@@ -25,10 +25,14 @@ import FormComponent from '../components/FormAPI/Form'
 import axios from "axios";
 import weightSort from 'weight-sort';
 import JSONTree from "react-native-json-tree";
+import * as Colors from "../constants/Colors";
 
 class CreateContentFormScreen extends React.Component {
   static navigationOptions = ({navigation}) => ({
     title: 'Create ' + `${navigation.getParam('contentTypeLabel')}`,
+    headerStyle: {
+      backgroundColor: Colors.default.gold
+    },
   });
 
   constructor(props) {

@@ -9,7 +9,8 @@ export default class Textfield extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      numberOfValues: 1
+      numberOfValues: 1,
+      inputFocus: false
     };
   }
 
@@ -18,6 +19,18 @@ export default class Textfield extends React.Component {
 
     this.setState({numberOfValues: currentIndex + 1}, () => {
 
+    })
+  }
+
+  onFocus() {
+    this.setState({
+      inputFocus: true
+    })
+  }
+
+  onBlur() {
+    this.setState({
+      inputFocus: false
     })
   }
 
@@ -52,6 +65,9 @@ export default class Textfield extends React.Component {
       titleTextStyle = styles.titleTextStyleError;
       textfieldStyle = styles.textfieldStyleError;
       errorTextStyle = styles.errorTextStyleError;
+    }
+    if (this.state.inputFocus) {
+      textfieldStyle = styles.textfieldStyleFocus;
     }
 
     const field = this.props.field;
@@ -102,6 +118,8 @@ export default class Textfield extends React.Component {
               value={value}
               defaultValue={field['#default_value']}
               maxLength={field['#maxlength']}
+              onBlur={ () => this.onBlur() }
+              onFocus={ () => this.onFocus() }
           />);
 
     }, this);
@@ -156,14 +174,37 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   textfieldStyle: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1
+    height: 60,
+    borderWidth: 1,
+    borderColor: Colors.default.mediumGray,
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+    padding: 8,
+    fontSize: 20
   },
   textfieldStyleError: {
-    height: 40,
+    height: 60,
     borderWidth: 1,
-    borderRadius: 1,
-    borderColor: Colors.default.errorBackground
+    borderColor: Colors.default.errorBackground,
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+    borderBottomWidth: 4,
+    borderBottomColor: Colors.default.errorBackground,
+    padding: 8,
+    fontSize: 20
+  },
+  textfieldStyleFocus: {
+    height: 60,
+    borderWidth: 1,
+    borderColor: Colors.default.mediumGray,
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+    borderBottomWidth: 4,
+    borderBottomColor: Colors.default.gold,
+    padding: 8,
+    fontSize: 20
   }
 });

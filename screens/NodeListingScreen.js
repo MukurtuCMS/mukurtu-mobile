@@ -12,10 +12,11 @@ import {
   Button,
   Linking, NetInfo, Picker
 } from 'react-native';
+import RNPickerSelect, { defaultStyles } from 'react-native-picker-select';
 import {WebBrowser} from 'expo';
+import { FontAwesome }  from '@expo/vector-icons';
 import {SQLite} from 'expo-sqlite';
 import axios from 'axios';
-import {FontAwesome} from '@expo/vector-icons';
 import {MonoText} from '../components/StyledText';
 import JSONTree from 'react-native-json-tree'
 import SettingsList from "react-native-settings-list";
@@ -402,7 +403,8 @@ export default class HomeScreen extends React.Component {
   }
 
   render() {
-    if (this.state.nodes.length < 1) {
+
+  if (this.state.nodes.length < 1) {
       return (
           <View>
             <TextInput
@@ -419,105 +421,129 @@ export default class HomeScreen extends React.Component {
 
     let categoriesList = [];
     if (this.state.categoriesList) {
+      let categoriesPlaceholder = {
+        label: 'Select a Category',
+        value: '0',
+        color: '#9EA0A4',
+      };
       let options = [];
-      options.push(<Picker.Item key={"0"} label='None' value='0' />);
       for (const [tid, name] of Object.entries(this.state.categoriesList)) {
-          options.push(<Picker.Item
-              key={tid}
-              label={name}
-              value={tid}
-            />
+          options.push({
+            label: name,
+            value: tid
+            }
           );
       }
       categoriesList.push(
-      <Picker
-        key={"0"}
-        selectedValue={this.state.categoriesSelected}
-        style={styles.picker}
-        itemStyle={styles.pickerItem}
-        onValueChange={(itemValue, itemIndex) =>
-          this.setState({categoriesSelected: itemValue})
-        }>
-        {options}
-      </Picker>
+        <RNPickerSelect
+          placeholder={categoriesPlaceholder}
+          key={0}
+          items={options}
+          onValueChange={value => {
+            this.setState({categoriesSelected: value})
+          }}
+          style={pickerSelectStyles}
+          value={this.state.categoriesSelected}
+          Icon={() => {
+            return <FontAwesome name="chevron-down" size={25} style= {styles.pickerIcon} />;
+          }}
+        />
       );
     }
 
     let keywordsList = [];
     if (this.state.keywordsList) {
+      let keywordsPlaceholder = {
+        label: 'Select a Keyword',
+        value: '0',
+        color: '#9EA0A4',
+      };
       let options = [];
-      options.push(<Picker.Item key={"0"} label='None' value='0' />);
       for (const [tid, name] of Object.entries(this.state.keywordsList)) {
-        options.push(<Picker.Item
-            key={tid}
-            label={name}
-            value={tid}
-          />
+        options.push({
+            label: name,
+            value: tid
+          }
         );
       }
       keywordsList.push(
-        <Picker
-          key={"0"}
-          selectedValue={this.state.keywordsSelected}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-          onValueChange={(itemValue, itemIndex) =>
-            this.setState({keywordsSelected: itemValue})
-          }>
-          {options}
-        </Picker>
+        <RNPickerSelect
+          placeholder={keywordsPlaceholder}
+          key={0}
+          items={options}
+          onValueChange={value => {
+            this.setState({keywordsSelected: value})
+          }}
+          style={pickerSelectStyles}
+          value={this.state.keywordsSelected}
+          Icon={() => {
+            return <FontAwesome name="chevron-down" size={25} style= {styles.pickerIcon} />;
+          }}
+        />
       );
     }
 
     let communityList = [];
     if (this.state.communityList) {
+      let communityPlaceholder = {
+        label: 'Select a Community',
+        value: '0',
+        color: '#9EA0A4',
+      };
       let options = [];
-      options.push(<Picker.Item key={"0"} label='None' value='0' />);
       for (const [nid, title] of Object.entries(this.state.communityList)) {
-        options.push(<Picker.Item
-            key={nid}
-            label={title}
-            value={nid}
-          />
+        options.push({
+            label: name,
+            value: tid
+          }
         );
       }
       communityList.push(
-        <Picker
-          key={"0"}
-          selectedValue={this.state.communitySelected}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-          onValueChange={(itemValue, itemIndex) =>
-            this.setState({communitySelected: itemValue})
-          }>
-          {options}
-        </Picker>
+        <RNPickerSelect
+          placeholder={communityPlaceholder}
+          key={0}
+          items={options}
+          onValueChange={value => {
+            this.setState({communitySelected: value})
+          }}
+          style={pickerSelectStyles}
+          value={this.state.communitySelected}
+          Icon={() => {
+            return <FontAwesome name="chevron-down" size={25} style= {styles.pickerIcon} />;
+          }}
+        />
       );
     }
 
     let collectionList = [];
     if (this.state.collectionList) {
+      let collectionPlaceholder = {
+        label: 'Select a Collection',
+        value: '0',
+        color: '#9EA0A4',
+      };
       let options = [];
-      options.push(<Picker.Item key={"0"} label='None' value='0' />);
       for (const [nid, title] of Object.entries(this.state.collectionList)) {
-        options.push(<Picker.Item
-            key={nid}
-            label={title}
-            value={nid}
-          />
+        options.push({
+            label: name,
+            value: tid
+          }
         );
       }
       collectionList.push(
-        <Picker
-          key={"0"}
-          selectedValue={this.state.collectionSelected}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-          onValueChange={(itemValue, itemIndex) =>
-            this.setState({collectionSelected: itemValue})
-          }>
-          {options}
-        </Picker>
+        <RNPickerSelect
+          placeholder={collectionPlaceholder}
+          key={0}
+          items={options}
+          onValueChange={value => {
+            this.setState({collectionSelected: value})
+          }}
+          style={pickerSelectStyles}
+          value={this.state.collectionSelected}
+          Icon={() => {
+            return <FontAwesome name="chevron-down" size={25} style= {styles.pickerIcon} />;
+          }}
+        />
       );
     }
 
@@ -705,9 +731,24 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     borderWidth: 1,
     color: '#FFF',
-    marginBottom: 10,
+    height:24
   },
   pickerItem: {
+  },
+  pickerView: {
+    width:'100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    backgroundColor: Colors.default.primary,
+    paddingVertical: 10,
+    position: 'relative',
+    marginBottom: 10
+  },
+  pickerIcon: {
+    color: Colors.default.tabIconDefault,
+    fontSize: 24,
+    right: 10,
+    top: 10
   },
   textInput: {
     backgroundColor: Colors.default.lightGray,
@@ -717,4 +758,31 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 10
   }
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderRadius: 4,
+    color: '#FFF',
+    paddingRight: 30, // to ensure the text is never behind the icon
+    backgroundColor: Colors.default.primary,
+    marginBottom: 10,
+    textTransform: 'uppercase'
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderRadius: 8,
+    color: '#FFF',
+    paddingRight: 30, // to ensure the text is never behind the icon
+    backgroundColor: Colors.default.primary,
+    marginBottom: 10,
+    textTransform: 'uppercase'
+  },
 });

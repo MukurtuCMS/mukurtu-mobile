@@ -18,10 +18,14 @@ import { addUser } from '../actions/user';
 import axios from "axios";
 import { WebBrowser} from 'expo';
 import {SQLite} from 'expo-sqlite';
+import * as Colors from "../constants/Colors";
 
 class CreateContentScreen extends React.Component {
   static navigationOptions = {
-    title: 'Create Content'
+    title: 'Create Content',
+    headerStyle: {
+      backgroundColor: Colors.default.gold
+    },
   };
 
   constructor(props){
