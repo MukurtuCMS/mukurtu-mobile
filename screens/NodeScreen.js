@@ -205,7 +205,8 @@ class NodeScreen extends React.Component {
     console.log('node screen');
     return (
         <ScrollView style={styles.container}>
-          <Star starred={false}/>
+          {/*Pass nodes to star so we can filter out personal collection*/}
+          <Star starred={false} nodes={this.state.nodes} />
           {renderedNode}
         </ScrollView>
     );
