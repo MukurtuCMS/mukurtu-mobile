@@ -10,13 +10,14 @@ import {SQLite} from 'expo-sqlite';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
 import HTML from 'react-native-render-html';
+import {Star} from "../components/Star";
 
 
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global');
 
 class NodeScreen extends React.Component {
-  static navigationOptions = ({ navigation }) => ({
+  static navigationOptions = ({navigation}) => ({
     title: `${navigation.getParam('node').title}`,
   });
 
@@ -38,23 +39,23 @@ class NodeScreen extends React.Component {
     const type = this.props.navigation.getParam('contentType');
     this.state.db.transaction(tx => {
       tx.executeSql(
-        'select node_view from display_modes where machine_name = ?;',
-        [type],
-        (query, result) => this.setState({displayModes: JSON.parse(result.rows._array[0].node_view)})
+          'select node_view from display_modes where machine_name = ?;',
+          [type],
+          (query, result) => this.setState({displayModes: JSON.parse(result.rows._array[0].node_view)})
       );
     });
     this.state.db.transaction(tx => {
       tx.executeSql(
-        'select * from taxonomy;',
-        '',
-        (query, result) => this.setTaxonomy(result.rows._array)
+          'select * from taxonomy;',
+          '',
+          (query, result) => this.setTaxonomy(result.rows._array)
       );
     });
     this.state.db.transaction(tx => {
       tx.executeSql(
-        'select * from nodes;',
-        '',
-        (query, result) => this.setNodes(result.rows._array)
+          'select * from nodes;',
+          '',
+          (query, result) => this.setNodes(result.rows._array)
       );
     });
   }
@@ -90,7 +91,7 @@ class NodeScreen extends React.Component {
       const lang = Object.keys(node[fieldName])[0];
       if (fieldObject.label && fieldObject.view_mode_properties.label !== 'hidden') {
         renderedNode.push(
-          <Text key={fieldName} style={styles.label}>{fieldObject.label}</Text>
+            <Text key={fieldName} style={styles.label}>{fieldObject.label}</Text>
         )
       }
       if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link') {
@@ -100,12 +101,16 @@ class NodeScreen extends React.Component {
           let errorMessage = [];
           let oneExists = false;
           if (!this.state.terms) {
-            errorMessage = <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this item to Mukurtu Mobile.</Text>
+            errorMessage =
+                <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+                  item to Mukurtu Mobile.</Text>
           } else {
             for (var i = 0; i < node[fieldName][lang].length; i++) {
               let tid = node[fieldName][lang][i].tid;
               if (!tid || tid === undefined) {
-                errorMessage = <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this item to Mukurtu Mobile.</Text>
+                errorMessage =
+                    <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+                      item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
                 if (i > 0) {
@@ -117,7 +122,9 @@ class NodeScreen extends React.Component {
               }
             }
             if (oneExists) {
-              errorMessage = <Text style={styles.syncError}>In order to view all of the content in this field, in your browser sync this item to Mukurtu Mobile.</Text>
+              errorMessage =
+                  <Text style={styles.syncError}>In order to view all of the content in this field, in your browser sync
+                    this item to Mukurtu Mobile.</Text>
             }
           }
           renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
@@ -127,7 +134,8 @@ class NodeScreen extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML key={fieldName + i} html={node[fieldName][lang][i].safe_value} imagesMaxWidth={Dimensions.get('window').width} />)
+            renderedNode.push(<HTML key={fieldName + i} html={node[fieldName][lang][i].safe_value}
+                                    imagesMaxWidth={Dimensions.get('window').width}/>)
           }
         }
       }
@@ -139,7 +147,7 @@ class NodeScreen extends React.Component {
             if (node[fieldName][lang][i].lat.length > 0) {
               const latLng = {
                 latitude: Number(node[fieldName][lang][i].lat),
-                  longitude: Number(node[fieldName][lang][i].lon),
+                longitude: Number(node[fieldName][lang][i].lon),
               };
               renderedNode.push(<MapView style={styles.map} key={fieldName + i}
                                          initialRegion={{
@@ -150,7 +158,7 @@ class NodeScreen extends React.Component {
                                          }}
               >
                 <Marker
-                  coordinate={latLng}
+                    coordinate={latLng}
                 />
               </MapView>)
             }
@@ -164,7 +172,9 @@ class NodeScreen extends React.Component {
           let errorMessage = [];
           let oneExists = false;
           if (!this.state.nodes) {
-            errorMessage = <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this item to Mukurtu Mobile.</Text>
+            errorMessage =
+                <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+                  item to Mukurtu Mobile.</Text>
           } else {
             for (var i = 0; i < node[fieldName][lang].length; i++) {
               let nid = node[fieldName][lang][i].nid;
@@ -172,7 +182,9 @@ class NodeScreen extends React.Component {
                 nid = node[fieldName][lang][i].target_id;
               }
               if (!nid || nid === undefined) {
-                errorMessage = <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this item to Mukurtu Mobile.</Text>
+                errorMessage =
+                    <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+                      item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
                 if (i > 0) {
@@ -184,7 +196,9 @@ class NodeScreen extends React.Component {
               }
             }
             if (oneExists) {
-              errorMessage = <Text style={styles.syncError}>In order to view all of the content in this field, in your browser sync this item to Mukurtu Mobile.</Text>
+              errorMessage =
+                  <Text style={styles.syncError}>In order to view all of the content in this field, in your browser sync
+                    this item to Mukurtu Mobile.</Text>
             }
           }
           renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
@@ -195,7 +209,8 @@ class NodeScreen extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<Text key={fieldName + i}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
+            renderedNode.push(<Text
+                key={fieldName + i}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
           }
         }
       }
@@ -203,6 +218,17 @@ class NodeScreen extends React.Component {
 
     return (
         <ScrollView style={styles.container}>
+          {/*Pass nodes to star so we can filter out personal collection*/}
+          <Star
+              starred={false}
+              nid={node.nid}
+              nodes={this.state.nodes}
+              db={this.state.db}
+              isConnected={this.props.screenProps.isConnected}
+              token={this.props.screenProps.token}
+              cookie={this.props.screenProps.cookie}
+              url={this.state.url}
+          />
           {renderedNode}
         </ScrollView>
     );
