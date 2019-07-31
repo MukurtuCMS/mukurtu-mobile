@@ -1,7 +1,11 @@
 import React from 'react';
-import {Picker, View} from 'react-native';
+import {Picker, TouchableOpacity, View} from 'react-native';
 import {Image} from "react-native";
+import {Modal} from "react-native";
+import {TouchableHighlight} from "react-native";
+import {Text} from "react-native";
 import {Button} from "react-native-elements";
+
 
 
 export class Star extends React.Component {
@@ -10,7 +14,9 @@ export class Star extends React.Component {
     super(props);
     this.saveNode = this.saveNode.bind(this);
     this.state = {
-      collectionSelected: 0
+      starred: props.starred,
+      collectionSelected: 0,
+      modalVisible: false
     }
   }
 
@@ -39,6 +45,15 @@ export class Star extends React.Component {
 
     return personalCollections
   }
+
+  // onStarPress() {
+  //
+  // }
+
+  setModalVisible(visible) {
+    this.setState({modalVisible: visible});
+  }
+
 
 
   /**
@@ -126,6 +141,9 @@ export class Star extends React.Component {
             console.error(error);
           });
     }
+
+    this.setModalVisible(!this.state.modalVisible);
+    this.setState({'starred': true})
   }
 
 
@@ -177,18 +195,37 @@ export class Star extends React.Component {
 
 
     let image = outline;
-    if (this.props.starred) {
+    if (this.state.starred) {
       image = solid;
     }
 
     return (
         <View>
-          {image}
-          {collectionList}
-          <Button
-              title="Submit"
-              onPress={this.saveNode}
-          />
+          <TouchableOpacity onPress={() => {this.setModalVisible(true);}}>
+            {image}
+          </TouchableOpacity>
+          <Modal
+              animationType="slide"
+              transparent={false}
+              visible={this.state.modalVisible}
+              onRequestClose={() => {
+
+              }}>
+            <View style={{ paddingTop: 50 }}>
+              <TouchableHighlight
+                  onPress={() => {
+                    this.setModalVisible(!this.state.modalVisible);
+                  }}>
+                <Text>Close</Text>
+              </TouchableHighlight>
+              <Text>Add to Personal Collection</Text>
+              {collectionList}
+              <Button
+                  title="Submit"
+                  onPress={this.saveNode}
+              />
+            </View>
+          </Modal>
         </View>
     )
   }
