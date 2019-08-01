@@ -548,8 +548,45 @@ export default class FormComponent extends React.Component {
             this.setState({
               formSubmitted: true
             });
+            // Submit this nid to synced entities
+
+            if(responseJson.hasOwnProperty('nid')) {
+              this.updateSyncedNids(responseJson.nid);
+            }
+
           }
         });
+  }
+
+  updateSyncedNids(nid) {
+
+    fetch(this.props.url + '/app/synced-entities/create', {
+      method:'post',
+
+      mode: 'cors',
+      cache: 'no-cache',
+      // credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': this.state.token,
+        'Cookie': this.state.cookie
+      },
+      redirect: 'follow',
+      referrer: 'no-referrer',
+      body: nid,
+    })
+        .then((response) => {
+          console.log(response);
+        })
+        .then((responseJson) => {
+          if (responseJson.form_errors) {
+            console.log(responseJson.form_errors);
+          } else {
+            console.log(responseJson);
+          }
+        });
+
   }
 
 
@@ -675,7 +712,7 @@ export default class FormComponent extends React.Component {
                     formErrors={this.state.formErrors}
                     description={description}
                 />);
-              }  else if (fieldArray['#type'] === 'textfield') {
+              } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
                     formValues={this.state.formValues}
                     fieldName={fieldName}
