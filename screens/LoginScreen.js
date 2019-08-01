@@ -55,6 +55,30 @@ class LoginScreen extends React.Component {
   }
 
 
+  onRegisterClickAsync = async () => {
+    // Check if we have a valid url
+    if (this.state.url && Validator.isURL(this.state.url)) {
+      let result = await WebBrowser.openBrowserAsync(this.state.url + '/user/register');
+      this.setState({result});
+    } else {
+      this.setState({'urlInvalid': true});
+    }
+    this.setState({'loginErrorMessage': 'Please enter a valid URL for the site you want to register for.'});
+  }
+
+
+  onPasswordClickAsync = async () => {
+    // Check if we have a valid url
+    if (this.state.url && Validator.isURL(this.state.url)) {
+      let result = await WebBrowser.openBrowserAsync(this.state.url + '/user/password');
+      this.setState({result});
+    } else {
+      this.setState({'urlInvalid': true});
+    }
+    this.setState({'loginErrorMessage': 'Please enter a valid URL for the site you want to reset your password for.'});
+  }
+
+
   onClickListener = (viewId) => {
     /*    userAuth(this.state.name, this.state.password, this.state.url)
           .then((res) => {
@@ -253,11 +277,11 @@ class LoginScreen extends React.Component {
             <Text style={styles.loginText}>Login</Text>
           </TouchableHighlight>
 
-          <TouchableHighlight style={styles.buttonContainer} onPress={() => this.onClickListener('restore_password')}>
+          <TouchableHighlight style={styles.buttonContainer} onPress={this.onPasswordClickAsync}>
             <Text>Forgot your password?</Text>
           </TouchableHighlight>
 
-          <TouchableHighlight style={styles.buttonContainer} onPress={() => this.onClickListener('register')}>
+          <TouchableHighlight style={styles.buttonContainer} onPress={this.onRegisterClickAsync}>
             <Text>Register</Text>
           </TouchableHighlight>
         </View>
