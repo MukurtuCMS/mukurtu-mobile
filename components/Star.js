@@ -70,12 +70,10 @@ export class Star extends React.Component {
 
     personalCollectionArray = personalCollectionArray[0];
 
-    // Update with new value. This doesn't check for existing ones yet
+    // Update with new value. This doesn't check for existing ones yet — need to fix the submit on the drupal side to test that
     personalCollectionArray.field_digital_heritage_items = {
       'und': {
-        '0': {
-          'target_id': this.props.nid
-        }
+        '0': this.props.nid
       }
     };
 

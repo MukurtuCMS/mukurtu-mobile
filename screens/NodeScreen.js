@@ -33,6 +33,7 @@ class NodeScreen extends React.Component {
       terms: null,
       nodes: null
     }
+    this.checkValidPersonalCollection = this.checkValidPersonalCollection.bind(this);
   }
 
   componentDidMount() {
@@ -77,13 +78,56 @@ class NodeScreen extends React.Component {
     this.setState({nodes: nodeList});
   }
 
+  checkValidPersonalCollection(currentContentType) {
+    const data = {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': this.props.screenProps.token,
+        'Cookie': this.props.screenProps.cookie,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': 0
+      }
+    };
+
+    fetch(this.state.url + '/app/viewable-types/retrieve', data)
+        .then((response) => response.json())
+        .then((responseJson) => {
+          if (typeof responseJson === 'object' && responseJson !== null) {
+
+            if(responseJson[currentContentType]['valid type for personal collection'] == 1) {
+              this.setState({'personalCollectionValid': true});
+              return true;
+            }
+
+            }
+          })
+        .catch((error) => {
+          return false;
+        });
+
+    return false;
+  }
+
   render() {
+
+
 
 
     if (!this.state.displayModes) {
       return [];
     }
     const node = this.props.navigation.getParam('node');
+
+    let showStar = false;
+    if(this.state.personalCollectionValid === true) {
+      showStar = true;
+    } else {
+      showStar = this.checkValidPersonalCollection(node.type);
+    }
+
 
     let renderedNode = [];
 
@@ -216,19 +260,25 @@ class NodeScreen extends React.Component {
       }
     }
 
+    let star = null;
+    if(showStar) {
+      {/*Pass nodes to star so we can filter out personal collection*/}
+      star = <Star
+          starred={false}
+          nid={node.nid}
+          nodes={this.state.nodes}
+          db={this.state.db}
+          isConnected={this.props.screenProps.isConnected}
+          token={this.props.screenProps.token}
+          cookie={this.props.screenProps.cookie}
+          url={this.state.url}
+      />
+    }
+
+
     return (
         <ScrollView style={styles.container}>
-          {/*Pass nodes to star so we can filter out personal collection*/}
-          <Star
-              starred={false}
-              nid={node.nid}
-              nodes={this.state.nodes}
-              db={this.state.db}
-              isConnected={this.props.screenProps.isConnected}
-              token={this.props.screenProps.token}
-              cookie={this.props.screenProps.cookie}
-              url={this.state.url}
-          />
+          {star}
           {renderedNode}
         </ScrollView>
     );
