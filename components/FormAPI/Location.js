@@ -76,6 +76,7 @@ export default class LocationComponent extends React.Component {
       />
     }
     return(
+        <View style={{flex: 1/2, height: 250}}>
           {text}
           <FieldDescription description={(this.props.description) ? this.props.description : null} />
           <Required required={this.props.required}/>
