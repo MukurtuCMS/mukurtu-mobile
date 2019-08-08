@@ -10,10 +10,17 @@ import Required from "./Required";
 
 export default class LocationComponent extends React.Component {
   // Location defaults to center of US if we cannot find a location
-  state = {
-    locationChecked: false,
-    errorMessage: null
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      locationChecked: false,
+      errorMessage: null,
+      updateIndex: 0
+    };
+
+    this._getLocationAsync = this._getLocationAsync.bind(this);
+  }
+
 
   componentWillMount() {
     this._getLocationAsync();
@@ -31,7 +38,12 @@ export default class LocationComponent extends React.Component {
     let location = await Location.getCurrentPositionAsync({});
     this.props.setFormValue(this.props.fieldName, location.coords.latitude, location.coords.longitude);
     if (location) {
-      this.setState({locationChecked: true});
+      this.setState({
+        locationChecked: true,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        updateIndex: this.state.updateIndex + 1
+      });
     }
     this.forceUpdate();
   };
@@ -39,7 +51,10 @@ export default class LocationComponent extends React.Component {
   render() {
     let lat = null;
     let long = null;
-    if (this.props.formValues[this.props.fieldName]) {
+    if(this.state.longitude) {
+      lat = this.state.latitude;
+      long = this.state.longitude
+    } else if (this.props.formValues[this.props.fieldName]) {
       lat = this.props.formValues[this.props.fieldName]['und'][0]['geom']['lat'];
       long = this.props.formValues[this.props.fieldName]['und'][0]['geom']['lon'];
     }
@@ -57,10 +72,10 @@ export default class LocationComponent extends React.Component {
           longitude: (long) ? long : -95.712891,
         }}
         onLocationSelect={({latitude, longitude})=> this.props.setFormValue(this.props.fieldName, latitude, longitude)}
+        updateIndex={this.state.updateIndex}
       />
     }
     return(
-        <View style={{flex: 1/2, height: 250}}>
           {text}
           <FieldDescription description={(this.props.description) ? this.props.description : null} />
           <Required required={this.props.required}/>
