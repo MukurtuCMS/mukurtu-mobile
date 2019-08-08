@@ -17,6 +17,7 @@ import {ButtonGroup, Button, Text} from "react-native-elements";
 import axios from "axios";
 import {SQLite} from 'expo-sqlite';
 import * as Sync from "../MukurtuSync"
+import * as FileSystem from 'expo-file-system';
 
 export default class FormComponent extends React.Component {
   constructor(props) {
@@ -451,6 +452,101 @@ export default class FormComponent extends React.Component {
     }
   }
 
+
+  setFormValueScald(fieldName, value, valueKey, lang = 'und', error = null, index = '0') {
+    // Base64 encode file for submission
+    // let base64file = await FileSystem.readAsStringAsync(value.uri, {'encoding': FileSystem.EncodingType.Base64});
+
+    // let base64file = async () => {
+    //   await FileSystem.readAsStringAsync(value.uri, {'encoding': FileSystem.EncodingType.Base64});
+    // };
+
+    FileSystem.readAsStringAsync(value.uri, {'encoding': FileSystem.EncodingType.Base64})
+        .then((base64File) => {
+          return base64File;
+        })
+        .then((file) => {
+
+
+          let filename = value.uri.split('/').pop();
+          let body = {
+            'filename': filename,
+            'file': file
+          };
+          const data = {
+            method: 'post',
+            mode: 'cors',
+            cache: 'no-cache',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': this.state.token,
+              'Cookie': this.state.cookie
+            },
+            redirect: 'follow',
+            referrer: 'no-referrer',
+            body: JSON.stringify(body)
+          };
+
+
+          let url = this.props.url;
+
+          return fetch(url + '/app/file', data);
+        })
+        .then((response) => response.json())
+        .then((response) => {
+
+          // Get the file id
+          let fid = response.fid;
+          // Now we submit the file to create the atom
+          const data = {
+            method: 'post',
+            mode: 'cors',
+            cache: 'no-cache',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': this.state.token,
+              'Cookie': this.state.cookie
+            },
+            redirect: 'follow',
+            referrer: 'no-referrer',
+          };
+
+
+          let url = this.props.url;
+          return fetch(url + '/app/scald/create?id=' + fid, data);
+        })
+        .then((response) => response.json())
+        .then((response) => {
+
+          // Now we have the scald ID, and we need to set that as the form state for node submission
+          console.log(response);
+          let sid = response.sid;
+
+          if (this.state.formValues) {
+            let formValues = this.state.formValues;
+             let values = {
+               [fieldName]: {
+                 [lang]: {
+                   [index]: {
+                     ['sid']: sid
+                   }
+                 }
+               }
+             };
+            Object.assign(formValues, values);
+            this.setState({formValues: formValues});
+
+          }
+
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+  }
+
+
   saveNode() {
     if (!this.props.screenProps.isConnected) {
       if (this.props.did) {
@@ -550,18 +646,22 @@ export default class FormComponent extends React.Component {
             });
             // Submit this nid to synced entities
 
-            if(responseJson.hasOwnProperty('nid')) {
+            if (responseJson.hasOwnProperty('nid')) {
               this.updateSyncedNids(responseJson.nid);
             }
 
           }
-        });
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+    ;
   }
 
   updateSyncedNids(nid) {
 
     fetch(this.props.url + '/app/synced-entities/create', {
-      method:'post',
+      method: 'post',
 
       mode: 'cors',
       cache: 'no-cache',
@@ -708,7 +808,7 @@ export default class FormComponent extends React.Component {
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
-                    setFormValue={this.setFormValue}
+                    setFormValue={this.setFormValueScald.bind(this)}
                     formErrors={this.state.formErrors}
                     description={description}
                 />);

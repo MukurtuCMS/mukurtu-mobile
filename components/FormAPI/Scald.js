@@ -10,7 +10,8 @@ export default class Scald extends React.Component {
         chosenImage: null,
         takenImage:null,
         chosenDocument:null
-    }
+    };
+
     _launchDocumentAsync =async ()=>{
         let result = await DocumentPicker.getDocumentAsync({});
         alert(result.uri);
@@ -28,7 +29,8 @@ export default class Scald extends React.Component {
             aspect: [4, 3],
             exif:true,
         })
-        this.setState({chosenImage: image, takenImage: null, chosenDocument: null})
+        this.setState({chosenImage: image, takenImage: null, chosenDocument: null});
+        this.props.setFormValue(this.props.fieldName, image);
     }
     _launchCameraAsync =async()=>{
         let {status} = Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL)
@@ -37,6 +39,7 @@ export default class Scald extends React.Component {
         }
         let image = await ImagePicker.launchCameraAsync()
         this.setState({takenImage: image, chosenImage: null, chosenDocument: null})
+
 
 
     }

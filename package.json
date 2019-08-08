@@ -20,6 +20,7 @@
     "expo-asset": "^5.0.1",
     "expo-background-fetch": "~5.0.1",
     "expo-constants": "~5.0.1",
+    "expo-file-system": "^6.0.2",
     "expo-font": "~5.0.1",
     "expo-sqlite": "~5.0.1",
     "expo-task-manager": "~5.0.1",
