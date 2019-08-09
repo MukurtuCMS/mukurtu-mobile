@@ -453,106 +453,25 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueScald(fieldName, value, valueKey, lang = 'und', error = null, index = '0') {
+  setFormValueScald(fieldName, value, valueKey = 'sid', lang = 'und', error = null, index = '0') {
     // Save the URI to form state so that we can pass as prop to the Scald form item
     // This allows us to persist the value so that we can tab within the form without losing it
     this.setState({[fieldName]: value});
-
-
-    // Base64 encode file for submission
-    FileSystem.readAsStringAsync(value.uri, {'encoding': FileSystem.EncodingType.Base64})
-        .then((base64File) => {
-          return base64File;
-        })
-        .then((file) => {
-
-          // Submit the file to the Drupal site
-          // Using Axios so we can do a progress indicator
-          let filename = value.uri.split('/').pop();
-
-          const data = {
-            method: 'post',
-            mode: 'cors',
-            cache: 'no-cache',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'X-CSRF-Token': this.state.token,
-              'Cookie': this.state.cookie
-            },
-            redirect: 'follow',
-            referrer: 'no-referrer',
-            data: {
-              'filename': filename,
-              'file': file
+    if (this.state.formValues) {
+      let formValues = this.state.formValues;
+      let values = {
+        [fieldName]: {
+          [lang]: {
+            [index]: {
+              ['sid']: value
             }
-          };
-
-
-          let url = this.props.url;
-
-          let config = {
-            onUploadProgress: function(progressEvent) {
-              let percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
-              console.log('percent completed');
-              console.log(percentCompleted);
-            }
-          };
-          return axios.post(url + '/app/file', data, config);
-
-          // return fetch(url + '/app/file', data);
-        })
-        .then((response) => response.json())
-        .then((response) => {
-
-          // Get the file id
-          let fid = response.fid;
-          // Now we submit the file to create the atom
-          const data = {
-            method: 'post',
-            mode: 'cors',
-            cache: 'no-cache',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'X-CSRF-Token': this.state.token,
-              'Cookie': this.state.cookie
-            },
-            redirect: 'follow',
-            referrer: 'no-referrer',
-          };
-
-
-          let url = this.props.url;
-          return fetch(url + '/app/scald/create?id=' + fid, data);
-        })
-        .then((response) => response.json())
-        .then((response) => {
-
-          // Now we have the scald ID, and we need to set that as the form state for node submission
-          console.log(response);
-          let sid = response.sid;
-
-          if (this.state.formValues) {
-            let formValues = this.state.formValues;
-             let values = {
-               [fieldName]: {
-                 [lang]: {
-                   [index]: {
-                     ['sid']: sid
-                   }
-                 }
-               }
-             };
-            Object.assign(formValues, values);
-            this.setState({formValues: formValues});
-
           }
+        }
+      };
+      Object.assign(formValues, values);
+      this.setState({formValues: formValues});
 
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+    }
   }
 
 
@@ -813,7 +732,7 @@ export default class FormComponent extends React.Component {
               // first determine if field is scald library because in FAPI that is a textfield
               if (fieldArray['#preview_context'] && fieldArray['#preview_context'] === 'mukurtu_scald_media_assets_edit_') {
                 let chosenImage = null;
-                if(this.state[fieldName]) {
+                if (this.state[fieldName]) {
                   chosenImage = this.state[fieldName];
                 }
 
@@ -825,7 +744,10 @@ export default class FormComponent extends React.Component {
                     setFormValue={this.setFormValueScald.bind(this)}
                     formErrors={this.state.formErrors}
                     description={description}
-                    chosenImage = {chosenImage}
+                    chosenImage={chosenImage}
+                    cookie={this.state.cookie}
+                    token={this.state.token}
+                    url={this.props.url}
                 />);
               } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
