@@ -466,12 +466,10 @@ export default class FormComponent extends React.Component {
         })
         .then((file) => {
 
-
+          // Submit the file to the Drupal site
+          // Using Axios so we can do a progress indicator
           let filename = value.uri.split('/').pop();
-          let body = {
-            'filename': filename,
-            'file': file
-          };
+
           const data = {
             method: 'post',
             mode: 'cors',
@@ -484,13 +482,25 @@ export default class FormComponent extends React.Component {
             },
             redirect: 'follow',
             referrer: 'no-referrer',
-            body: JSON.stringify(body)
+            data: {
+              'filename': filename,
+              'file': file
+            }
           };
 
 
           let url = this.props.url;
 
-          return fetch(url + '/app/file', data);
+          let config = {
+            onUploadProgress: function(progressEvent) {
+              let percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
+              console.log('percent completed');
+              console.log(percentCompleted);
+            }
+          };
+          return axios.post(url + '/app/file', data, config);
+
+          // return fetch(url + '/app/file', data);
         })
         .then((response) => response.json())
         .then((response) => {
