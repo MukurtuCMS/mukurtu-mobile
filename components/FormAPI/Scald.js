@@ -18,9 +18,8 @@ export default class Scald extends React.Component {
 
     _launchDocumentAsync =async ()=>{
         let result = await DocumentPicker.getDocumentAsync({});
-        alert(result.uri);
         this.setState({chosenDocument: result, chosenImage: null, takenImage: null});
-        console.log(result);
+        this.props.setFormValue(this.props.fieldName, result);
     }
     _launchCameraRollAsync =async ()=>{
         let {status} = await Permissions.askAsync(Permissions.CAMERA_ROLL);
@@ -43,9 +42,7 @@ export default class Scald extends React.Component {
         }
         let image = await ImagePicker.launchCameraAsync()
         this.setState({takenImage: image, chosenImage: null, chosenDocument: null})
-
-
-
+        this.props.setFormValue(this.props.fieldName, image);
     }
     removeFile = () =>{
         this.setState({chosenImage: null, takenImage: null, chosenDocument: null})
