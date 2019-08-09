@@ -454,13 +454,12 @@ export default class FormComponent extends React.Component {
 
 
   setFormValueScald(fieldName, value, valueKey, lang = 'und', error = null, index = '0') {
+    // Save the URI to form state so that we can pass as prop to the Scald form item
+    // This allows us to persist the value so that we can tab within the form without losing it
+    this.setState({[fieldName]: value});
+
+
     // Base64 encode file for submission
-    // let base64file = await FileSystem.readAsStringAsync(value.uri, {'encoding': FileSystem.EncodingType.Base64});
-
-    // let base64file = async () => {
-    //   await FileSystem.readAsStringAsync(value.uri, {'encoding': FileSystem.EncodingType.Base64});
-    // };
-
     FileSystem.readAsStringAsync(value.uri, {'encoding': FileSystem.EncodingType.Base64})
         .then((base64File) => {
           return base64File;
@@ -803,6 +802,11 @@ export default class FormComponent extends React.Component {
 
               // first determine if field is scald library because in FAPI that is a textfield
               if (fieldArray['#preview_context'] && fieldArray['#preview_context'] === 'mukurtu_scald_media_assets_edit_') {
+                let chosenImage = null;
+                if(this.state[fieldName]) {
+                  chosenImage = this.state[fieldName];
+                }
+
                 form[i].push(<Scald
                     formValues={this.state.formValues}
                     fieldName={fieldName}
@@ -811,6 +815,7 @@ export default class FormComponent extends React.Component {
                     setFormValue={this.setFormValueScald.bind(this)}
                     formErrors={this.state.formErrors}
                     description={description}
+                    chosenImage = {chosenImage}
                 />);
               } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield

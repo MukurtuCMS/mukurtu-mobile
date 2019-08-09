@@ -6,11 +6,15 @@ import Required from "./Required";
 
 export default class Scald extends React.Component {
 
-    state = {
-        chosenImage: null,
-        takenImage:null,
-        chosenDocument:null
-    };
+    constructor(props) {
+        super(props);
+        this.state = {
+            chosenImage: this.props.chosenImage,
+            takenImage:null,
+            chosenDocument:null
+        };
+
+    }
 
     _launchDocumentAsync =async ()=>{
         let result = await DocumentPicker.getDocumentAsync({});
@@ -69,6 +73,7 @@ export default class Scald extends React.Component {
         if (this.state.chosenDocument || this.state.chosenImage || this.state.takenImage) {
             showRemoveFile = true;
         }
+
 
         return (
             <View style={styles.container}>
