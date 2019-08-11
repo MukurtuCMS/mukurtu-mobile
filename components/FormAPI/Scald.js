@@ -14,7 +14,8 @@ export default class Scald extends React.Component {
     this.state = {
       chosenImage: this.props.chosenImage,
       takenImage: null,
-      chosenDocument: null
+      chosenDocument: null,
+      overRidden: false
     };
     this.handleUpload = this.handleUpload.bind(this);
     // this._launchCameraRollAsync = this._launchCameraRollAsync.bind(this);
@@ -22,9 +23,8 @@ export default class Scald extends React.Component {
 
 
   handleUpload(fieldName, value, valueKey, lang = 'und', error = null, index = '0') {
+    this.setState({'overRidden': true})
 
-
-    let that = this;
     FileSystem.readAsStringAsync(value.uri, {'encoding': FileSystem.EncodingType.Base64})
         .then((base64File) => {
           return base64File;
@@ -35,25 +35,6 @@ export default class Scald extends React.Component {
           // Using Axios so we can do a progress indicator
           let filename = value.uri.split('/').pop();
           let postUrl = this.props.url + '/app/file';
-
-          // const data = {
-          //   method: 'post',
-          //   url: postUrl,
-          //   // mode: 'cors',
-          //   // cache: 'no-cache',
-          //   headers: {
-          //     'Accept': 'application/json',
-          //     'Content-Type': 'application/json',
-          //     'X-CSRF-Token': this.props.token,
-          //     'Cookie': this.props.cookie
-          //   },
-          //   // redirect: 'follow',
-          //   // referrer: 'no-referrer',
-          //   data: {
-          //     'filename': filename,
-          //     'file': file
-          //   }
-          // };
 
 
           let result = axios({
@@ -72,7 +53,7 @@ export default class Scald extends React.Component {
             // redirect: 'follow',
             // referrer: 'no-referrer',
             onUploadProgress: (progressEvent) => {
-              let percentCompleted = progressEvent.loaded/ progressEvent.total;
+              let percentCompleted = progressEvent.loaded / progressEvent.total;
               this.setState({'percent': percentCompleted})
             }
           });
@@ -150,10 +131,62 @@ export default class Scald extends React.Component {
     this.handleUpload(this.props.fieldName, image);
   }
   removeFile = () => {
-    this.setState({chosenImage: null, takenImage: null, chosenDocument: null})
+    this.setState({chosenImage: null, takenImage: null, chosenDocument: null, overRidden: true})
   }
 
   render() {
+
+    // Check for existing media value, load it from drupal if it's there
+    let fieldName = this.props.fieldName;
+    if (!this.state.overRidden &&
+        this.props.formValues[fieldName] &&
+        this.props.formValues[fieldName]['und'] &&
+        this.props.formValues[fieldName]['und'][0] &&
+        this.props.formValues[fieldName]['und'][0]['sid']
+    ) {
+      let sid = this.props.formValues[fieldName]['und'][0]['sid'];
+
+
+      const data = {
+        method: 'get',
+        mode: 'cors',
+        cache: 'no-cache',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': this.props.token,
+          'Cookie': this.props.cookie
+        },
+        redirect: 'follow',
+        referrer: 'no-referrer',
+      };
+
+
+      let url = this.props.url;
+      fetch(url + '/app/scald/retrieve/' + sid, data)
+          .then((response) => {
+            return response.json();
+          })
+          .then((response) => {
+
+
+            if(typeof response.base_entity !== 'undefined') {
+
+              this.setState({
+                'chosenDocument': {
+                  'name': response.base_entity.filename
+                }
+              })
+            }
+
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+
+    }
+
+
     const field = this.props.field;
     let chosenDocumentText = "Select document";
     let chosenImageText = "Select image";
@@ -178,13 +211,13 @@ export default class Scald extends React.Component {
     }
 
     let line;
-    if(this.state.percent && this.state.percent > 0 && this.state.percent < 1) {
+    if (this.state.percent && this.state.percent > 0 && this.state.percent < 1) {
       line =
           <View>
             <Text>Uploading...</Text>
-            <ProgressBar progress={this.state.percent} width={200} />
+            <ProgressBar progress={this.state.percent} width={200}/>
           </View>
-    } else if(this.state.percent && this.state.percent === 1) {
+    } else if (this.state.percent && this.state.percent === 1) {
       line =
           <View>
             <Text>Upload Complete</Text>
