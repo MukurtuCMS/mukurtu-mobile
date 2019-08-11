@@ -453,21 +453,35 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueScald(fieldName, value, valueKey = 'sid', lang = 'und', error = null, index = '0') {
+  setFormValueScald(fieldName, value, index = '0', valueKey = 'sid', lang = 'und', error = null) {
     // Save the URI to form state so that we can pass as prop to the Scald form item
     // This allows us to persist the value so that we can tab within the form without losing it
-    this.setState({[fieldName]: value});
+    this.setState({
+      [fieldName]: {
+          [index]: value
+      }
+    });
     if (this.state.formValues) {
       let formValues = this.state.formValues;
-      let values = {
-        [fieldName]: {
-          [lang]: {
-            [index]: {
-              ['sid']: value
+      let values;
+      // If we already have a form value for this field, this is a new index
+      if(typeof formValues[fieldName] !== 'undefined') {
+        formValues[fieldName][lang][index] = {
+          ['sid']: value
+        };
+        let tempvalue = formValues[fieldName];
+        values = {[fieldName]: tempvalue}
+      } else {
+        values = {
+          [fieldName]: {
+            [lang]: {
+              [index]: {
+                ['sid']: value
+              }
             }
           }
-        }
-      };
+        };
+      }
       Object.assign(formValues, values);
       this.setState({formValues: formValues});
 
@@ -735,6 +749,11 @@ export default class FormComponent extends React.Component {
                 if (this.state[fieldName]) {
                   chosenImage = this.state[fieldName];
                 }
+                let cardinality = null;
+
+                if(originalFieldArray['und']) {
+                  cardinality = originalFieldArray['und']['#cardinality'];
+                }
 
                 form[i].push(<Scald
                     formValues={this.state.formValues}
@@ -748,6 +767,7 @@ export default class FormComponent extends React.Component {
                     cookie={this.state.cookie}
                     token={this.state.token}
                     url={this.props.url}
+                    cardinality={cardinality}
                 />);
               } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
