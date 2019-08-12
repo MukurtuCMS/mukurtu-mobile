@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, Picker, View, Text, StyleSheet, Button} from 'react-native';
+import {Image, Picker, View, Text, StyleSheet, Button, WebView} from 'react-native';
 import {DocumentPicker, ImagePicker, Permissions} from 'expo';
 import Constants from 'expo-constants'
 import Required from "./Required";
@@ -20,11 +20,21 @@ export default class Scald extends React.Component {
       numberOfValues: 1,
     };
     this.handleUpload = this.handleUpload.bind(this);
-    // this._launchCameraRollAsync = this._launchCameraRollAsync.bind(this);
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+      // Set the number of values state when we have it
+      if(this.props.formValues.field_media_asset && this.props.formValues.field_media_asset.und &&
+          (!prevProps.formValues.field_media_asset)) {
+          let count = this.props.formValues.field_media_asset.und.length;
+          if(count !== this.state.numberOfValues) {
+              this.setState({numberOfValues: count})
+          }
+      }
   }
 
 
-  handleUpload(fieldName, value, index = '0', lang = 'und', error = null,) {
+    handleUpload(fieldName, value, index = '0', lang = 'und', error = null,) {
 
     let indexState = this.state[index];
     indexState['overriden'] = true;
@@ -216,22 +226,34 @@ export default class Scald extends React.Component {
             .then((response) => {
 
 
-              if (typeof response.base_entity !== 'undefined') {
+              // First check for youtube video
+              if(response.base_id && response.provider === 'scald_youtube') {
+                this.setState({
+                  [i]: {
+                    'chosenDocument': {
+                      // 'name': response.base_entity.filename,
+                      'url': 'https://www.youtube.com/watch?v=' + response.base_id
+                    }
+                  }
+                })
+              }else if(response.base_id && response.provider === 'scald_file') {
+                this.setState({
+                  [i]: {
+                    'chosenDocument': {
+                      'name': response.base_entity.filename,
+                       'uri': response.file_url
+                    }
+                  }
+                })
+              }
+
+              else if (typeof response.base_entity !== 'undefined') {
                 // still need to detect whether this is a doc or an image
-                  // Convert URI to URL
-                  let uri = response.base_entity.uri;
-                  // Get the file director
-                  let uriarray = uri.split('://');
-                  let dir = uriarray[0];
-                  let filename = uriarray[1];
-
-                  let fileurl = url + '/sites/default/files/' + dir + '/' + filename;
-
                 this.setState({
                   [i]: {
                     'chosenImage': {
                       'name': response.base_entity.filename,
-                       'url': fileurl
+                       'url': response.thumbnail_url
                     }
                   }
                 })
@@ -263,7 +285,7 @@ export default class Scald extends React.Component {
         removeFileText = "Remove Document";
       }
 
-      if (this.state[i] && (this.state[i].chosenDocument || this.state[i].chosenImage || this.state[i].takenImage)) {
+      if (this.state[i] && (this.state[i].chosenDocument || this.state[i].chosenImage || this.state[i].takenImage || this.state[i].youtube)) {
         showRemoveFile = true;
       }
 
@@ -322,6 +344,17 @@ export default class Scald extends React.Component {
               height: 200,
               width: 200
             }}/>;
+      } else if (this.state[i] && this.state[i].youtube) {
+
+        // Using WebView to avoid getting an Api Key for YouTube element
+        image = <WebView
+            style={{
+              height: 200,
+              width: 200
+            }}
+            javaScriptEnabled={true}
+            source={{uri: this.state[i].youtube.url}}
+        />
       }
 
 

@@ -268,8 +268,9 @@ const saveAtom = (sid, data, state) => {
         }
       );
 
-      const fid = atom.base_entity.fid;
-      if (fid) {
+
+      if (atom.base_entity && atom.base_entity.fid) {
+        const fid = atom.base_entity.fid;
         // now grab file blob and save to filesystem
         fetch(state.siteUrl + '/app/file/' + fid + '.json', data)
           .then((response) => response.json())
