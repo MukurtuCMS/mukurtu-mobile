@@ -4,13 +4,14 @@ import {
   Text,
   View,
   ScrollView,
-  Dimensions
+  Dimensions, WebView, Image
 } from 'react-native';
 import {SQLite} from 'expo-sqlite';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
 import HTML from 'react-native-render-html';
 import {Star} from "../components/Star";
+import {ScaldItem} from "../components/ScaldItem";
 
 
 // create a global db for database list and last known user
@@ -97,13 +98,13 @@ class NodeScreen extends React.Component {
         .then((responseJson) => {
           if (typeof responseJson === 'object' && responseJson !== null) {
 
-            if(responseJson[currentContentType]['valid type for personal collection'] == 1) {
+            if (responseJson[currentContentType]['valid type for personal collection'] == 1) {
               this.setState({'personalCollectionValid': true});
               return true;
             }
 
-            }
-          })
+          }
+        })
         .catch((error) => {
           return false;
         });
@@ -114,15 +115,13 @@ class NodeScreen extends React.Component {
   render() {
 
 
-
-
     if (!this.state.displayModes) {
       return [];
     }
     const node = this.props.navigation.getParam('node');
 
     let showStar = false;
-    if(this.state.personalCollectionValid === true) {
+    if (this.state.personalCollectionValid === true) {
       showStar = true;
     } else {
       showStar = this.checkValidPersonalCollection(node.type);
@@ -138,6 +137,8 @@ class NodeScreen extends React.Component {
             <Text key={fieldName} style={styles.label}>{fieldObject.label}</Text>
         )
       }
+      let type = fieldObject.view_mode_properties.type;
+
       if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
@@ -209,6 +210,25 @@ class NodeScreen extends React.Component {
           }
         }
       }
+      if (fieldObject.view_mode_properties.type === 'ma_colorbox') {
+        // Scald item
+        let items = node[fieldName][lang];
+        for (i = 0; i < items.length; i++) {
+
+          let sid = items[i].sid;
+          renderedNode.push(
+              <ScaldItem
+                  token={this.props.screenProps.token}
+                  cookie={this.props.screenProps.cookie}
+                  url={this.state.url}
+                  sid={sid}
+              />
+          );
+
+        }
+      }
+
+
       if (fieldObject.view_mode_properties.type === 'node_reference_default' || fieldObject.view_mode_properties.type === 'entityreference_label') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
@@ -227,7 +247,8 @@ class NodeScreen extends React.Component {
               }
               if (!nid || nid === undefined) {
                 errorMessage =
-                    <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+                    <Text style={styles.syncError}>In order to view the content in this field, in your browser sync
+                      this
                       item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
@@ -241,7 +262,8 @@ class NodeScreen extends React.Component {
             }
             if (oneExists) {
               errorMessage =
-                  <Text style={styles.syncError}>In order to view all of the content in this field, in your browser sync
+                  <Text style={styles.syncError}>In order to view all of the content in this field, in your browser
+                    sync
                     this item to Mukurtu Mobile.</Text>
             }
           }
@@ -261,8 +283,9 @@ class NodeScreen extends React.Component {
     }
 
     let star = null;
-    if(showStar) {
-      {/*Pass nodes to star so we can filter out personal collection*/}
+    if (showStar) {
+      {/*Pass nodes to star so we can filter out personal collection*/
+      }
       star = <Star
           starred={false}
           nid={node.nid}
@@ -278,6 +301,7 @@ class NodeScreen extends React.Component {
 
     return (
         <ScrollView style={styles.container}>
+          <Text>{this.state.media_text}</Text>
           {star}
           {renderedNode}
         </ScrollView>
@@ -285,30 +309,31 @@ class NodeScreen extends React.Component {
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#DCDCDC',
-  },
-  label: {
-    marginBottom: 5,
-    color: '#000',
-    fontSize: 24
-  },
-  text: {
-    marginBottom: 10,
-    color: '#000',
-    fontSize: 16
-  },
-  map: {
-    width: Dimensions.get('window').width - 20,
-    height: 300,
-    marginLeft: 10,
-    marginBottom: 10
-  },
-  syncError: {
-    fontSize: 12
-  }
-});
+const
+    styles = StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: '#DCDCDC',
+      },
+      label: {
+        marginBottom: 5,
+        color: '#000',
+        fontSize: 24
+      },
+      text: {
+        marginBottom: 10,
+        color: '#000',
+        fontSize: 16
+      },
+      map: {
+        width: Dimensions.get('window').width - 20,
+        height: 300,
+        marginLeft: 10,
+        marginBottom: 10
+      },
+      syncError: {
+        fontSize: 12
+      }
+    });
 
 export default NodeScreen;
