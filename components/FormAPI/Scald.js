@@ -174,8 +174,7 @@ export default class Scald extends React.Component {
     for (let i = 0; i < this.state.numberOfValues; i++) {
 
       // Check for existing media value, load it from drupal if it's there
-      if (this.state[i] &&
-          !this.state[i]['overRidden'] &&
+      if (!(this.state[i] && !this.state[i]['overRidden']) &&
           this.props.formValues[fieldName] &&
           this.props.formValues[fieldName]['und'] &&
           this.props.formValues[fieldName]['und'][i] &&
