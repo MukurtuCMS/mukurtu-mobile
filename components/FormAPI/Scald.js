@@ -7,6 +7,11 @@ import * as FileSystem from "expo-file-system";
 import axios from "axios";
 import ProgressBar from 'react-native-progress/Bar';
 
+// To do on this if we have time:
+// 1. Ensure that if images are removed they're removed from drupal side.
+// 2. Improve UI for when images are loading so that buttons aren't usable.
+
+
 export default class Scald extends React.Component {
 
   constructor(props) {
@@ -114,12 +119,14 @@ export default class Scald extends React.Component {
 
   _launchDocumentAsync = async (index) => {
     let result = await DocumentPicker.getDocumentAsync({});
-    this.setState({
-      [index]: {
-        chosenDocument: result, chosenImage: null, takenImage: null
-      }
-    });
-    this.handleUpload(this.props.fieldName, result, index);
+    if(result.type !== 'cancel') {
+        this.setState({
+            [index]: {
+                chosenDocument: result, chosenImage: null, takenImage: null
+            }
+        });
+        this.handleUpload(this.props.fieldName, result, index);
+    }
   }
   _launchCameraRollAsync = async (index) => {
     let {status} = await Permissions.askAsync(Permissions.CAMERA_ROLL);
@@ -132,13 +139,15 @@ export default class Scald extends React.Component {
       aspect: [4, 3],
       exif: true,
     })
-    this.setState({
-      [index]: {
-        chosenImage: image, takenImage: null, chosenDocument: null
-      }
-    });
+      if(!image.cancelled) {
+          this.setState({
+              [index]: {
+                  chosenImage: image, takenImage: null, chosenDocument: null
+              }
+          });
 
-    this.handleUpload(this.props.fieldName, image, index);
+          this.handleUpload(this.props.fieldName, image, index);
+      }
 
   }
   _launchCameraAsync = async (index) => {
@@ -147,12 +156,14 @@ export default class Scald extends React.Component {
       console.log("Camera permission Denied")
     }
     let image = await ImagePicker.launchCameraAsync()
-    this.setState({
-      [index]: {
-        takenImage: image, chosenImage: null, chosenDocument: null
+      if(image.cancelled) {
+          this.setState({
+              [index]: {
+                  takenImage: image, chosenImage: null, chosenDocument: null
+              }
+          });
+          this.handleUpload(this.props.fieldName, image, index);
       }
-    })
-    this.handleUpload(this.props.fieldName, image, index);
   }
 
   removeFile = (index) => {
@@ -206,11 +217,21 @@ export default class Scald extends React.Component {
 
 
               if (typeof response.base_entity !== 'undefined') {
-                // still need to get image url
+                // still need to detect whether this is a doc or an image
+                  // Convert URI to URL
+                  let uri = response.base_entity.uri;
+                  // Get the file director
+                  let uriarray = uri.split('://');
+                  let dir = uriarray[0];
+                  let filename = uriarray[1];
+
+                  let fileurl = url + '/sites/default/files/' + dir + '/' + filename;
+
                 this.setState({
                   [i]: {
-                    'chosenDocument': {
-                      'name': response.base_entity.filename
+                    'chosenImage': {
+                      'name': response.base_entity.filename,
+                       'url': fileurl
                     }
                   }
                 })
@@ -288,8 +309,15 @@ export default class Scald extends React.Component {
 
       let image;
       if (this.state[i] && this.state[i].chosenImage) {
+
+          let imgSrc;
+          if(this.state[i].chosenImage.uri) {
+             imgSrc = {uri: this.state[i].chosenImage.uri}
+          } else if(this.state[i].chosenImage.url) {
+              imgSrc = {uri: this.state[i].chosenImage.url}
+          }
         image = <Image
-            source={{uri: this.state[i].chosenImage.uri}}
+            source={imgSrc}
             style={{
               height: 200,
               width: 200
