@@ -68,6 +68,37 @@ export default class HomeScreen extends React.Component {
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
     this.checkInitialConnection();
     this.componentActive();
+
+
+    // Get our viewable fields to pass to the node teaser
+    let contentType = this.props.navigation.state.params.contentType;
+
+
+    const data = {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': this.props.screenProps.token,
+        'Cookie': this.props.screenProps.cookie,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': 0
+      }
+    };
+
+    // Get the fields we're supposed to display from the endpoint
+    fetch(this.props.screenProps.siteUrl + '/app/list-view-fields/retrieve/' + contentType, data)
+        .then((response) => response.json())
+        .then((responseJson) => {
+          this.setState({'viewableFields': responseJson});
+        })
+
+        .catch((error)=>{
+          console.log(error);
+
+        })
+
   }
 
   checkInitialConnection = async () => {
@@ -174,8 +205,6 @@ export default class HomeScreen extends React.Component {
     };
 
     let contentType = this.props.navigation.state.params.contentType;
-    let validFilters = [];
-
     fetch(this.props.screenProps.siteUrl + '/app/viewable-types/retrieve', data)
         .then((response) => response.json())
         .then((responseJson) => {
@@ -612,7 +641,14 @@ export default class HomeScreen extends React.Component {
             {collectionList}
             {
               filteredContentList.map((node) => (
-                  <NodeTeaser key={i++} node={node} navigation={this.props.navigation}/>
+                  <NodeTeaser
+                      key={i++}
+                      node={node}
+                      viewableFields={this.state.viewableFields}
+                      token={this.props.screenProps.token}
+                      cookie={this.props.screenProps.cookie}
+                      url={this.props.screenProps.siteUrl}
+                  />
               ))
             }
           </View>
@@ -621,7 +657,7 @@ export default class HomeScreen extends React.Component {
     );
   }
 
-  _maybeRenderDevelopmentModeWarning() {
+_maybeRenderDevelopmentModeWarning() {
     if (__DEV__) {
       const learnMoreButton = (
           <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>

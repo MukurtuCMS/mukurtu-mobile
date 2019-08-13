@@ -1,6 +1,7 @@
 import React from 'react';
 import { TextInput, View, Text, StyleSheet } from 'react-native';
 import { Feather }  from '@expo/vector-icons';
+import {ScaldItem} from "../ScaldItem";
 
 export default class NodeTeaser extends React.Component {
 
@@ -20,6 +21,12 @@ export default class NodeTeaser extends React.Component {
         })
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if(this.props.viewableFields !== prevProps.viewableFields) {
+            this.setState({'viewableFields': this.props.viewableFields});
+        }
+    }
+
     render() {
         const node = this.props.node;
 
@@ -31,10 +38,39 @@ export default class NodeTeaser extends React.Component {
                 body = body[0]['safe_value'].replace(regex, '');
             }
         }
+
+        // Get our fields from list of viewable fields
+        let viewableFields = [];
+        if(this.state && this.state.viewableFields) {
+            for (let [key, value] of Object.entries(this.state.viewableFields)) {
+                if(typeof node.entity[key] !== 'undefined' &&
+                    typeof node.entity[key]['und'] !== 'undefined' &&
+                    typeof node.entity[key]['und']['0']['sid'] !== 'undefined') {
+                    viewableFields.push(
+                    <ScaldItem
+                        token={this.props.token}
+                        cookie={this.props.cookie}
+                        url={this.props.url}
+                        sid={node.entity[key]['und']['0']['sid']}
+                    />
+                    )
+                }else if(typeof node.entity[key] !== 'undefined' &&
+                    typeof node.entity[key]['und'] !== 'undefined' &&
+                    typeof node.entity[key]['und']['0']['safe_value'] !== 'undefined'
+                ) {
+                    viewableFields.push(
+                        <Text>{node.entity[key]['und']['0']['safe_value']}</Text>
+                    )
+                }
+
+            }
+        }
+
         return <View style={styles.nodeWrapper}>
             <View style={styles.nodeInnerWrapper}>
                 <Text style={styles.nodeTitle} onPress={() => this.viewNode()}>{node.title}</Text>
                 <Text style={styles.nodeBody} numberOfLines={2}>{body}</Text>
+                {viewableFields}
             </View>
             <View style={styles.nodeEditWrapper}>
                 <Feather onPress={() => this.editNode()} name="edit" size={24} color="gray" />
