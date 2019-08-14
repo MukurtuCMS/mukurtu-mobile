@@ -657,6 +657,7 @@ export default class HomeScreen extends React.Component {
     );
   }
 
+
 _maybeRenderDevelopmentModeWarning() {
     if (__DEV__) {
       const learnMoreButton = (
