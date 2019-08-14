@@ -148,6 +148,10 @@ export default class HomeScreen extends React.Component {
   }
 
   updateNodes(array) {
+    if(!this.state.allNodes) {
+      this.setState({'allNodes': array});
+    }
+
     let nodeList = {};
     // let's parse the json blobs before setting state
     for (var i = 0; i < array.length; i++) {
@@ -648,6 +652,10 @@ export default class HomeScreen extends React.Component {
                       token={this.props.screenProps.token}
                       cookie={this.props.screenProps.cookie}
                       url={this.props.screenProps.siteUrl}
+                      db={this.state.db}
+                      terms={this.state.terms}
+                      allNodes={this.state.allNodes}
+                      navigation={this.props.navigation}
                   />
               ))
             }
