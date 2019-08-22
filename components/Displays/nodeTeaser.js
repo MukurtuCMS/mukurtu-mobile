@@ -2,6 +2,7 @@ import React from 'react';
 import {TextInput, View, Text, StyleSheet} from 'react-native';
 import {Feather} from '@expo/vector-icons';
 import {ScaldItem} from "../ScaldItem";
+import {ParagraphView} from "../ParagraphView";
 
 export default class NodeTeaser extends React.Component {
 
@@ -100,6 +101,23 @@ export default class NodeTeaser extends React.Component {
                 </View>
             )
           }
+        }
+        // Paragraph
+        else if (typeof node.entity[key] !== 'undefined' &&
+            typeof node.entity[key]['und'] !== 'undefined' &&
+            typeof node.entity[key]['und']['0']['revision_id'] !== 'undefined'
+        ) {
+          viewableFields.push(
+              <View>
+                <ParagraphView
+                    token={this.props.token}
+                    cookie={this.props.cookie}
+                    url={this.props.url}
+                    pid={node.entity[key]['und']['0']['value']}
+                    viewableFields={this.state.viewableFields[key]['fields']}
+                />
+              </View>
+          )
         }
 
       }
