@@ -163,6 +163,8 @@ export default class HomeScreen extends React.Component {
       }
     }
 
+
+
     this.setState({nodes: array, filteredContentList: array, nodeList: nodeList});
     this.updateFilters();
   }
@@ -347,6 +349,10 @@ export default class HomeScreen extends React.Component {
 
   getFilteredContentList = () => {
     let filteredContentList = this.state.nodes;
+
+    // First we want to restrict this to just the nodes in this content type
+    filteredContentList = filteredContentList.filter(node => (node.entity.type === this.props.navigation.state.params.contentType));
+
     if (this.state.categoriesSelected !== '0') {
       filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_category, this.state.categoriesSelected));
     }
