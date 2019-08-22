@@ -34,6 +34,27 @@ class LogoutScreen extends React.Component {
     this._handleLogoutStatusUpdate = screenProps._handleLogoutStatusUpdate.bind(this);
   }
 
+  componentDidMount() {
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('delete from auth;',
+        );
+      }
+    );
+
+    // we need to remove our global user
+    globalDB.transaction(
+      tx => {
+        tx.executeSql('delete from user;',
+        );
+      }
+    );
+
+
+    this._handleLogoutStatusUpdate(false);
+    this._handleSiteUrlUpdate('');
+  }
+
 
   handleLogoutClick(viewId) {
     this.state.db.transaction(
