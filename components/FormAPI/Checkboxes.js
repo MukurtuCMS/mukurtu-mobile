@@ -57,8 +57,13 @@ export default class Checkboxes extends React.Component {
                     key={value}
                     title={label}
                     containerStyle={checkboxStyle}
+                    iconType='material'
+                    checkedIcon='check-box'
+                    uncheckedIcon='check-box-outline-blank'
+                    checkedColor={Colors.default.gold}
                     checked={this.determineCheckboxValue(this.props.fieldName, value, valueKey)}
                     onPress={() => this.props.setFormValue(this.props.fieldName, value, valueKey, lang, formErrorString)}
+                    textStyle={styles.textStyle}
                 ></CheckBox>
             );
         }
@@ -98,9 +103,21 @@ const styles = StyleSheet.create({
     },
     checkboxStyle: {
         borderRadius: 0,
+        backgroundColor: '#FFF',
+        borderColor: 'transparent',
+        padding: 0,
+        marginBottom: 5
     },
     checkboxStyleError: {
         borderRadius: 1,
-        borderColor: Colors.default.errorBackground
+        borderColor: Colors.default.errorBackground,
+        backgroundColor: '#FFF',
+        padding: 0,
+        marginBottom: 5
+    },
+    textStyle: {
+        fontWeight: 'normal',
+        fontSize: 14,
+        color: '#464646'
     }
 });

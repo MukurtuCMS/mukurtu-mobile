@@ -115,6 +115,7 @@ export default class Textfield extends React.Component {
 
       return (
           <TextInput
+              key={i}
               index={i}
               style={textfieldStyle}
               onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, formErrorString, this.props.index, i)}

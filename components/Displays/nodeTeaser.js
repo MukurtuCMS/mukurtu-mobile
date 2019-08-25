@@ -59,6 +59,7 @@ export default class NodeTeaser extends React.Component {
                     cookie={this.props.cookie}
                     url={this.props.url}
                     sid={node.entity[key]['und']['0']['sid']}
+                    db={this.props.db}
                 />
               </View>
           )

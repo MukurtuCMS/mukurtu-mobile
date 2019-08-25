@@ -58,7 +58,7 @@ export default class Date extends React.Component {
         <Required required={this.props.required}/>
         <DatePicker
           style={{width: 200}}
-          date={this.state.date}
+          style={styles.datePicker}
           mode="date"
           placeholder="select date"
           format="YYYY-MM-DD"
@@ -118,5 +118,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 1,
     borderColor: Colors.default.errorBackground
+  },
+  datePicker: {
+    width: 200,
+    height: 60,
+    paddingTop: 15
   }
 });
