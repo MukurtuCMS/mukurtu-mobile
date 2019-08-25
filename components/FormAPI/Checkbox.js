@@ -56,6 +56,11 @@ export default class Checkbox extends React.Component {
           title={field['#title']}
           checked={this.state.checked}
           containerStyle={checkboxStyle}
+          iconType='material'
+          checkedIcon='check-box'
+          uncheckedIcon='check-box-outline-blank'
+          checkedColor={Colors.default.gold}
+          textStyle={styles.textStyle}
           onPress={() => {
             this.setState({
               checked: !this.state.checked
@@ -89,9 +94,21 @@ const styles = StyleSheet.create({
   },
   checkboxStyle: {
     borderRadius: 0,
+    backgroundColor: '#FFF',
+    borderColor: 'transparent',
+    padding: 0,
+    marginBottom: 5
   },
   checkboxStyleError: {
     borderRadius: 1,
-    borderColor: Colors.default.errorBackground
+    borderColor: Colors.default.errorBackground,
+    backgroundColor: '#FFF',
+    padding: 0,
+    marginBottom: 5
+  },
+  textStyle: {
+    fontWeight: 'normal',
+    fontSize: 14,
+    color: '#464646'
   }
 });

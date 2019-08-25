@@ -17,6 +17,8 @@ import {ButtonGroup, Button, Text} from "react-native-elements";
 import axios from "axios";
 import {SQLite} from 'expo-sqlite';
 import * as Sync from "../MukurtuSync"
+import * as FileSystem from 'expo-file-system';
+import Colors from "../../constants/Colors";
 
 export default class FormComponent extends React.Component {
   constructor(props) {
@@ -451,6 +453,43 @@ export default class FormComponent extends React.Component {
     }
   }
 
+
+  setFormValueScald(fieldName, value, index = '0', valueKey = 'sid', lang = 'und', error = null) {
+    // Save the URI to form state so that we can pass as prop to the Scald form item
+    // This allows us to persist the value so that we can tab within the form without losing it
+    this.setState({
+      [fieldName]: {
+          [index]: value
+      }
+    });
+    if (this.state.formValues) {
+      let formValues = this.state.formValues;
+      let values;
+      // If we already have a form value for this field, this is a new index
+      if(typeof formValues[fieldName] !== 'undefined') {
+        formValues[fieldName][lang][index] = {
+          ['sid']: value
+        };
+        let tempvalue = formValues[fieldName];
+        values = {[fieldName]: tempvalue}
+      } else {
+        values = {
+          [fieldName]: {
+            [lang]: {
+              [index]: {
+                ['sid']: value
+              }
+            }
+          }
+        };
+      }
+      Object.assign(formValues, values);
+      this.setState({formValues: formValues});
+
+    }
+  }
+
+
   saveNode() {
     if (!this.props.screenProps.isConnected) {
       if (this.props.did) {
@@ -550,18 +589,22 @@ export default class FormComponent extends React.Component {
             });
             // Submit this nid to synced entities
 
-            if(responseJson.hasOwnProperty('nid')) {
+            if (responseJson.hasOwnProperty('nid')) {
               this.updateSyncedNids(responseJson.nid);
             }
 
           }
-        });
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+    ;
   }
 
   updateSyncedNids(nid) {
 
     fetch(this.props.url + '/app/synced-entities/create', {
-      method:'post',
+      method: 'post',
 
       mode: 'cors',
       cache: 'no-cache',
@@ -703,14 +746,29 @@ export default class FormComponent extends React.Component {
 
               // first determine if field is scald library because in FAPI that is a textfield
               if (fieldArray['#preview_context'] && fieldArray['#preview_context'] === 'mukurtu_scald_media_assets_edit_') {
+                let chosenImage = null;
+                if (this.state[fieldName]) {
+                  chosenImage = this.state[fieldName];
+                }
+                let cardinality = null;
+
+                if(originalFieldArray['und']) {
+                  cardinality = originalFieldArray['und']['#cardinality'];
+                }
+
                 form[i].push(<Scald
                     formValues={this.state.formValues}
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
-                    setFormValue={this.setFormValue}
+                    setFormValue={this.setFormValueScald.bind(this)}
                     formErrors={this.state.formErrors}
                     description={description}
+                    chosenImage={chosenImage}
+                    cookie={this.state.cookie}
+                    token={this.state.token}
+                    url={this.props.url}
+                    cardinality={cardinality}
                 />);
               } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
@@ -870,6 +928,8 @@ export default class FormComponent extends React.Component {
             buttons={buttons}
             containerStyle={styles.buttonContainer}
             buttonStyle={styles.buttonStyle}
+            textStyle={styles.textStyle}
+            selectedButtonStyle={styles.selectedButtonStyle}
         />;
 
       }
@@ -899,8 +959,6 @@ export default class FormComponent extends React.Component {
     } else {
       formDisplay = <View>
 
-        <JSONTree data={this.props.form}/>
-
         {buttonGroup}
         {form[this.state.selectedIndex]}
         <Button
@@ -922,10 +980,27 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     flex: 1,
     flexDirection: 'column',
-    height: 'auto'
+    height: 'auto',
+    padding: 0,
+    marginLeft: -10,
+    marginRight: -10,
+    width: 'auto',
   },
   buttonStyle: {
     flex: 1,
-    padding: 5
+    padding: 10,
+    backgroundColor: Colors.primary,
+    marginBottom: 10,
+    color: '#FFF',
+    fontSize: 16,
+  },
+  selectedButtonStyle: {
+    backgroundColor: Colors.gold,
+  },
+  textStyle: {
+    padding: 5,
+    color: '#FFF',
+    fontSize: 14,
+    textTransform: 'uppercase'
   }
 });
