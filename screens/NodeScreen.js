@@ -189,7 +189,6 @@ class NodeScreen extends React.Component {
         }
       }
       if (fieldObject.view_mode_properties.type === 'geofield_map_map') {
-        console.log(node[fieldName]);
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
@@ -226,6 +225,7 @@ class NodeScreen extends React.Component {
                   cookie={this.props.screenProps.cookie}
                   url={this.state.url}
                   sid={sid}
+                  db={this.state.db}
               />
           );
 
@@ -249,6 +249,27 @@ class NodeScreen extends React.Component {
           );
         }
       }
+
+/*      if (fieldObject.view_mode_properties.type === 'ma_colorbox') {
+        const nodeArray = node[fieldName][lang];
+        for (var i = 0; i < nodeArray.length; i++) {
+          const sid = nodeArray[i].sid;
+          this.state.db.transaction(
+            tx => {
+              tx.executeSql('select * from atom where sid = ?',
+                [sid],
+                (success, atoms) => {
+                  const atom = atoms.rows._array[0];
+                  renderedNode.push(<Text>atom.title</Text>);
+                },
+                (success, error) => ''
+              );
+            }
+          );
+        }
+        const sid = node[fieldName][lang]
+      }*/
+
 
       if (fieldObject.view_mode_properties.type === 'node_reference_default' || fieldObject.view_mode_properties.type === 'entityreference_label') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';

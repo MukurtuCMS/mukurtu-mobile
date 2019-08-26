@@ -15,10 +15,10 @@ import InitializingApp from "./components/InitializingApp"
 import AjaxSpinner from "./components/AjaxSpinner"
 import * as Sync from "./components/MukurtuSync"
 import * as ManageTables from "./components/ManageTables"
-
 import configureStore from './store';
 import axios from "axios";
 import {Feather} from "@expo/vector-icons";
+import AppHeader from "./components/AppHeader";
 
 const store = configureStore();
 const db = SQLite.openDatabase('db.db');
@@ -281,6 +281,7 @@ export default class App extends React.Component {
       return (
         <Provider store={store}>
           <View style={styles.container}>
+            <AppHeader loggedIn={this.state.loggedIn} />
             <AppNavigator screenProps={screenProps} />
           </View>
         </Provider>

@@ -18,6 +18,7 @@ import axios from "axios";
 import {SQLite} from 'expo-sqlite';
 import * as Sync from "../MukurtuSync"
 import * as FileSystem from 'expo-file-system';
+import Colors from "../../constants/Colors";
 
 export default class FormComponent extends React.Component {
   constructor(props) {
@@ -927,6 +928,8 @@ export default class FormComponent extends React.Component {
             buttons={buttons}
             containerStyle={styles.buttonContainer}
             buttonStyle={styles.buttonStyle}
+            textStyle={styles.textStyle}
+            selectedButtonStyle={styles.selectedButtonStyle}
         />;
 
       }
@@ -956,8 +959,6 @@ export default class FormComponent extends React.Component {
     } else {
       formDisplay = <View>
 
-        <JSONTree data={this.props.form}/>
-
         {buttonGroup}
         {form[this.state.selectedIndex]}
         <Button
@@ -979,10 +980,27 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     flex: 1,
     flexDirection: 'column',
-    height: 'auto'
+    height: 'auto',
+    padding: 0,
+    marginLeft: -10,
+    marginRight: -10,
+    width: 'auto',
   },
   buttonStyle: {
     flex: 1,
-    padding: 5
+    padding: 10,
+    backgroundColor: Colors.primary,
+    marginBottom: 10,
+    color: '#FFF',
+    fontSize: 16,
+  },
+  selectedButtonStyle: {
+    backgroundColor: Colors.gold,
+  },
+  textStyle: {
+    padding: 5,
+    color: '#FFF',
+    fontSize: 14,
+    textTransform: 'uppercase'
   }
 });

@@ -22,6 +22,7 @@ import JSONTree from 'react-native-json-tree'
 import SettingsList from "react-native-settings-list";
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import * as Colors from "../constants/Colors"
+import { Ionicons } from '@expo/vector-icons';
 
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global');
@@ -493,14 +494,20 @@ export default class HomeScreen extends React.Component {
 
     if (this.state.nodes.length < 1) {
       return (
+        <ScrollView style={styles.container}>
           <View>
-            <TextInput
-                style={styles.textInput}
-                onChangeText={(text) => this.setSearchText(text)}
+            <View style={styles.searchInputContainer}>
+              <Ionicons name="md-search" size={32} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInputInner}
+                placeholder="Search"
                 value={this.state.search}
-            />
+                onChangeText={(text) => this.setSearchText(text)}
+              />
+            </View>
             <Text>No nodes were found in offline storage.</Text>
           </View>
+        </ScrollView>
       )
     }
 
@@ -640,11 +647,15 @@ export default class HomeScreen extends React.Component {
         <ScrollView style={styles.container}>
 
           <View>
-            <TextInput
-                style={styles.textInput}
-                onChangeText={(text) => this.setSearchText(text)}
+            <View style={styles.searchInputContainer}>
+              <Ionicons name="md-search" size={32} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInputInner}
+                placeholder="Search"
                 value={this.state.search}
-            />
+                onChangeText={(text) => this.setSearchText(text)}
+              />
+            </View>
             {categoriesList}
             {keywordsList}
             {communityList}
@@ -848,6 +859,14 @@ const styles = StyleSheet.create({
     right: 10,
     top: 10
   },
+  searchIcon: {
+    color: '#333333',
+    fontSize: 32,
+    left: 5,
+    top: 6,
+    width: 40,
+    opacity: .5
+  },
   textInput: {
     backgroundColor: Colors.default.lightGray,
     height: 45,
@@ -855,7 +874,25 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingLeft: 10,
     paddingRight: 10
-  }
+  },
+  searchInputContainer: {
+    height: 60,
+    borderWidth: 1,
+    borderColor: Colors.default.mediumGray,
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+    padding: 8,
+    fontSize: 20,
+    flexDirection: 'row',
+  },
+  searchInputInner: {
+    height: 50,
+    backgroundColor: '#FFF',
+    fontSize: 20,
+    flex: 1,
+    marginTop: -4,
+  },
 });
 
 const pickerSelectStyles = StyleSheet.create({

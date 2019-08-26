@@ -1,7 +1,8 @@
 import React from 'react';
-import {Picker, View, Text} from 'react-native';
+import {Picker, View, Text, Platform, StyleSheet} from 'react-native';
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
+import * as Colors from "../../constants/Colors";
 
 export default class ConditionalSelect extends React.Component {
 
@@ -80,7 +81,7 @@ export default class ConditionalSelect extends React.Component {
 
 
       childPicker = <Picker
-          style={{height: 250, width: 'auto'}}
+          style={(Platform.OS === 'ios') ? styles.selectListIOS : styles.selectListAndroid}
           onValueChange={(itemValue, itemIndex, childKey) => {
             this.setState({
               childValue: itemValue
@@ -102,7 +103,7 @@ export default class ConditionalSelect extends React.Component {
       <FieldDescription description={(this.props.description) ? this.props.description : null} />
       <Required required={this.props.required}/>
       <Picker
-          style={{height: 250, width: 'auto'}}
+          style={(Platform.OS === 'ios') ? styles.selectListIOS : styles.selectListAndroid}
           // onValueChange={(val) => this.props.setFormValue(this.props.fieldName, val)}
           onValueChange={(itemValue, itemIndex) => {
               this.setState({parentValue: itemValue}, ()=> {
@@ -117,3 +118,21 @@ export default class ConditionalSelect extends React.Component {
     </View>;
   }
 }
+
+var styles = StyleSheet.create({
+  selectListAndroid: {
+    height: 60,
+    borderWidth: 1,
+    borderColor: Colors.default.mediumGray,
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+    padding: 8,
+    fontSize: 20,
+    width: 'auto'
+  },
+  selectListIOS: {
+    height: 100,
+    width: 'auto'
+  }
+});

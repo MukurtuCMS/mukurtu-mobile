@@ -232,8 +232,8 @@ class CreateContentFormScreen extends React.Component {
     }
 
     return (
-      <View style={{backgroundColor:'#EFEFF4',flex:1, padding: '5%'}}>
-        <ScrollView style={{backgroundColor:'#EFEFF4',flex:1}}>
+      <View style={{backgroundColor:'#FFFFFF',flex:1, padding: '5%'}}>
+        <ScrollView style={{backgroundColor:'#FFFFFF',flex:1}}>
           { nodeForm }
         </ScrollView>
       </View>
