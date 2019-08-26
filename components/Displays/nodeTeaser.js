@@ -18,7 +18,8 @@ export default class NodeTeaser extends React.Component {
     this.props.navigation.navigate('Node', {
       contentType: this.props.node.entity.type,
       contentTypeLabel: this.props.node.entity.title,
-      node: this.props.node.entity
+      node: this.props.node.entity,
+      terms: this.state.terms
     })
   }
 
@@ -114,7 +115,8 @@ export default class NodeTeaser extends React.Component {
                     cookie={this.props.cookie}
                     url={this.props.url}
                     pid={node.entity[key]['und']['0']['value']}
-                    viewableFields={this.state.viewableFields[key]['fields']}
+                    viewableFields={this.state.viewableFields}
+                    fieldName={key}
                 />
               </View>
           )

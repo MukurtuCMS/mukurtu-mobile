@@ -31,7 +31,7 @@ export default class Textarea extends React.Component {
         }
 
         let lang = 'und';
-        if (this.props.formValues[this.props.fieldName]) {
+        if (this.props.formValues[this.props.fieldName] && typeof Object.keys(this.props.formValues[this.props.fieldName]) !== 'undefined') {
             lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
         }
 
@@ -43,7 +43,9 @@ export default class Textarea extends React.Component {
             const initialKey = Object.keys(this.props.formValues[this.props.fieldName])[0];
             // console.log(this.props.fieldName);
             // console.log(this.props.formValues[this.props.fieldName]);
-            value = this.props.formValues[this.props.fieldName][initialKey]['0'][valueKey];
+            if(typeof this.props.formValues[this.props.fieldName][initialKey] !== 'undefined') {
+                value = this.props.formValues[this.props.fieldName][initialKey]['0'][valueKey];
+            }
         }
 
         let errorMarkup = [];

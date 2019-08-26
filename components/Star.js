@@ -70,12 +70,26 @@ export class Star extends React.Component {
 
     personalCollectionArray = personalCollectionArray[0];
 
-    // Update with new value. This doesn't check for existing ones yet — need to fix the submit on the drupal side to test that
-    personalCollectionArray.field_digital_heritage_items = {
-      'und': {
-        '0': this.props.nid
+    // Check for existing values
+    if(typeof personalCollectionArray.field_digital_heritage_items['und'] !== undefined) {
+      // These come with target_id keys, but we don't need those for submission
+      let submissionValues = [];
+      for (let i = 0; i < personalCollectionArray.field_digital_heritage_items['und'].length; i++) {
+        submissionValues[i] =  personalCollectionArray.field_digital_heritage_items['und'][i]['target_id'];
       }
-    };
+      submissionValues.push(this.props.nid);
+      personalCollectionArray.field_digital_heritage_items = {
+        'und': submissionValues
+      }
+    } else {
+
+      // Update with new value. This doesn't check for existing ones yet — need to fix the submit on the drupal side to test that
+      personalCollectionArray.field_digital_heritage_items = {
+        'und': {
+          '0': this.props.nid
+        }
+      };
+    }
 
     // The required personal collection privacy field has an incorrect structure, which we need to fix
     let val = personalCollectionArray.field_personal_coll_privacy['und']['0']['value'];
@@ -109,7 +123,6 @@ export class Star extends React.Component {
     } else {
 
 
-      // I have to do this right now because I am getting errors trying to use the postData method
       const token = this.props.token;
       const cookie = this.props.cookie;
       const data = {

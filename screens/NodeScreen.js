@@ -12,6 +12,7 @@ import {Marker} from "react-native-maps";
 import HTML from 'react-native-render-html';
 import {Star} from "../components/Star";
 import {ScaldItem} from "../components/ScaldItem";
+import {ParagraphView} from "../components/ParagraphView";
 
 
 // create a global db for database list and last known user
@@ -131,6 +132,9 @@ class NodeScreen extends React.Component {
     let renderedNode = [];
 
     for (const [fieldName, fieldObject] of Object.entries(this.state.displayModes)) {
+      if(typeof node[fieldName] === 'undefined' || node[fieldName].length === 0) {
+        continue;
+      }
       const lang = Object.keys(node[fieldName])[0];
       if (fieldObject.label && fieldObject.view_mode_properties.label !== 'hidden') {
         renderedNode.push(
@@ -149,7 +153,7 @@ class NodeScreen extends React.Component {
             errorMessage =
                 <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
                   item to Mukurtu Mobile.</Text>
-          } else {
+          } else if(typeof node[fieldName][lang] !== 'undefined') {
             for (var i = 0; i < node[fieldName][lang].length; i++) {
               let tid = node[fieldName][lang][i].tid;
               if (!tid || tid === undefined) {
@@ -227,7 +231,24 @@ class NodeScreen extends React.Component {
 
         }
       }
-
+      if (fieldObject.view_mode_properties.type === 'paragraphs_view') {
+        let items = node[fieldName][lang];
+        for (i = 0; i < items.length; i++) {
+          let pid = items[i].value;
+          renderedNode.push(
+              <ParagraphView
+                  token={this.props.screenProps.token}
+                  cookie={this.props.screenProps.cookie}
+                  url={this.state.url}
+                  pid={pid}
+                  viewableFields={this.state.displayModes}
+                  fieldName={fieldName}
+                  nodes={this.state.nodes}
+                  terms={this.state.terms}
+              />
+          );
+        }
+      }
 
       if (fieldObject.view_mode_properties.type === 'node_reference_default' || fieldObject.view_mode_properties.type === 'entityreference_label') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
