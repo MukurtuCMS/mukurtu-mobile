@@ -34,6 +34,7 @@ TaskManager.defineTask(taskName, async () => {
 });
 
 export default class App extends React.Component {
+  _isMounted = false;
 
 
   constructor(props) {
@@ -119,6 +120,7 @@ export default class App extends React.Component {
   componentDidMount() {
     YellowBox.ignoreWarnings(['Setting a timer']);
     var self = this;
+    this._isMounted = true;
 
     setInterval(() => {
       if(self.state.db !== null && self.state.loggedIn && self.state.isConnected){
@@ -212,10 +214,13 @@ export default class App extends React.Component {
   }
 
   handleConnectivityChange = isConnected => {
-    this.setState({ isConnected });
+    if (this._isMounted) {
+      this.setState({isConnected});
+    }
   }
 
   componentWillUnmount() {
+    this._isMounted = false;
     NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
