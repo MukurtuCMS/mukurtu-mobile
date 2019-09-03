@@ -1,11 +1,10 @@
 import React from 'react';
-import {Picker, TouchableOpacity, View} from 'react-native';
+import {Dimensions, Picker, StyleSheet, TouchableOpacity, View} from 'react-native';
 import {Image} from "react-native";
 import {Modal} from "react-native";
 import {TouchableHighlight} from "react-native";
 import {Text} from "react-native";
 import {Button} from "react-native-elements";
-
 
 
 export class Star extends React.Component {
@@ -55,7 +54,6 @@ export class Star extends React.Component {
   }
 
 
-
   /**
    * Modified version of the saveNode function in form.js
    * Should probably be refactored to be one function at some point
@@ -71,11 +69,11 @@ export class Star extends React.Component {
     personalCollectionArray = personalCollectionArray[0];
 
     // Check for existing values
-    if(typeof personalCollectionArray.field_digital_heritage_items['und'] !== undefined) {
+    if (typeof personalCollectionArray.field_digital_heritage_items['und'] !== undefined) {
       // These come with target_id keys, but we don't need those for submission
       let submissionValues = [];
       for (let i = 0; i < personalCollectionArray.field_digital_heritage_items['und'].length; i++) {
-        submissionValues[i] =  personalCollectionArray.field_digital_heritage_items['und'][i]['target_id'];
+        submissionValues[i] = personalCollectionArray.field_digital_heritage_items['und'][i]['target_id'];
       }
       submissionValues.push(this.props.nid);
       personalCollectionArray.field_digital_heritage_items = {
@@ -105,20 +103,20 @@ export class Star extends React.Component {
 
     if (!this.props.isConnected) {
       this.props.db.transaction(
-          tx => {
-            tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
-                [JSON.stringify(submissionArray)],
-                function (t) {
-                  let a;
-                  console.log(t);
-                },
-                function (e, t) {
-                  let v;
-                  console.log(e);
-                  console.log(t);
-                }
-            );
-          }
+        tx => {
+          tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
+            [JSON.stringify(submissionArray)],
+            function (t) {
+              let a;
+              console.log(t);
+            },
+            function (e, t) {
+              let v;
+              console.log(e);
+              console.log(t);
+            }
+          );
+        }
       );
     } else {
 
@@ -141,16 +139,16 @@ export class Star extends React.Component {
       };
 
       fetch(this.props.url + '/app/node/' + this.state.collectionSelected + '.json', data,
-          )
-          .then((response) => response.json())
-          .then((responseJson) => {
-            if (responseJson.form_errors) {
-              console.log(responseJson.form_errors)
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+      )
+        .then((response) => response.json())
+        .then((responseJson) => {
+          if (responseJson.form_errors) {
+            console.log(responseJson.form_errors)
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
 
     this.setModalVisible(!this.state.modalVisible);
@@ -169,9 +167,9 @@ export class Star extends React.Component {
 
     let options = personalCollections.map(collection => {
       return (<Picker.Item
-          key={collection.nid}
-          label={collection.title}
-          value={collection.nid}
+        key={collection.nid}
+        label={collection.title}
+        value={collection.nid}
       />);
     });
 
@@ -179,29 +177,29 @@ export class Star extends React.Component {
     options.unshift(<Picker.Item key={"0"} label='None' value='0'/>);
 
     collectionList.push(
-        <Picker
-            key={"0"}
-            selectedValue={this.state.collectionSelected}
-            // style={styles.picker}
-            // itemStyle={styles.pickerItem}
-            onValueChange={(itemValue, itemIndex) =>
-                this.setState({collectionSelected: itemValue})
-            }>
-          {options}
-        </Picker>
+      <Picker
+        key={"0"}
+        selectedValue={this.state.collectionSelected}
+        // style={styles.picker}
+        // itemStyle={styles.pickerItem}
+        onValueChange={(itemValue, itemIndex) =>
+          this.setState({collectionSelected: itemValue})
+        }>
+        {options}
+      </Picker>
     );
 
 
     // React native won't let you use a variable for require (require statements are resolved at bundle time)
     // So we have to get both images and then decide which one to show. Hence this bit of repetition
     let outline = <Image
-        style={{width: 40, height: 40}}
-        source={require('../assets/images/star-outline.png')}
+      style={{width: 20, height: 20}}
+      source={require('../assets/images/star-outline.png')}
     />;
 
     let solid = <Image
-        style={{width: 40, height: 40}}
-        source={require('../assets/images/star-solid.png')}
+      style={{width: 20, height: 20}}
+      source={require('../assets/images/star-solid.png')}
     />;
 
 
@@ -211,33 +209,44 @@ export class Star extends React.Component {
     }
 
     return (
-        <View>
-          <TouchableOpacity onPress={() => {this.setModalVisible(true);}}>
-            {image}
-          </TouchableOpacity>
-          <Modal
-              animationType="slide"
-              transparent={false}
-              visible={this.state.modalVisible}
-              onRequestClose={() => {
+      <View>
+        <TouchableOpacity onPress={() => {
+          this.setModalVisible(true);
+        }} style={styles.container}>
+          {image}
+        </TouchableOpacity>
+        <Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.modalVisible}
+          onRequestClose={() => {
 
+          }}>
+          <View style={{paddingTop: 50}}>
+            <TouchableHighlight
+              onPress={() => {
+                this.setModalVisible(!this.state.modalVisible);
               }}>
-            <View style={{ paddingTop: 50 }}>
-              <TouchableHighlight
-                  onPress={() => {
-                    this.setModalVisible(!this.state.modalVisible);
-                  }}>
-                <Text>Close</Text>
-              </TouchableHighlight>
-              <Text>Add to Personal Collection</Text>
-              {collectionList}
-              <Button
-                  title="Submit"
-                  onPress={this.saveNode}
-              />
-            </View>
-          </Modal>
-        </View>
+              <Text>Close</Text>
+            </TouchableHighlight>
+            <Text>Add to Personal Collection</Text>
+            {collectionList}
+            <Button
+              title="Submit"
+              onPress={this.saveNode}
+            />
+          </View>
+        </Modal>
+      </View>
     )
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingRight: 20,
+  },
+
+});

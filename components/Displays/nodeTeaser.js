@@ -71,9 +71,10 @@ export default class NodeTeaser extends React.Component {
             typeof node.entity[key]['und']['0']['nid'] !== 'undefined') {
           let refNid = node.entity[key]['und']['0']['nid'];
           let refNode = this.props.allNodes.filter(node => node.nid == refNid);
+          refNode = refNode[0];
 
           viewableFields.push(
-              <View key={key} style={styles.view}>
+              <View key={key + refNode.nid} style={styles.view}>
                 <Text style={styles.label}>{value.label}</Text>
                 <Text>{refNode.title}</Text>
               </View>
@@ -93,16 +94,20 @@ export default class NodeTeaser extends React.Component {
         else if (typeof node.entity[key] !== 'undefined' &&
             typeof node.entity[key]['en'] !== 'undefined'
         ) {
+          let termNames = [];
           for (let i = 0; i < node.entity[key]['en'].length; i++) {
             let tid = node.entity[key]['en'][i]['tid'];
             let termTitle = this.state.terms[tid]['name'];
-            viewableFields.push(
-                <View key={key} style={styles.view}>
-                  <Text style={styles.label}>{value.label}</Text>
-                  <Text>{termTitle}</Text>
-                </View>
-            )
+            termNames.push(termTitle);
           }
+
+          let termNamesString = termNames.join(', ');
+          viewableFields.push(
+            <View key={key} style={styles.view}>
+              <Text style={styles.label}>{value.label}</Text>
+              <Text>{termNamesString}</Text>
+            </View>
+          )
         }
         // Paragraph
         else if (typeof node.entity[key] !== 'undefined' &&
@@ -172,5 +177,6 @@ const styles = StyleSheet.create({
   },
   view: {
     width: '100%',
+    marginBottom: 15,
   }
 });

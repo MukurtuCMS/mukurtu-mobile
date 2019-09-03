@@ -16,7 +16,6 @@ import {ParagraphView} from "../components/ParagraphView";
 import {Term} from "../components/Term";
 
 
-
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global');
 
@@ -44,23 +43,23 @@ class NodeScreen extends React.Component {
     const type = this.props.navigation.getParam('contentType');
     this.state.db.transaction(tx => {
       tx.executeSql(
-          'select node_view from display_modes where machine_name = ?;',
-          [type],
-          (query, result) => this.setState({displayModes: JSON.parse(result.rows._array[0].node_view)})
+        'select node_view from display_modes where machine_name = ?;',
+        [type],
+        (query, result) => this.setState({displayModes: JSON.parse(result.rows._array[0].node_view)})
       );
     });
     this.state.db.transaction(tx => {
       tx.executeSql(
-          'select * from taxonomy;',
-          '',
-          (query, result) => this.setTaxonomy(result.rows._array)
+        'select * from taxonomy;',
+        '',
+        (query, result) => this.setTaxonomy(result.rows._array)
       );
     });
     this.state.db.transaction(tx => {
       tx.executeSql(
-          'select * from nodes;',
-          '',
-          (query, result) => this.setNodes(result.rows._array)
+        'select * from nodes;',
+        '',
+        (query, result) => this.setNodes(result.rows._array)
       );
     });
   }
@@ -97,20 +96,20 @@ class NodeScreen extends React.Component {
     };
 
     fetch(this.state.url + '/app/viewable-types/retrieve', data)
-        .then((response) => response.json())
-        .then((responseJson) => {
-          if (typeof responseJson === 'object' && responseJson !== null) {
+      .then((response) => response.json())
+      .then((responseJson) => {
+        if (typeof responseJson === 'object' && responseJson !== null) {
 
-            if (responseJson[currentContentType]['valid type for personal collection'] == 1) {
-              this.setState({'personalCollectionValid': true});
-              return true;
-            }
-
+          if (responseJson[currentContentType]['valid type for personal collection'] == 1) {
+            this.setState({'personalCollectionValid': true});
+            return true;
           }
-        })
-        .catch((error) => {
-          return false;
-        });
+
+        }
+      })
+      .catch((error) => {
+        return false;
+      });
 
     return false;
   }
@@ -134,13 +133,13 @@ class NodeScreen extends React.Component {
     let renderedNode = [];
 
     for (const [fieldName, fieldObject] of Object.entries(this.state.displayModes)) {
-      if(typeof node[fieldName] === 'undefined' || node[fieldName].length === 0) {
+      if (typeof node[fieldName] === 'undefined' || node[fieldName].length === 0) {
         continue;
       }
       const lang = Object.keys(node[fieldName])[0];
       if (fieldObject.label && fieldObject.view_mode_properties.label !== 'hidden') {
         renderedNode.push(
-            <Text key={fieldName} style={styles.label}>{fieldObject.label}</Text>
+          <Text key={fieldName} style={styles.label}>{fieldObject.label}</Text>
         )
       }
       let type = fieldObject.view_mode_properties.type;
@@ -153,15 +152,15 @@ class NodeScreen extends React.Component {
           let oneExists = false;
           if (!this.state.terms) {
             errorMessage =
-                <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
-                  item to Mukurtu Mobile.</Text>
-          } else if(typeof node[fieldName][lang] !== 'undefined') {
+              <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+                item to Mukurtu Mobile.</Text>
+          } else if (typeof node[fieldName][lang] !== 'undefined') {
             for (var i = 0; i < node[fieldName][lang].length; i++) {
               let tid = node[fieldName][lang][i].tid;
               if (!tid || tid === undefined) {
                 errorMessage =
-                    <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
-                      item to Mukurtu Mobile.</Text>
+                  <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+                    item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
                 if (i > 0) {
@@ -184,8 +183,8 @@ class NodeScreen extends React.Component {
             }
             if (oneExists) {
               errorMessage =
-                  <Text style={styles.syncError}>In order to view all of the content in this field, in your browser sync
-                    this item to Mukurtu Mobile.</Text>
+                <Text style={styles.syncError}>In order to view all of the content in this field, in your browser sync
+                  this item to Mukurtu Mobile.</Text>
             }
           }
 
@@ -219,7 +218,7 @@ class NodeScreen extends React.Component {
                                          }}
               >
                 <Marker
-                    coordinate={latLng}
+                  coordinate={latLng}
                 />
               </MapView>)
             }
@@ -233,14 +232,14 @@ class NodeScreen extends React.Component {
 
           let sid = items[i].sid;
           renderedNode.push(
-              <ScaldItem
-                  token={this.props.screenProps.token}
-                  cookie={this.props.screenProps.cookie}
-                  url={this.state.url}
-                  sid={sid}
-                  db={this.state.db}
-                  key={sid}
-              />
+            <ScaldItem
+              token={this.props.screenProps.token}
+              cookie={this.props.screenProps.cookie}
+              url={this.state.url}
+              sid={sid}
+              db={this.state.db}
+              key={sid}
+            />
           );
 
         }
@@ -250,40 +249,40 @@ class NodeScreen extends React.Component {
         for (i = 0; i < items.length; i++) {
           let pid = items[i].value;
           renderedNode.push(
-              <ParagraphView
-                  token={this.props.screenProps.token}
-                  cookie={this.props.screenProps.cookie}
-                  url={this.state.url}
-                  pid={pid}
-                  viewableFields={this.state.displayModes}
-                  fieldName={fieldName}
-                  nodes={this.state.nodes}
-                  terms={this.state.terms}
-                  key={i}
-              />
+            <ParagraphView
+              token={this.props.screenProps.token}
+              cookie={this.props.screenProps.cookie}
+              url={this.state.url}
+              pid={pid}
+              viewableFields={this.state.displayModes}
+              fieldName={fieldName}
+              nodes={this.state.nodes}
+              terms={this.state.terms}
+              key={i}
+            />
           );
         }
       }
 
-/*      if (fieldObject.view_mode_properties.type === 'ma_colorbox') {
-        const nodeArray = node[fieldName][lang];
-        for (var i = 0; i < nodeArray.length; i++) {
-          const sid = nodeArray[i].sid;
-          this.state.db.transaction(
-            tx => {
-              tx.executeSql('select * from atom where sid = ?',
-                [sid],
-                (success, atoms) => {
-                  const atom = atoms.rows._array[0];
-                  renderedNode.push(<Text>atom.title</Text>);
-                },
-                (success, error) => ''
-              );
-            }
-          );
-        }
-        const sid = node[fieldName][lang]
-      }*/
+      /*      if (fieldObject.view_mode_properties.type === 'ma_colorbox') {
+              const nodeArray = node[fieldName][lang];
+              for (var i = 0; i < nodeArray.length; i++) {
+                const sid = nodeArray[i].sid;
+                this.state.db.transaction(
+                  tx => {
+                    tx.executeSql('select * from atom where sid = ?',
+                      [sid],
+                      (success, atoms) => {
+                        const atom = atoms.rows._array[0];
+                        renderedNode.push(<Text>atom.title</Text>);
+                      },
+                      (success, error) => ''
+                    );
+                  }
+                );
+              }
+              const sid = node[fieldName][lang]
+            }*/
 
 
       if (fieldObject.view_mode_properties.type === 'node_reference_default' || fieldObject.view_mode_properties.type === 'entityreference_label') {
@@ -294,8 +293,8 @@ class NodeScreen extends React.Component {
           let oneExists = false;
           if (!this.state.nodes) {
             errorMessage =
-                <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
-                  item to Mukurtu Mobile.</Text>
+              <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+                item to Mukurtu Mobile.</Text>
           } else {
             for (i = 0; i < node[fieldName][lang].length; i++) {
               let nid = node[fieldName][lang][i].nid;
@@ -304,9 +303,9 @@ class NodeScreen extends React.Component {
               }
               if (!nid || nid === undefined) {
                 errorMessage =
-                    <Text style={styles.syncError}>In order to view the content in this field, in your browser sync
-                      this
-                      item to Mukurtu Mobile.</Text>
+                  <Text style={styles.syncError}>In order to view the content in this field, in your browser sync
+                    this
+                    item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
                 if (i > 0 && this.state.nodes[nid]) {
@@ -319,9 +318,9 @@ class NodeScreen extends React.Component {
             }
             if (oneExists) {
               errorMessage =
-                  <Text style={styles.syncError}>In order to view all of the content in this field, in your browser
-                    sync
-                    this item to Mukurtu Mobile.</Text>
+                <Text style={styles.syncError}>In order to view all of the content in this field, in your browser
+                  sync
+                  this item to Mukurtu Mobile.</Text>
             }
           }
           renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
@@ -333,7 +332,7 @@ class NodeScreen extends React.Component {
         if (isObject) {
           for (i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<Text
-                key={fieldName + i}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
+              key={fieldName + i}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
           }
         }
       }
@@ -344,53 +343,60 @@ class NodeScreen extends React.Component {
       {/*Pass nodes to star so we can filter out personal collection*/
       }
       star = <Star
-          starred={false}
-          nid={node.nid}
-          nodes={this.state.nodes}
-          db={this.state.db}
-          isConnected={this.props.screenProps.isConnected}
-          token={this.props.screenProps.token}
-          cookie={this.props.screenProps.cookie}
-          url={this.state.url}
+        starred={false}
+        nid={node.nid}
+        nodes={this.state.nodes}
+        db={this.state.db}
+        isConnected={this.props.screenProps.isConnected}
+        token={this.props.screenProps.token}
+        cookie={this.props.screenProps.cookie}
+        url={this.state.url}
       />
     }
 
 
-    return (
-        <ScrollView style={styles.container}>
-          <Text>{this.state.media_text}</Text>
-          {star}
-          {renderedNode}
-        </ScrollView>
+    return (<View style={{flex: 1}}>
+      <ScrollView style={styles.container}>
+        <Text>{this.state.media_text}</Text>
+        {star}
+        {renderedNode}
+
+      </ScrollView>
+      </View>
     );
   }
 }
 
 const
-    styles = StyleSheet.create({
-      container: {
-        flex: 1,
-        backgroundColor: '#DCDCDC',
-      },
-      label: {
-        marginBottom: 5,
-        color: '#000',
-        fontSize: 24
-      },
-      text: {
-        marginBottom: 10,
-        color: '#000',
-        fontSize: 16
-      },
-      map: {
-        width: Dimensions.get('window').width - 20,
-        height: 300,
-        marginLeft: 10,
-        marginBottom: 10
-      },
-      syncError: {
-        fontSize: 12
-      }
-    });
+  styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#DCDCDC',
+      padding: 10,
+    },
+    interior: {
+      flexDirection: 'column'
+    },
+    label: {
+      marginBottom: 5,
+      color: '#000',
+      fontSize: 24
+    },
+    text: {
+      marginBottom: 10,
+      color: '#000',
+      fontSize: 16
+    },
+    map: {
+      width: Dimensions.get('window').width - 20,
+      height: 300,
+      marginLeft: 10,
+      marginBottom: 10
+    },
+    syncError: {
+      fontSize: 12
+    }
+
+  });
 
 export default NodeScreen;
