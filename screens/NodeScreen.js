@@ -13,6 +13,8 @@ import HTML from 'react-native-render-html';
 import {Star} from "../components/Star";
 import {ScaldItem} from "../components/ScaldItem";
 import {ParagraphView} from "../components/ParagraphView";
+import {Term} from "../components/Term";
+
 
 
 // create a global db for database list and last known user
@@ -146,8 +148,8 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          let fieldData = [];
-          let errorMessage = [];
+          let fieldData = '';
+          let errorMessage = '';
           let oneExists = false;
           if (!this.state.terms) {
             errorMessage =
@@ -167,6 +169,16 @@ class NodeScreen extends React.Component {
                 }
                 if (this.state.terms[tid]) {
                   fieldData += this.state.terms[tid].name;
+                } else {
+                  // This is a catch in case the term isn't synced.
+                  let term = <Term
+                    tid={tid}
+                    token={this.props.screenProps.token}
+                    cookie={this.props.screenProps.cookie}
+                    url={this.state.url}
+                    key={tid}
+                  />;
+                  renderedNode.push(term);
                 }
               }
             }
@@ -176,6 +188,7 @@ class NodeScreen extends React.Component {
                     this item to Mukurtu Mobile.</Text>
             }
           }
+
           renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
         }
       }
@@ -226,6 +239,7 @@ class NodeScreen extends React.Component {
                   url={this.state.url}
                   sid={sid}
                   db={this.state.db}
+                  key={sid}
               />
           );
 
@@ -245,6 +259,7 @@ class NodeScreen extends React.Component {
                   fieldName={fieldName}
                   nodes={this.state.nodes}
                   terms={this.state.terms}
+                  key={i}
               />
           );
         }
@@ -274,15 +289,15 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'node_reference_default' || fieldObject.view_mode_properties.type === 'entityreference_label') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          let fieldData = [];
-          let errorMessage = [];
+          let fieldData = '';
+          let errorMessage = '';
           let oneExists = false;
           if (!this.state.nodes) {
             errorMessage =
                 <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
                   item to Mukurtu Mobile.</Text>
           } else {
-            for (var i = 0; i < node[fieldName][lang].length; i++) {
+            for (i = 0; i < node[fieldName][lang].length; i++) {
               let nid = node[fieldName][lang][i].nid;
               if (fieldObject.view_mode_properties.type === 'entityreference_label') {
                 nid = node[fieldName][lang][i].target_id;
@@ -294,7 +309,7 @@ class NodeScreen extends React.Component {
                       item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
-                if (i > 0) {
+                if (i > 0 && this.state.nodes[nid]) {
                   fieldData += ', ';
                 }
                 if (this.state.nodes[nid]) {
@@ -316,7 +331,7 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'partial_date_default') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          for (var i = 0; i < node[fieldName][lang].length; i++) {
+          for (i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<Text
                 key={fieldName + i}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
           }

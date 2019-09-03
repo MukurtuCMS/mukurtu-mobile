@@ -53,7 +53,7 @@ export default class NodeTeaser extends React.Component {
             typeof node.entity[key]['und'] !== 'undefined' &&
             typeof node.entity[key]['und']['0']['sid'] !== 'undefined') {
           viewableFields.push(
-              <View>
+              <View key={key}>
                 <Text>{value.label}</Text>
                 <ScaldItem
                     token={this.props.token}
@@ -73,7 +73,7 @@ export default class NodeTeaser extends React.Component {
           let refNode = this.props.allNodes.filter(node => node.nid == refNid);
 
           viewableFields.push(
-              <View>
+              <View key={key}>
                 <Text>{value.label}</Text>
                 <Text>{refNode.title}</Text>
               </View>
@@ -83,7 +83,7 @@ export default class NodeTeaser extends React.Component {
             typeof node.entity[key]['und']['0']['safe_value'] !== 'undefined'
         ) {
           viewableFields.push(
-              <View>
+              <View key={key}>
                 <Text>{value.label}</Text>
                 <Text>{node.entity[key]['und']['0']['safe_value']}</Text>
               </View>
@@ -97,7 +97,7 @@ export default class NodeTeaser extends React.Component {
             let tid = node.entity[key]['en'][i]['tid'];
             let termTitle = this.state.terms[tid]['name'];
             viewableFields.push(
-                <View>
+                <View key={key}>
                   <Text>{value.label}</Text>
                   <Text>{termTitle}</Text>
                 </View>
@@ -110,7 +110,7 @@ export default class NodeTeaser extends React.Component {
             typeof node.entity[key]['und']['0']['revision_id'] !== 'undefined'
         ) {
           viewableFields.push(
-              <View>
+              <View key={key}>
                 <ParagraphView
                     token={this.props.token}
                     cookie={this.props.cookie}

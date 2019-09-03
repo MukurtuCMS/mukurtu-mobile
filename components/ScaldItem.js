@@ -10,8 +10,6 @@ export class ScaldItem extends React.Component {
   constructor(props) {
     super(props);
     // Pass props down from App.js, since we're not using Redux
-    console.log(props);
-    console.log('test');
     this.state = {
       title: null,
       data: null,
@@ -35,36 +33,18 @@ export class ScaldItem extends React.Component {
                 this.setState({data: savedAtom});
               })
               .catch((error) => {
-              console.log('error getting scald item');
-            });
+                console.log('error getting scald item');
+              });
           },
           (success, error) => ''
         );
       }
     );
 
-    const data = {
-      method: 'get',
-      mode: 'cors',
-      cache: 'no-cache',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': this.props.token,
-        'Cookie': this.props.cookie
-      },
-      redirect: 'follow',
-      referrer: 'no-referrer',
-    };
-
-
-    let url = this.props.url;
-    let renderedItem = <Text>Item not available</Text>;
-
   }
 
-  gcd (a, b) {
-    return (b == 0) ? a : this.gcd (b, a%b);
+  gcd(a, b) {
+    return (b == 0) ? a : this.gcd(b, a % b);
   }
 
   render() {
@@ -78,49 +58,49 @@ export class ScaldItem extends React.Component {
       const gcd = this.gcd(width, height);
 
       const screenWidth = Dimensions.get('window').width;
-      const aspectWidth = width/gcd;
-      const aspectHeight = height/gcd;
+      const aspectWidth = width / gcd;
+      const aspectHeight = height / gcd;
 
-      const calcImageHeight = screenWidth/aspectWidth * aspectHeight;
+      const calcImageHeight = screenWidth / aspectWidth * aspectHeight;
 
       let response = this.state.atom;
       if (response.base_id && response.provider === 'scald_youtube') {
 
         renderedItem = <WebView
-            style={{
-              height: 200,
-              width: 200
-            }}
-            javaScriptEnabled={true}
-            source={{uri: 'https://www.youtube.com/watch?v=' + response.base_id}}
+          style={{
+            height: 200,
+            width: 200
+          }}
+          javaScriptEnabled={true}
+          source={{uri: 'https://www.youtube.com/watch?v=' + response.base_id}}
         />;
 
 
       } else if (response.base_id && response.provider === 'scald_file') {
         renderedItem = <Text
-            style={{
-              height: 200,
-              width: 200
-            }}>
+          style={{
+            height: 200,
+            width: 200
+          }}>
           {this.state.data}
         </Text>;
 
       } else if (typeof response.base_entity !== 'undefined') {
 
         renderedItem = <Image
-            source={{uri: 'data:image/png;base64,' + this.state.data}}
-            style={{
-              height: calcImageHeight,
-              width: screenWidth
-            }}/>;
+          source={{uri: 'data:image/png;base64,' + this.state.data}}
+          style={{
+            height: calcImageHeight,
+            width: screenWidth
+          }}/>;
       }
     }
 
 
     return (
-        <View>
-          {renderedItem}
-        </View>
+      <View>
+        {renderedItem}
+      </View>
     )
   }
 }

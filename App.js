@@ -46,9 +46,7 @@ export default class App extends React.Component {
 
     this.state = {
       isLoadingComplete: false,
-      // This is the base siteUrl for testing purposes. When logging in user can set a new URL
-      // This URL won't currently return the correct one time login link
-      siteUrl: 'http://mukurtucms.kanopi.cloud/',
+      siteUrl: '',
       isLoggedIn: false,
       token: false,
       cookie: false,

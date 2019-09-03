@@ -107,7 +107,7 @@ export class ParagraphView extends React.Component {
               typeof this.state.fields[this.props.pid][key]['und']['0']['value'] !== 'undefined'
           ) {
             renderedItem.push(
-                <View>
+                <View key={key}>
                   <Text>{value.label}</Text>
                   <Text>{this.state.fields[this.props.pid][key]['und']['0']['value']}</Text>
                 </View>
@@ -124,7 +124,7 @@ export class ParagraphView extends React.Component {
               if (this.state[tid]) {
                 let termTitle = this.state[tid];
                 renderedItem.push(
-                    <View>
+                    <View key={i}>
                       <Text>{value.label}</Text>
                       <Text>{termTitle}</Text>
                     </View>
@@ -143,7 +143,7 @@ export class ParagraphView extends React.Component {
               if(this.state[nid]) {
                 let nodeTitle = this.state[nid];
                 renderedItem.push(
-                    <View>
+                    <View key={i}>
                       <Text>{value.label}</Text>
                       <Text>{nodeTitle}</Text>
                     </View>
