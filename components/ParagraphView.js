@@ -108,7 +108,7 @@ export class ParagraphView extends React.Component {
           ) {
             renderedItem.push(
                 <View key={key}>
-                  <Text>{value.label}</Text>
+                  <Text style={styles.titleTextStyle}>{value.label}</Text>
                   <Text>{this.state.fields[this.props.pid][key]['und']['0']['value']}</Text>
                 </View>
             )
@@ -125,7 +125,7 @@ export class ParagraphView extends React.Component {
                 let termTitle = this.state[tid];
                 renderedItem.push(
                     <View key={i}>
-                      <Text>{value.label}</Text>
+                      <Text style={styles.titleTextStyle}>{value.label}</Text>
                       <Text>{termTitle}</Text>
                     </View>
                 )
@@ -144,7 +144,7 @@ export class ParagraphView extends React.Component {
                 let nodeTitle = this.state[nid];
                 renderedItem.push(
                     <View key={i}>
-                      <Text>{value.label}</Text>
+                      <Text style={styles.titleTextStyle}>{value.label}</Text>
                       <Text>{nodeTitle}</Text>
                     </View>
                 );
@@ -163,4 +163,13 @@ export class ParagraphView extends React.Component {
 
   }
 }
+
+const styles = StyleSheet.create({
+  titleTextStyle: {
+    marginBottom: 5,
+    color: '#000',
+    fontSize: 24
+  }
+});
+
 
