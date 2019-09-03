@@ -281,7 +281,10 @@ export default class App extends React.Component {
       return (
         <Provider store={store}>
           <View style={styles.container}>
-            <AppHeader loggedIn={this.state.loggedIn} />
+            <AppHeader
+              loggedIn={this.state.loggedIn}
+              url={this.state.siteUrl}
+            />
             <AppNavigator screenProps={screenProps} />
           </View>
         </Provider>

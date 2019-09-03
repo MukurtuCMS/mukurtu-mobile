@@ -22,7 +22,7 @@ export default class AppHeader extends React.Component {
       />
       <Text style={loginBubbleStyle}></Text>
       </View>
-      <Text style={styles.siteName}>Site Name</Text>
+      <Text style={styles.siteName}>{this.props.url}</Text>
       <Image
         style={styles.profileIcon}
         source={require('../assets/images/profileIcon.png')}
