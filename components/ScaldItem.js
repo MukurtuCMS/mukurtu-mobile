@@ -44,32 +44,38 @@ export class ScaldItem extends React.Component {
   }
 
   gcd(a, b) {
-    return (b == 0) ? a : this.gcd(b, a % b);
+    if(isNaN(a) && isNaN(b)) {
+      return 1;
+    }
+    if ( ! b) {
+      return a;
+    }
+    return this.gcd(b, a % b);
   }
 
   render() {
 
     let renderedItem;
     // First check for youtube video
-    if (this.state && this.state.atom) {
+    if (this.state && this.state.atom && this.state.atom.base_entity) {
 
       const width = parseInt(this.state.atom.base_entity.width);
       const height = parseInt(this.state.atom.base_entity.height);
-      const gcd = this.gcd(width, height);
 
       const screenWidth = Dimensions.get('window').width;
-      const aspectWidth = width / gcd;
-      const aspectHeight = height / gcd;
-
-      const calcImageHeight = screenWidth / aspectWidth * aspectHeight;
+      let calcWidth = screenWidth - 40;
+      let calcImageHeight = screenWidth * .6;
+      if(Number.isInteger(width) && Number.isInteger(height)) {
+        calcImageHeight = screenWidth * (height / width);
+      }
 
       let response = this.state.atom;
       if (response.base_id && response.provider === 'scald_youtube') {
 
         renderedItem = <WebView
           style={{
-            height: 200,
-            width: 200
+            height: calcImageHeight,
+            width: calcWidth
           }}
           javaScriptEnabled={true}
           source={{uri: 'https://www.youtube.com/watch?v=' + response.base_id}}
@@ -79,8 +85,8 @@ export class ScaldItem extends React.Component {
       } else if (response.base_id && response.provider === 'scald_file') {
         renderedItem = <Text
           style={{
-            height: 200,
-            width: 200
+            height: calcImageHeight,
+            width: calcWidth
           }}>
           {this.state.data}
         </Text>;
@@ -91,7 +97,7 @@ export class ScaldItem extends React.Component {
           source={{uri: 'data:image/png;base64,' + this.state.data}}
           style={{
             height: calcImageHeight,
-            width: screenWidth
+            width: calcWidth
           }}/>;
       }
     }
