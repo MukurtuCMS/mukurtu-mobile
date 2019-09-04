@@ -5,16 +5,35 @@ import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 
-export default class Date extends React.Component {
+export default class DatePick extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {date: "2016-05-18"}
+    // Temp date until component mounts
+    this.state = {'date': '2019-09-05'}
   }
 
   componentDidMount() {
     // Set initial date in case it's not changed
     this.props.setFormValue(this.props.fieldName, this.state.date, this.props.fieldType);
+    let today = this.getTodayFormatted();
+    this.setState({'date': today})
   }
+
+  getTodayFormatted() {
+
+    let today = new Date();
+    let dd = today.getDate();
+    let mm = today.getMonth() + 1; //January is 0!
+    let yyyy = today.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    return [yyyy, mm, dd].join('-');
+  }
+
 
   render() {
     let error = null;
@@ -54,16 +73,16 @@ export default class Date extends React.Component {
       <View>
         <Text style={titleTextStyle}>{field['#title']}</Text>
         {errorMarkup}
-        <FieldDescription description={(this.props.description) ? this.props.description : null} />
+        <FieldDescription description={(this.props.description) ? this.props.description : null}/>
         <Required required={this.props.required}/>
         <DatePicker
-          style={{width: 200}}
+          date={this.state.date}
           style={styles.datePicker}
           mode="date"
           placeholder="select date"
           format="YYYY-MM-DD"
           minDate="2016-05-01"
-          maxDate="2016-06-01"
+          maxDate="2025-06-01"
           confirmBtnText="Confirm"
           cancelBtnText="Cancel"
           customStyles={{

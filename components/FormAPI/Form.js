@@ -6,7 +6,7 @@ import Radios from './Radios';
 import Checkboxes from './Checkboxes';
 import Checkbox from './Checkbox';
 import Select from './Select';
-import Date from './Date';
+import DatePick from './DatePick';
 import Scald from './Scald';
 import Select2 from './Select2';
 import Paragraph from './Paragraph';
@@ -862,7 +862,7 @@ export default class FormComponent extends React.Component {
                     description={description}
                 />);
               } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
-                form[i].push(<Date
+                form[i].push(<DatePick
                     formValues={this.state.formValues}
                     fieldName={fieldName}
                     field={fieldArray}
