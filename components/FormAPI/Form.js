@@ -650,11 +650,13 @@ export default class FormComponent extends React.Component {
       if (this.props.form[i]['label'] !== undefined) {
         buttons.push(this.props.form[i]['label']);
       }
+      let oneLoop = false;
 
       try {
         let childrenFields;
         if (this.props.form[i].childrenFields === undefined) {
           childrenFields = this.props.form;
+          oneLoop = true;
         } else {
           childrenFields = this.props.form[i].childrenFields;
         }
@@ -664,7 +666,12 @@ export default class FormComponent extends React.Component {
           var field = childrenFields[k];
           var fieldName = childrenFields[k]['machine_name'];
 
+
           var fieldArray = childrenFields[k];
+
+          if(fieldName === undefined && fieldArray['#name'] !== undefined) {
+            fieldName = fieldArray['#name'];
+          }
 
 
           // Save original field array so we can access add more text for paragraph
@@ -686,9 +693,13 @@ export default class FormComponent extends React.Component {
             if (fieldArray['#type'] === 'container') {
               fieldArray = field['und'];
 
-              if (fieldArray['#type'] === undefined) {
+              if (fieldArray['#type'] === undefined && fieldArray[0] !== undefined) {
 
                 fieldArray = fieldArray[0];
+
+                if(fieldName === undefined && fieldArray['#field_name'] !== undefined) {
+                  fieldName = fieldArray['#field_name'];
+                }
 
                 if (fieldArray && fieldArray['#type'] === undefined) {
 
@@ -932,6 +943,9 @@ export default class FormComponent extends React.Component {
             selectedButtonStyle={styles.selectedButtonStyle}
         />;
 
+      }
+      if(oneLoop) {
+        break;
       }
     }
 

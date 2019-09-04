@@ -117,7 +117,7 @@ export default class Textfield extends React.Component {
               key={i}
               index={i}
               style={textfieldStyle}
-              onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, i)}
+              onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, this.props.index, i)}
               value={value}
               defaultValue={field['#default_value']}
               maxLength={field['#maxlength']}

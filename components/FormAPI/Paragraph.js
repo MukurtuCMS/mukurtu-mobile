@@ -44,8 +44,8 @@ export default class Paragraph extends React.Component {
 
   }
 
-
-  setParagraphValue(fieldName, value, valueName, formErrorString, index, subindex = 0) {
+  // this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, i)}
+  setParagraphValue(fieldName, value, valueName, lang, formErrorString, index = 0, subindex = 0) {
     if (this.state.subformValues) {
       // Will need to get this dynamically
       let paragraphFieldName = this.props.fieldName;
