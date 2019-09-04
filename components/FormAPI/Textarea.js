@@ -22,7 +22,7 @@ export default class Textarea extends React.Component {
         }
 
         let titleTextStyle = styles.titleTextStyle;
-        let textfieldStyle = styles.textfieldStyle;
+        let textfieldStyle = styles.textareaStyle;
         let errorTextStyle = styles.errorTextStyle;
         if (error) {
             titleTextStyle = styles.titleTextStyleError;

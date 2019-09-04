@@ -62,9 +62,9 @@ export default class LocationComponent extends React.Component {
     let mapPicker = [];
     let setMyLocationButton = []
     if (this.state.errorMessage) {
-      text = <Text>this.state.errorMessage</Text>;
+      text = <Text>{this.state.errorMessage}</Text>;
     }
-    else if (this.state.locationChecked) {
+
       setMyLocationButton = <Button title="Set My Location" onPress={this._getLocationAsync} />
       mapPicker = <MapPicker
         initialCoordinate={{
@@ -73,10 +73,10 @@ export default class LocationComponent extends React.Component {
         }}
         onLocationSelect={({latitude, longitude})=> this.props.setFormValue(this.props.fieldName, latitude, longitude)}
         updateIndex={this.state.updateIndex}
-      />
-    }
+      />;
+
     return(
-        <View style={{flex: 1/2, height: 250}}>
+        <View style={{flex: 1/2, height: 800}}>
           {text}
           <FieldDescription description={(this.props.description) ? this.props.description : null} />
           <Required required={this.props.required}/>
