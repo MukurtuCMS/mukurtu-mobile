@@ -79,19 +79,21 @@ export default class Select2 extends React.Component {
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
 
     let autocompleteFields = [];
-    for (var i = 0; i < this.state.count; i++) {
+    for (let i = 0; i < this.state.count; i++) {
       const key = i;
       let query = '';
+      if(this.state.query && this.state.query[i]) {
+        query = this.state.query[i];
+      }
       if (this.props.formValues[this.props.fieldName] !== undefined) {
         // set the language key as initial key
-        lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
-        if (lang !== undefined) {
+        if (lang !== undefined && typeof this.props.formValues[this.props.fieldName][lang][key] !== 'undefined') {
           // this is our lookup id, we need to find the text value for the id
-          const id = this.props.formValues[this.props.fieldName][lang][key][valueKey];
+          const id = this.props.formValues[this.props.fieldName][lang][key];
           let term = '';
-          for (var i = 0; i < options.length; i++) {
-            if (options[i].id == id) {
-              term = options[i].text;
+          for (let j = 0; j < options.length; j++) {
+            if (options[j].id == id) {
+              term = options[j].text;
             }
           }
           if (term.length > 0) {
@@ -121,9 +123,16 @@ export default class Select2 extends React.Component {
           autoCapitalize="none"
           autoCorrect={false}
           containerStyle={styles.autocompleteContainer}
-          data={sortedOptions.length === 1 && comp(query, sortedOptions[0].text) ? [] : sortedOptions}
+          data={sortedOptions}
           defaultValue={defaultValue}
-          onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, key, options, lang)}
+          onChangeText={(text) => {
+            this.props.setFormValue(this.props.fieldName, text, valueKey, key, options, lang);
+            this.setState({
+              'query': {
+                [i]: text
+              }
+            })
+          }}
           placeholder={placeholder}
           hideResults={this.state.autocompleteSelected[key]}
           renderItem={({item, i}) => (
