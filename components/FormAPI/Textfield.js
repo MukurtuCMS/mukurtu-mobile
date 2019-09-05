@@ -40,12 +40,10 @@ export default class Textfield extends React.Component {
     let formErrorString = null;
     let lang = 'und';
 
-    if (typeof this.props.formValues !== 'undefined' &&
-        this.props.formValues[this.props.fieldName] &&
-        typeof Object.keys(this.props.formValues[this.props.fieldName]) !== 'undefined'
-    ) {
-       lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
+    if(typeof this.props.field['#language'] !== 'undefined') {
+      lang = this.props.field['#language'];
     }
+
 
     const fieldName = this.props.fieldName;
     if (this.props.formErrors) {
@@ -95,7 +93,7 @@ export default class Textfield extends React.Component {
         if (this.props.formValues[this.props.fieldName].length > 0) {
           value = this.props.formValues[this.props.fieldName];
         }
-      } else if (typeof this.props.formValues[this.props.fieldName] !== 'undefined') {
+      } else if (typeof this.props.formValues[this.props.fieldName] !== 'undefined' && typeof this.props.formValues[this.props.fieldName][lang] !== 'undefined') {
         // set the language key as initial key
         value = this.props.formValues[this.props.fieldName][lang][i][valueKey];
       }
@@ -106,6 +104,7 @@ export default class Textfield extends React.Component {
           typeof this.props.formValues[this.props.parentField][lang] !== 'undefined' &&
           typeof this.props.formValues[this.props.parentField][lang][this.props.index] !== 'undefined' &&
           typeof this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName] !== 'undefined' &&
+          typeof this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName][lang] !== 'undefined' &&
           typeof this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName][lang][i] !== 'undefined'
       ) {
         value = this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName][lang][i][valueKey];
