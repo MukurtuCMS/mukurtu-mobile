@@ -81,8 +81,8 @@ export default class DatePick extends React.Component {
           mode="date"
           placeholder="select date"
           format="YYYY-MM-DD"
-          minDate="2016-05-01"
-          maxDate="2025-06-01"
+          minDate="1900-01-01"
+          maxDate="2100-12-31"
           confirmBtnText="Confirm"
           cancelBtnText="Cancel"
           customStyles={{
