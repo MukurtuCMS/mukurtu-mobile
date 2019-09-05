@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  ActivityIndicator,
   Image,
   Platform,
   ScrollView,
@@ -10,6 +11,7 @@ import {
   WebView
 } from 'react-native';
 import Validator from 'validator';
+import {Overlay} from "react-native-elements";
 
 
 
@@ -21,7 +23,8 @@ export default class WebviewScreen extends React.Component {
     this.state = {
       targetUrl: this.props.screenProps.siteUrl,
       isLoggedInBrowser: false,
-      lastVisitedUrl: null
+      lastVisitedUrl: null,
+      loading: true
     };
 
   }
@@ -58,7 +61,10 @@ export default class WebviewScreen extends React.Component {
 
             returnUrl = responseText.replace('"]', '');
 
-            this.setState({targetUrl: returnUrl});
+            this.setState({
+              targetUrl: returnUrl,
+              loading: false
+            });
 
           })
           .catch((error) => {
@@ -66,6 +72,10 @@ export default class WebviewScreen extends React.Component {
           });
 
     }
+
+    this.setState({
+      loading: false
+    });
   }
 
 
@@ -107,6 +117,25 @@ export default class WebviewScreen extends React.Component {
 
 
   render() {
+
+
+    let activityIndicator;
+    if (this.state.loading === true) {
+      activityIndicator =
+        <Overlay
+          isVisible={true}
+          windowBackgroundColor="rgba(255, 255, 255, .5)"
+          overlayBackgroundColor="rgba(255, 255, 255, 1)"
+          width="auto"
+          height="auto"
+        >
+          <View style={styles.activityContainer}>
+            <Text style={{marginBottom: 10}}>Loading Site...</Text>
+            <ActivityIndicator size="large" color="#159EC4"/>
+          </View>
+        </Overlay>
+    }
+
     // If it's an invalid URL or the user is not logged in, don't open browser
     if (!Validator.isURL(this.state.targetUrl) || !this.props.screenProps.isLoggedIn) {
       return (
@@ -120,11 +149,11 @@ export default class WebviewScreen extends React.Component {
 
     return (
         <View style={styles.container}>
+          {activityIndicator}
           <WebView
               source={{uri: this.state.targetUrl}}
-              style={{marginTop: 60}}
+              style={{marginTop: 20}}
               useWebKit={true}
-
           />
         </View>
     );

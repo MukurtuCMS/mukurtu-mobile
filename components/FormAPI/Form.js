@@ -618,7 +618,6 @@ export default class FormComponent extends React.Component {
     })
       .then((response) => response.json())
       .then((responseJson) => {
-        console.log(responseJson);
         if (responseJson.form_errors) {
           this.setState({formErrors: responseJson.form_errors})
         } else {
@@ -659,13 +658,13 @@ export default class FormComponent extends React.Component {
       body: nid,
     })
       .then((response) => {
-        console.log(response);
+
       })
       .then((responseJson) => {
         if (responseJson.form_errors) {
-          console.log(responseJson.form_errors);
+
         } else {
-          console.log(responseJson);
+
         }
       });
 
@@ -957,14 +956,14 @@ export default class FormComponent extends React.Component {
 
               }
             } else {
-              console.log(fieldArray['#title']);
+
             }
           }
 
 
         }
       } catch (e) {
-        // console.log(e);
+        console.log(e);
       }
 
       for (var p = 0; p < form.length; p++) {
