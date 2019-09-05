@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Dimensions, StyleSheet} from 'react-native';
+import {View, Dimensions, StyleSheet, ActivityIndicator} from 'react-native';
 import Textfield from './Textfield';
 import Textarea from './Textarea';
 import Radios from './Radios';
@@ -13,12 +13,13 @@ import Paragraph from './Paragraph';
 import ConditionalSelect from './ConditionalSelect';
 import Location from './Location';
 import JSONTree from "react-native-json-tree";
-import {ButtonGroup, Button, Text} from "react-native-elements";
+import {ButtonGroup, Button, Text, Overlay} from "react-native-elements";
 import axios from "axios";
 import {SQLite} from 'expo-sqlite';
 import * as Sync from "../MukurtuSync"
 import * as FileSystem from 'expo-file-system';
 import Colors from "../../constants/Colors";
+
 
 export default class FormComponent extends React.Component {
   constructor(props) {
@@ -32,7 +33,8 @@ export default class FormComponent extends React.Component {
       token: null,
       formSubmitted: false,
       db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
-      formErrors: null
+      formErrors: null,
+      submitting: false
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.setFormValueSelect = this.setFormValueSelect.bind(this);
@@ -69,9 +71,9 @@ export default class FormComponent extends React.Component {
   update() {
     this.state.db.transaction(tx => {
       tx.executeSql(
-          'select * from auth limit 1;',
-          '',
-          (_, {rows: {_array}}) => this.getToken(_array)
+        'select * from auth limit 1;',
+        '',
+        (_, {rows: {_array}}) => this.getToken(_array)
       );
     });
   }
@@ -101,16 +103,16 @@ export default class FormComponent extends React.Component {
       }
     };
     fetch(this.props.url + '/index.php?q=taxonomy/autocomplete/field_creator', data)
-        .then((response) => response.json())
-        .then((responseJson) => {
-          let form = responseJson;
+      .then((response) => response.json())
+      .then((responseJson) => {
+        let form = responseJson;
 
 
-          this.setState({ajax: form});
-        })
-        .catch((error) => {
-          // console.error(error);
-        });
+        this.setState({ajax: form});
+      })
+      .catch((error) => {
+        // console.error(error);
+      });
 
   }
 
@@ -153,16 +155,16 @@ export default class FormComponent extends React.Component {
 
     if (this.state.formValues) {
       const formValues = this.state.formValues;
-        // if not, we need to format like drupal field
-        // This is the format Drupal needs for text fields
-        let values = {
-          [newFieldName]: {
-            [lang]: {
-              [valueKey]: newValue
-            }
+      // if not, we need to format like drupal field
+      // This is the format Drupal needs for text fields
+      let values = {
+        [newFieldName]: {
+          [lang]: {
+            [valueKey]: newValue
           }
-        };
-        Object.assign(formValues, values);
+        }
+      };
+      Object.assign(formValues, values);
 
       // save value to state
       this.setState({formValues: formValues});
@@ -177,7 +179,6 @@ export default class FormComponent extends React.Component {
       }
     }
   }
-
 
 
   setFormValueCheckbox(newFieldName, newValue, valueKey, error = null) {
@@ -490,14 +491,14 @@ export default class FormComponent extends React.Component {
     // This allows us to persist the value so that we can tab within the form without losing it
     this.setState({
       [fieldName]: {
-          [index]: value
+        [index]: value
       }
     });
     if (this.state.formValues) {
       let formValues = this.state.formValues;
       let values;
       // If we already have a form value for this field, this is a new index
-      if(typeof formValues[fieldName] !== 'undefined') {
+      if (typeof formValues[fieldName] !== 'undefined') {
         formValues[fieldName][lang][index] = {
           ['sid']: value
         };
@@ -525,29 +526,30 @@ export default class FormComponent extends React.Component {
     if (!this.props.screenProps.isConnected) {
       if (this.props.did) {
         this.state.db.transaction(
-            tx => {
-              tx.executeSql('replace into saved_offline (id, blob, saved) values (?, ?, 0)',
-                  [this.props.did, JSON.stringify(this.state.formValues)],
-                  (success) => this.setState({formSubmitted: true}),
-                  (success, error) => console.log(error)
-              );
-            }
+          tx => {
+            tx.executeSql('replace into saved_offline (id, blob, saved) values (?, ?, 0)',
+              [this.props.did, JSON.stringify(this.state.formValues)],
+              (success) => this.setState({formSubmitted: true}),
+              (success, error) => console.log(error)
+            );
+          }
         );
       } else {
         this.state.db.transaction(
-            tx => {
-              tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
-                  [JSON.stringify(this.state.formValues)],
-                  (success) => this.setState({formSubmitted: true}),
-                  (success, error) => console.log(error)
-              );
-            }
+          tx => {
+            tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
+              [JSON.stringify(this.state.formValues)],
+              (success) => this.setState({formSubmitted: true}),
+              (success, error) => console.log(error)
+            );
+          }
         );
       }
     } else {
 
 
       if (this.state.formValues.nid) {
+        this.setState({'submitting': true});
 
         // I have to do this right now because I am getting errors trying to use the postData method
         const token = this.state.token;
@@ -569,15 +571,17 @@ export default class FormComponent extends React.Component {
 
 
         fetch(this.props.url + '/app/node/' + this.state.formValues.nid + '.json', data)
-            .then((response) => response.json())
-            .then((responseJson) => {
-              if (responseJson.form_errors) {
-                this.setState({formErrors: responseJson.form_errors})
-              }
-            })
-            .catch((error) => {
-              console.error(error);
-            });
+          .then((response) => response.json())
+          .then((responseJson) => {
+            if (responseJson.form_errors) {
+              this.setState({formErrors: responseJson.form_errors})
+              this.setState({'submitting': false});
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+            this.setState({'submitting': false});
+          });
 
       } else {
         this.postData(this.props.url + '/app/node.json', this.state.formValues);
@@ -593,6 +597,9 @@ export default class FormComponent extends React.Component {
 
 
   postData(url = '', data = {}, method = 'POST') {
+
+    this.setState({'submitting': true});
+
     fetch(url, {
       method: method,
 
@@ -609,26 +616,27 @@ export default class FormComponent extends React.Component {
       referrer: 'no-referrer',
       body: JSON.stringify(data),
     })
-        .then((response) => response.json())
-        .then((responseJson) => {
-          console.log(responseJson);
-          if (responseJson.form_errors) {
-            this.setState({formErrors: responseJson.form_errors})
-          } else {
-            this.setState({
-              formSubmitted: true
-            });
-            // Submit this nid to synced entities
+      .then((response) => response.json())
+      .then((responseJson) => {
+        console.log(responseJson);
+        if (responseJson.form_errors) {
+          this.setState({formErrors: responseJson.form_errors})
+        } else {
+          this.setState({
+            formSubmitted: true,
+            submitting: false
+          });
+          // Submit this nid to synced entities
 
-            if (responseJson.hasOwnProperty('nid')) {
-              this.updateSyncedNids(responseJson.nid);
-            }
-
+          if (responseJson.hasOwnProperty('nid')) {
+            this.updateSyncedNids(responseJson.nid);
           }
-        })
-        .catch((error) => {
-          console.log(error);
-        })
+
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      })
     ;
   }
 
@@ -650,16 +658,16 @@ export default class FormComponent extends React.Component {
       referrer: 'no-referrer',
       body: nid,
     })
-        .then((response) => {
-          console.log(response);
-        })
-        .then((responseJson) => {
-          if (responseJson.form_errors) {
-            console.log(responseJson.form_errors);
-          } else {
-            console.log(responseJson);
-          }
-        });
+      .then((response) => {
+        console.log(response);
+      })
+      .then((responseJson) => {
+        if (responseJson.form_errors) {
+          console.log(responseJson.form_errors);
+        } else {
+          console.log(responseJson);
+        }
+      });
 
   }
 
@@ -700,7 +708,7 @@ export default class FormComponent extends React.Component {
 
           var fieldArray = childrenFields[k];
 
-          if(fieldName === undefined && fieldArray['#name'] !== undefined) {
+          if (fieldName === undefined && fieldArray['#name'] !== undefined) {
             fieldName = fieldArray['#name'];
           }
 
@@ -728,7 +736,7 @@ export default class FormComponent extends React.Component {
 
                 fieldArray = fieldArray[0];
 
-                if(fieldName === undefined && fieldArray['#field_name'] !== undefined) {
+                if (fieldName === undefined && fieldArray['#field_name'] !== undefined) {
                   fieldName = fieldArray['#field_name'];
                 }
 
@@ -752,14 +760,14 @@ export default class FormComponent extends React.Component {
                     }
 
                     let paragraph = <Paragraph
-                        formValues={this.state.formValues}
-                        fieldName={fieldName}
-                        field={fieldArray}
-                        key={fieldName}
-                        lang={fieldArray['#language']}
-                        setFormValue={this.setFormValueParagraph.bind(this)}
-                        addMoreText={addMoreText}
-                        paragraphTitle={paragraphTitle}
+                      formValues={this.state.formValues}
+                      fieldName={fieldName}
+                      field={fieldArray}
+                      key={fieldName}
+                      lang={fieldArray['#language']}
+                      setFormValue={this.setFormValueParagraph.bind(this)}
+                      addMoreText={addMoreText}
+                      paragraphTitle={paragraphTitle}
                     />;
 
                     form[i].push(paragraph);
@@ -794,157 +802,157 @@ export default class FormComponent extends React.Component {
                 }
                 let cardinality = null;
 
-                if(originalFieldArray['und']) {
+                if (originalFieldArray['und']) {
                   cardinality = originalFieldArray['und']['#cardinality'];
                 }
 
                 form[i].push(<Scald
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValueScald.bind(this)}
-                    formErrors={this.state.formErrors}
-                    description={description}
-                    chosenImage={chosenImage}
-                    cookie={this.state.cookie}
-                    token={this.state.token}
-                    url={this.props.url}
-                    cardinality={cardinality}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueScald.bind(this)}
+                  formErrors={this.state.formErrors}
+                  description={description}
+                  chosenImage={chosenImage}
+                  cookie={this.state.cookie}
+                  token={this.state.token}
+                  url={this.props.url}
+                  cardinality={cardinality}
                 />);
               } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValue}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValue}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               } else if (fieldArray['#type'] === 'text_format') {
                 form[i].push(<Textarea
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValue}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValue}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               } else if (fieldArray['#type'] === 'textarea') {
                 form[i].push(<Textarea
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValue}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValue}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               } else if (fieldArray['#type'] === 'radios') {
                 form[i].push(<Radios
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValueCheckboxes.bind(this)}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueCheckboxes.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               } else if (fieldArray['#type'] === 'checkboxes') {
                 form[i].push(<Checkboxes
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValueCheckboxes.bind(this)}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueCheckboxes.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               } else if (fieldArray['#type'] === 'checkbox') {
                 form[i].push(<Checkbox
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValueCheckbox.bind(this)}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueCheckbox.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               }
               // OG group gets special conditional select. Can expand to other conditional fields as needed
               else if (fieldArray['#type'] === 'select' && fieldName === 'og_group_ref') {
                 form[i].push(<ConditionalSelect
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValueConditionalSelect.bind(this)}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueConditionalSelect.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
 
               } else if (fieldArray['#type'] === 'select') {
                 form[i].push(<Select
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValueSelect.bind(this)}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueSelect.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               } else if (['item', 'date_combo'].includes(fieldArray['#type'])) {
                 form[i].push(<DatePick
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    fieldType={fieldArray['#type']}
-                    setFormValue={this.setFormValueDate.bind(this)}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  fieldType={fieldArray['#type']}
+                  setFormValue={this.setFormValueDate.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               } else if (fieldArray['#type'] === 'geofield_latlon') {
                 form[i].push(<Location
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValueLocation.bind(this)}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueLocation.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               } else if (fieldArray['#type'] === 'select2_hidden') {
                 form[i].push(<Select2
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    setFormValue={this.setFormValueSelect2.bind(this)}
-                    formErrors={this.state.formErrors}
-                    required={required}
-                    description={description}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueSelect2.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
               } else if (fieldArray['#columns'] !== undefined) {
                 form[i].push(<Textfield
-                    formValues={this.state.formValues}
-                    fieldName={fieldName}
-                    field={fieldArray}
-                    key={fieldName}
-                    required={required}
-                    setFormValue={this.setFormValue}
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  required={required}
+                  setFormValue={this.setFormValue}
                 />);
 
               }
@@ -965,19 +973,36 @@ export default class FormComponent extends React.Component {
       }
       if (buttons.length > 0) {
         buttonGroup = <ButtonGroup
-            onPress={this.updateIndex}
-            selectedIndex={selectedIndex}
-            buttons={buttons}
-            containerStyle={styles.buttonContainer}
-            buttonStyle={styles.buttonStyle}
-            textStyle={styles.textStyle}
-            selectedButtonStyle={styles.selectedButtonStyle}
+          onPress={this.updateIndex}
+          selectedIndex={selectedIndex}
+          buttons={buttons}
+          containerStyle={styles.buttonContainer}
+          buttonStyle={styles.buttonStyle}
+          textStyle={styles.textStyle}
+          selectedButtonStyle={styles.selectedButtonStyle}
         />;
 
       }
-      if(oneLoop) {
+      if (oneLoop) {
         break;
       }
+    }
+
+    let activityIndicator;
+    if (this.state.submitting === true) {
+      activityIndicator =
+        <Overlay
+          isVisible={true}
+          windowBackgroundColor="rgba(255, 255, 255, .5)"
+          overlayBackgroundColor="rgba(255, 255, 255, 1)"
+          width="auto"
+          height="auto"
+        >
+          <View style={styles.activityContainer}>
+          <Text style={{marginBottom: 10}}>Saving Node...</Text>
+          <ActivityIndicator size="large" color="#159EC4"/>
+          </View>
+        </Overlay>
     }
 
     let formDisplay;
@@ -987,16 +1012,16 @@ export default class FormComponent extends React.Component {
         formDisplay = <View>
           <Text>Your content has been queued for saving when connected.</Text>
           <Button
-              title="Submit Another"
-              onPress={this.resetForm}
+            title="Submit Another"
+            onPress={this.resetForm}
           />
         </View>
       } else {
         formDisplay = <View>
           <Text>Your content has been submitted successfully.</Text>
           <Button
-              title="Submit Another"
-              onPress={this.resetForm}
+            title="Submit Another"
+            onPress={this.resetForm}
           />
         </View>
       }
@@ -1006,9 +1031,10 @@ export default class FormComponent extends React.Component {
 
         {buttonGroup}
         {form[this.state.selectedIndex]}
+        {activityIndicator}
         <Button
-            title="Save"
-            onPress={this.saveNode}
+          title="Save"
+          onPress={this.saveNode}
         />
       </View>;
     }
@@ -1047,5 +1073,8 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 14,
     textTransform: 'uppercase'
+  },
+  activityContainer: {
+    padding: 10
   }
 });
