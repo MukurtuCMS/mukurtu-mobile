@@ -10,7 +10,7 @@ export default class Required extends React.Component {
 
     let required = [];
     if (this.props.required) {
-      required.push(<Text style={styles.requiredStyle}>* Required</Text>);
+      required.push(<Text style={styles.requiredStyle} key={0}>* Required</Text>);
     }
     return <View>
       {required}
