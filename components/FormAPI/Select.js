@@ -49,8 +49,8 @@ export default class Select extends React.Component {
     let selectedValue = '';
 
     if (typeof this.props.formValues[this.props.fieldName] !== 'undefined' &&
-        typeof this.props.formValues[this.props.fieldName]['und'][0] !== 'undefined') {
-      selectedValue = this.props.formValues[this.props.fieldName]['und'][0][valueKey];
+        typeof this.props.formValues[this.props.fieldName]['und'] !== 'undefined') {
+      selectedValue = this.props.formValues[this.props.fieldName]['und'][valueKey];
       // Get the key for the selected values
     }
 
@@ -60,7 +60,7 @@ export default class Select extends React.Component {
       <Required required={this.props.required}/>
       <Picker
           style={{height: 250, width: 'auto'}}
-          onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text)}
+          onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey)}
           selectedValue={selectedValue}
       >
         {options}

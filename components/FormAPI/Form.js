@@ -35,6 +35,7 @@ export default class FormComponent extends React.Component {
       formErrors: null
     };
     this.setFormValue = this.setFormValue.bind(this);
+    this.setFormValueSelect = this.setFormValueSelect.bind(this);
     this.updateIndex = this.updateIndex.bind(this);
     this.saveNode = this.saveNode.bind(this);
     this.resetForm = this.resetForm.bind(this);
@@ -147,6 +148,36 @@ export default class FormComponent extends React.Component {
       }
     }
   }
+
+  setFormValueSelect(newFieldName, newValue, valueKey, lang = 'und', error = null, index = '0') {
+
+    if (this.state.formValues) {
+      const formValues = this.state.formValues;
+        // if not, we need to format like drupal field
+        // This is the format Drupal needs for text fields
+        let values = {
+          [newFieldName]: {
+            [lang]: {
+              [valueKey]: newValue
+            }
+          }
+        };
+        Object.assign(formValues, values);
+
+      // save value to state
+      this.setState({formValues: formValues});
+    }
+    if (error) {
+      let newErrors = this.state.formErrors;
+      if (this.state.formErrors) {
+        if (this.state.formErrors[error]) {
+          delete newErrors[error];
+          this.setState({formErrors: newErrors});
+        }
+      }
+    }
+  }
+
 
 
   setFormValueCheckbox(newFieldName, newValue, valueKey, error = null) {
@@ -867,7 +898,7 @@ export default class FormComponent extends React.Component {
                     fieldName={fieldName}
                     field={fieldArray}
                     key={fieldName}
-                    setFormValue={this.setFormValue}
+                    setFormValue={this.setFormValueSelect.bind(this)}
                     formErrors={this.state.formErrors}
                     required={required}
                     description={description}
