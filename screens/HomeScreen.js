@@ -24,7 +24,8 @@ class HomeScreen extends React.Component {
   static navigationOptions = {
     title: 'View Content',
     headerStyle: {
-      backgroundColor: Colors.default.gold
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
     },
   };
 

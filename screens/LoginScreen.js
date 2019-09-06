@@ -17,6 +17,7 @@ import {addUser} from '../actions/user';
 import {WebBrowser} from 'expo';
 import {SQLite} from 'expo-sqlite';
 import Validator from 'validator';
+import * as Colors from "../constants/Colors";
 
 
 // create a global db for database list and last known user
@@ -26,6 +27,14 @@ const db = SQLite.openDatabase('db.db');
 
 
 class LoginScreen extends React.Component {
+
+  static navigationOptions = {
+    headerStyle: {
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
+    },
+    headerTintColor: '#000',
+  };
 
   constructor(props) {
     super(props);
@@ -145,6 +154,53 @@ class LoginScreen extends React.Component {
                 .then((response) => response.json())
                 .then((responseJson) => {
 
+                  // If already logged in go ahead and grab user account
+                  if (responseJson[0] === 'Already logged in as admin.') {
+                    fetch(this.state.url + '/app/system/connect', data)
+                      .then((response) => response.json())
+                      .then((responseJson) => {
+
+                        // Check for user in response. If there's no user, the response is an error message.
+                        if (typeof responseJson.user === 'undefined') {
+                          this.handleLoginError(responseJson);
+                        } else {
+                          // remove http:// from url
+                          const url = this.state.url.replace(/(^\w+:|^)\/\//, '');
+
+
+                          // we need to update our global user
+                          globalDB.transaction(
+                            tx => {
+                              tx.executeSql('delete from user;',
+                              );
+                            }
+                          );
+
+                          globalDB.transaction(
+                            tx => {
+                              tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
+                                [url, JSON.stringify(responseJson)],
+                                (success) => {
+                                  this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                                },
+
+                                (success, error) => {
+                                  console.log('error');
+                                }
+                              );
+                            }
+                          );
+
+                          this.props.add(responseJson.session_name + '=' + responseJson.sessid);
+                          this.props.addUserProp(responseJson);
+                          this._handleLoginStatusUpdate();
+                          this.props.navigation.navigate('Home')
+                        }
+                      })
+                      .catch((error) => {
+                      });
+                  }
+
                   // Check for user in response. If there's no user, the response is an error message.
                   if (typeof responseJson.user === 'undefined') {
                     this.handleLoginError(responseJson);
@@ -239,7 +295,12 @@ class LoginScreen extends React.Component {
                        placeholder="Email"
                        keyboardType="email-address"
                        underlineColorAndroid='transparent'
+                       placeholderTextColor="#464646"
                        onChangeText={(name) => this.setState({name})}/>
+          </View>
+
+          <View>
+            <Text></Text>
           </View>
 
           <View style={styles.inputContainer}>
@@ -247,6 +308,7 @@ class LoginScreen extends React.Component {
                        placeholder="Password"
                        secureTextEntry={true}
                        underlineColorAndroid='transparent'
+                       placeholderTextColor="#464646"
                        onChangeText={(password) => this.setState({password})}/>
           </View>
 
@@ -260,6 +322,7 @@ class LoginScreen extends React.Component {
             <TextInput style={styles.inputs}
                        placeholder="Url"
                        underlineColorAndroid='transparent'
+                       placeholderTextColor="#464646"
                        onChangeText={
                          (url) => {
                            this.setState({url});
@@ -277,13 +340,6 @@ class LoginScreen extends React.Component {
             <Text style={styles.loginText}>Login</Text>
           </TouchableHighlight>
 
-          <TouchableHighlight style={styles.buttonContainer} onPress={this.onPasswordClickAsync}>
-            <Text>Forgot your password?</Text>
-          </TouchableHighlight>
-
-          <TouchableHighlight style={styles.buttonContainer} onPress={this.onRegisterClickAsync}>
-            <Text>Register</Text>
-          </TouchableHighlight>
         </View>
     );
   }
@@ -292,25 +348,24 @@ class LoginScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#DCDCDC',
+    backgroundColor: '#f8f7f7',
+    padding: 20,
   },
   inputContainer: {
-    borderBottomColor: '#F5FCFF',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 30,
-    borderBottomWidth: 1,
-    width: 250,
-    height: 45,
-    marginBottom: 20,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    height: 48,
+    borderWidth: 1,
+    borderColor: Colors.default.mediumGray,
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+    padding: 8,
+    fontSize: 20
   },
   inputs: {
     height: 45,
-    marginLeft: 16,
-    borderBottomColor: '#FFFFFF',
+    marginLeft: 0,
     flex: 1,
   },
   inputIcon: {
@@ -320,19 +375,47 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   buttonContainer: {
-    height: 45,
+    height: 48,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    width: 250,
-    borderRadius: 30,
+    borderRadius: 5,
+    alignSelf: 'stretch',
+    marginTop: 2
   },
   loginButton: {
-    backgroundColor: "#00b5ec",
+    backgroundColor: "#159ec4",
   },
   loginText: {
     color: 'white',
+  },
+  titleTextStyle: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  titleTextStyleError: {
+    color: Colors.default.errorBackground,
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  errorTextStyle: {
+    color: '#000'
+  },
+  errorTextStyleError: {
+    color: Colors.default.errorBackground,
+    marginBottom: 10
+  },
+  textfieldStyle: {
+    height: 60,
+    borderWidth: 1,
+    borderColor: Colors.default.mediumGray,
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+    padding: 8,
+    fontSize: 20
   }
 });
 

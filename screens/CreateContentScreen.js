@@ -24,7 +24,8 @@ class CreateContentScreen extends React.Component {
   static navigationOptions = {
     title: 'Create Content',
     headerStyle: {
-      backgroundColor: Colors.default.gold
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
     },
   };
 

@@ -31,8 +31,11 @@ class CreateContentFormScreen extends React.Component {
   static navigationOptions = ({navigation}) => ({
     title: 'Create ' + `${navigation.getParam('contentTypeLabel')}`,
     headerStyle: {
-      backgroundColor: Colors.default.gold
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
+      headerTintColor: '#000',
     },
+    headerTintColor: '#000',
   });
 
   constructor(props) {

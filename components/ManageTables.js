@@ -14,6 +14,7 @@ export const createUniqueTables = (db) => {
   createContentTypeTable(db);
   createDisplayModesTable(db);
   createSavedOfflineTable(db);
+  createSiteInfoTable(db);
 };
 
 export const createGlobalTables = () => {
@@ -99,6 +100,14 @@ const createDisplayModesTable = (db) => {
   db.transaction(tx => {
     tx.executeSql(
       'create table if not exists display_modes (machine_name text primary key, node_view text, list_view text);'
+    );
+  });
+}
+
+const createSiteInfoTable = (db) => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'create table if not exists site_info (site_name text primary key, mobile_enabled boolean, logo text);'
     );
   });
 }

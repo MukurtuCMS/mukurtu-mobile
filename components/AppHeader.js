@@ -1,9 +1,31 @@
 import React from 'react';
 import { View, StyleSheet, Text, Image} from 'react-native';
 import {EvilIcons} from "@expo/vector-icons";
+import {SQLite} from "expo-sqlite";
 
 export default class AppHeader extends React.Component {
 
+  constructor(props) {
+    super(props);
+    const { navigation, screenProps } = this.props;
+    this.state = {
+      siteInfo: null,
+      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null
+    }
+  }
+
+
+  componentDidMount() {
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('select * from site_info limit 1',
+          [],
+          (success, info) => this.setState({siteInfo: info.rows._array[0]}),
+          (success, error) => ''
+        );
+      }
+    );
+  }
 
   render() {
     let loginBubbleStyle = styles.loginBubble;
@@ -14,15 +36,24 @@ export default class AppHeader extends React.Component {
       let profileLink = 'Logout';
     }
 
+    let siteLogo = <Image
+      style={styles.siteIcon}
+      source={require('../assets/images/profileIcon.png')}
+    />;
+
+    if (this.state.siteInfo && this.state.siteInfo.logo.length > 0) {
+      siteLogo = <Image
+        style={styles.siteIcon}
+        source={{uri: 'data:image/png;base64,' + this.state.logo}}
+      />;
+    }
+
     return <View style={styles.container}>
       <View style={styles.siteIconView}>
-      <Image
-        style={styles.siteIcon}
-        source={require('../assets/images/profileIcon.png')}
-      />
+        {siteLogo}
       <Text style={loginBubbleStyle}></Text>
       </View>
-      <Text style={styles.siteName}>{this.props.url}</Text>
+      <Text style={styles.siteName}>{this.state.siteInfo ? this.state.siteInfo.site_name : this.props.url}</Text>
       <Image
         style={styles.profileIcon}
         source={require('../assets/images/profileIcon.png')}

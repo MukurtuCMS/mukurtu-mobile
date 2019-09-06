@@ -59,7 +59,6 @@ export const syncContentTypes = (state, complete) => {
 }
 
 const getCreatableTypes = async (state, data, complete) => {
-  console.log(state);
   fetch(state.siteUrl + '/app/creatable-types/retrieve', data)
       .then((response) => response.json())
       .then((responseJson) => {
@@ -358,4 +357,27 @@ export const getSavedOffline = (state) => {
           );
         }, null, null);
   });
+}
+
+export const syncSiteInfo = (state) => {
+  const data = buildFetchData('GET', state);
+  fetch(state.siteUrl + '/app/site-info/retrieve', data)
+    .then((response) => response.json())
+    .then((siteInfo) => {
+      if (siteInfo && siteInfo.site_name) {
+
+          state.db.transaction(
+            tx => {
+              tx.executeSql('replace into site_info (site_name, mobile_enabled, logo) values (?, ?, ?)',
+                [siteInfo.site_name, siteInfo.mukurtu_mobile_enabled, siteInfo.logo],
+                (success) => '',
+                (success, error) => ''
+              );
+            }
+          );
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 }

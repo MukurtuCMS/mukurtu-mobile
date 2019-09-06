@@ -126,6 +126,7 @@ export default class App extends React.Component {
       if(self.state.db !== null && self.state.loggedIn && self.state.isConnected){
         Sync.updateEntities(this.state.db, this.state);
         Sync.syncContentTypes(this.state, this.syncCompleted);
+        Sync.syncSiteInfo(this.state);
       };
     }, 15 * 60 * 1000);
 
@@ -161,6 +162,7 @@ export default class App extends React.Component {
     if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn) {
       Sync.updateEntities(this.state.db, this.state);
       Sync.syncContentTypes(this.state, this.syncCompleted);
+      Sync.syncSiteInfo(this.state);
     }
 
 /*    if (!prevState.sync && this.state.sync) {
@@ -197,6 +199,7 @@ export default class App extends React.Component {
           } else {
             console.log('database is set');
             ManageTables.createUniqueTables(this.state.db);
+            this._insertAuth();
 
             if (!this.state.loggedIn) {
               console.log('lets login');
@@ -205,6 +208,7 @@ export default class App extends React.Component {
               console.log('we are logged in');
               Sync.updateEntities(this.state.db, this.state);
               Sync.syncContentTypes(this.state, this.syncCompleted);
+              Sync.syncSiteInfo(this.state);
             }
           }
         }
@@ -287,6 +291,7 @@ export default class App extends React.Component {
             <AppHeader
               loggedIn={this.state.loggedIn}
               url={this.state.siteUrl}
+              screenProps={screenProps}
             />
             <AppNavigator screenProps={screenProps} />
           </View>
@@ -407,31 +412,33 @@ export default class App extends React.Component {
   }
 
   _insertAuth() {
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('delete from auth;',
-        );
-      }
-    );
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('insert into auth (token, cookie) values (?, ?)',
-          [this.state.user.token, this.state.user.session_name + '=' + this.state.user.sessid],
-          (success) => {
-            // Set site status to logged in
-            this.setState({
-              token: this.state.user.token,
-              cookie: this.state.user.session_name + '=' + this.state.user.sessid,
-              loggedIn: true,
-              isLoggedIn: true
-            });
+    if (this.state.user.token && this.state.user.session_name && this.state.user.sessid) {
+      this.state.db.transaction(
+        tx => {
+          tx.executeSql('delete from auth;',
+          );
+        }
+      );
+      this.state.db.transaction(
+        tx => {
+          tx.executeSql('insert into auth (token, cookie) values (?, ?)',
+            [this.state.user.token, this.state.user.session_name + '=' + this.state.user.sessid],
+            (success) => {
+              // Set site status to logged in
+              this.setState({
+                token: this.state.user.token,
+                cookie: this.state.user.session_name + '=' + this.state.user.sessid,
+                loggedIn: true,
+                isLoggedIn: true
+              });
 
-          },
+            },
 
-          (success, error) => console.log(' ')
-        );
-      }
-    );
+            (success, error) => console.log(' ')
+          );
+        }
+      );
+    }
   }
 
   _handleAuthError = () => {
@@ -442,7 +449,6 @@ export default class App extends React.Component {
   // This will try and check if the current user is logged in. This will fail if the server or client is offline.
   // If failed, we will set the loggedIn to false so we know the connection has been attempted.
   connect(array) {
-
     if (array === undefined || array.length < 1) {
       this.setState({
         cookie: null,
