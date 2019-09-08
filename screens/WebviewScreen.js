@@ -14,7 +14,6 @@ import Validator from 'validator';
 import {Overlay} from "react-native-elements";
 
 
-
 export default class WebviewScreen extends React.Component {
   constructor(props) {
     super(props);
@@ -26,58 +25,75 @@ export default class WebviewScreen extends React.Component {
       lastVisitedUrl: null,
       loading: true
     };
-
   }
 
   static navigationOptions = {
     header: null,
   };
 
-  async componentWillMount() {
+  componentWillMount() {
 
-    const isLoggedInBrowser = await this._checkBrowserLoginStatus(this.props.screenProps.siteUrl);
+    let isLoggedInBrowser = false;
 
-    this.setState({isLoggedInBrowser: isLoggedInBrowser});
+    let url = this.props.screenProps.siteUrl;
+    fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    })
+      .then((response) => response.text())
+      .then((html) => {
 
-    // If we're logged in to app but not browser, get one-time login link
-    if(this.props.screenProps.isLoggedIn && !isLoggedInBrowser) {
-      let returnUrl = null;
-      let data = {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': this.props.screenProps.token,
-          'Cookie': this.props.screenProps.cookie
-        }
-      };
+        isLoggedInBrowser = html.includes(' logged-in');
+        this.setState({isLoggedInBrowser: isLoggedInBrowser});
+        // If we're logged in to app but not browser, get one-time login link
+        if (this.props.screenProps.isLoggedIn && !isLoggedInBrowser) {
+          let returnUrl = null;
+          let data = {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': this.props.screenProps.token,
+              'Cookie': this.props.screenProps.cookie
+            }
+          };
 
-      fetch(this.props.screenProps.siteUrl + '/app/one-time-login/retrieve', data)
-          .then((response) => response.text())
-          .then((responseText) => {
+          fetch(this.props.screenProps.siteUrl + '/app/one-time-login/retrieve', data)
+            .then((response) => response.text())
+            .then((responseText) => {
 
-            // Get just the URL from the response text
-            responseText = responseText.replace('["', '');
+              // Get just the URL from the response text
+              responseText = responseText.replace('["', '');
 
-            returnUrl = responseText.replace('"]', '');
+              returnUrl = responseText.replace('"]', '');
 
-            this.setState({
-              targetUrl: returnUrl,
-              loading: false
+              this.setState({
+                targetUrl: returnUrl,
+                loading: false
+              });
+
+            })
+            .catch((error) => {
+              console.error(error);
             });
 
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+        }
+      })
+      .catch((error) =>{
+        this.setState({
+          loading: false
+        });
+      });
 
-    }
 
     this.setState({
       loading: false
     });
   }
-
 
 
   /**
@@ -100,19 +116,11 @@ export default class WebviewScreen extends React.Component {
       const html = await response.text();
       // Might be better to use a dom parser
       isLoggedInBrowser = html.includes(' logged-in');
-    } catch(e) {
+    } catch (e) {
       isLoggedInBrowser = false;
     }
 
     return isLoggedInBrowser;
-  }
-
-
-  ActivityIndicatorLoadingView() {
-    //making a view to show to while loading the webpage
-    return (
-        <ActivityIndicator />
-    );
   }
 
 
@@ -139,23 +147,23 @@ export default class WebviewScreen extends React.Component {
     // If it's an invalid URL or the user is not logged in, don't open browser
     if (!Validator.isURL(this.state.targetUrl) || !this.props.screenProps.isLoggedIn) {
       return (
-          <View style={styles.container}>
-            <TouchableHighlight style={styles.buttonContainer} onPress={() => this.props.navigation.navigate('Login')}>
-              <Text>Please Log In to Browse Offline</Text>
-            </TouchableHighlight>
-          </View>
+        <View style={styles.container}>
+          <TouchableHighlight style={styles.buttonContainer} onPress={() => this.props.navigation.navigate('Login')}>
+            <Text>Please Log In to Browse Offline</Text>
+          </TouchableHighlight>
+        </View>
       )
     }
 
     return (
-        <View style={styles.container}>
-          {activityIndicator}
-          <WebView
-              source={{uri: this.state.targetUrl}}
-              style={{marginTop: 20}}
-              useWebKit={true}
-          />
-        </View>
+      <View style={styles.container}>
+        {activityIndicator}
+        <WebView
+          source={{uri: this.state.targetUrl}}
+          style={{marginTop: 20}}
+          useWebKit={true}
+        />
+      </View>
     );
   }
 }

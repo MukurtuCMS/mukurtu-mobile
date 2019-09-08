@@ -14,9 +14,7 @@ export default class Radios extends React.Component {
 
             if (this.props.formValues[fieldName][lang][fieldKey] === fieldValue) {
                 return true;
-            }
-            // Sometimes there's a 0 in there
-          if (this.props.formValues[fieldName][lang][0][fieldKey] === fieldValue) {
+            } else if (typeof this.props.formValues[fieldName][lang][0] !== 'undefined'&& this.props.formValues[fieldName][lang][0][fieldKey] === fieldValue) {
             return true;
           }
         }
