@@ -10,7 +10,7 @@ import {
   View,
   Alert,
   Button,
-  Linking, NetInfo, Picker
+  Linking, NetInfo, Picker, TouchableHighlight
 } from 'react-native';
 import RNPickerSelect, {defaultStyles} from 'react-native-picker-select';
 import {WebBrowser} from 'expo';
@@ -505,6 +505,7 @@ export default class HomeScreen extends React.Component {
                 onChangeText={(text) => this.setSearchText(text)}
               />
             </View>
+
             <Text>No nodes were found in offline storage.</Text>
           </View>
         </ScrollView>
@@ -645,7 +646,7 @@ export default class HomeScreen extends React.Component {
 
     return (
         <ScrollView style={styles.container}>
-
+          <Button style={styles.buttonStyle} title="< Back" onPress={() => this.props.navigation.navigate('Home')}/>
           <View>
             <View style={styles.searchInputContainer}>
               <Ionicons name="md-search" size={32} style={styles.searchIcon} />
@@ -656,6 +657,8 @@ export default class HomeScreen extends React.Component {
                 onChangeText={(text) => this.setSearchText(text)}
               />
             </View>
+
+
             {categoriesList}
             {keywordsList}
             {communityList}
@@ -919,5 +922,23 @@ const pickerSelectStyles = StyleSheet.create({
     backgroundColor: Colors.default.primary,
     marginBottom: 10,
     textTransform: 'uppercase'
+  },
+  buttonContainer: {
+    flexWrap: 'wrap',
+    flex: 1,
+    flexDirection: 'column',
+    height: 'auto',
+    padding: 0,
+    marginLeft: -10,
+    marginRight: -10,
+    width: 'auto',
+  },
+  buttonStyle: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: Colors.default.primary,
+    marginBottom: 10,
+    color: '#FFF',
+    fontSize: 16,
   },
 });
