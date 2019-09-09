@@ -18,7 +18,7 @@ export default class Checkboxes extends React.Component {
         return true;
       }
       // Check for structure with 0
-      if (this.props.formValues[fieldName][lang][0][fieldKey] === fieldValue) {
+      else if (typeof this.props.formValues[fieldName][lang][0] !== 'undefined' && this.props.formValues[fieldName][lang][0][fieldKey] === fieldValue) {
         return true;
       }
     }
