@@ -122,6 +122,7 @@ export default class App extends React.Component {
     YellowBox.ignoreWarnings(['Network request failed']);
     YellowBox.ignoreWarnings(['Each child in a list']);
     YellowBox.ignoreWarnings(['Failed prop type']);
+    console.disableYellowBox = true;
 
     var self = this;
     this._isMounted = true;
