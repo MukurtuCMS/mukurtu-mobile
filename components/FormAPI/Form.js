@@ -635,6 +635,9 @@ export default class FormComponent extends React.Component {
       })
       .catch((error) => {
         console.log(error);
+        this.setState({
+          submitting: false
+        });
       })
     ;
   }

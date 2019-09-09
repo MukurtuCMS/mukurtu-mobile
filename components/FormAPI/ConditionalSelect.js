@@ -98,7 +98,7 @@ export default class ConditionalSelect extends React.Component {
 
 
 
-    return <View>
+    return <View style={styles.viewStyle}>
       <Text>{field['#title']}</Text>
       <FieldDescription description={(this.props.description) ? this.props.description : null} />
       <Required required={this.props.required}/>
@@ -134,5 +134,8 @@ var styles = StyleSheet.create({
   selectListIOS: {
     height: 100,
     width: 'auto'
+  },
+  viewStyle: {
+    marginBottom: 15,
   }
 });

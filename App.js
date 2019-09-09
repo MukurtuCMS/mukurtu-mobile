@@ -119,6 +119,10 @@ export default class App extends React.Component {
 
   componentDidMount() {
     YellowBox.ignoreWarnings(['Setting a timer']);
+    YellowBox.ignoreWarnings(['Network request failed']);
+    YellowBox.ignoreWarnings(['Each child in a list']);
+    YellowBox.ignoreWarnings(['Failed prop type']);
+
     var self = this;
     this._isMounted = true;
 

@@ -416,6 +416,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: Constants.statusBarHeight,
     backgroundColor: '#ecf0f1',
+    marginBottom: 15
   },
   paragraph: {
     margin: 24,
@@ -423,5 +424,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#34495e',
-  },
+  }
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Picker, View, Text} from 'react-native';
+import {Picker, View, Text, StyleSheet} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import Required from "./Required";
 
@@ -55,7 +55,7 @@ export default class Select extends React.Component {
     }
 
 
-    return <View>
+    return <View style={styles.viewStyle}>
       <Text>{field['#title']}</Text>
       <Required required={this.props.required}/>
       <Picker
@@ -68,3 +68,10 @@ export default class Select extends React.Component {
     </View>;
   }
 }
+
+
+const styles = StyleSheet.create({
+  viewStyle: {
+    marginBottom: 15,
+  }
+});

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import {Button, CheckBox} from "react-native-elements";
 import Textfield from "./Textfield";
 import Select2 from "./Select2";
@@ -289,10 +289,16 @@ export default class Paragraph extends React.Component {
       />
     }
 
-    return <View>
+    return <View style={styles.viewStyle}>
       {paragraphTitle}
       {paragraphForms}
       {paragraphFormButton}
     </View>;
   }
 }
+
+const styles = StyleSheet.create({
+  viewStyle: {
+    marginBottom: 15,
+  }
+});

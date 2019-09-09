@@ -178,13 +178,11 @@ export default class Select2 extends React.Component {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F5FCFF',
+    backgroundColor: '#FFF',
     flex: 1,
-    paddingTop: 25
+    marginBottom: 15
   },
   autocompleteContainer: {
-    marginLeft: 10,
-    marginRight: 10
   },
   autocompleteContainers: {
     flex: 1,
@@ -201,7 +199,7 @@ const styles = StyleSheet.create({
   descriptionContainer: {
     // `backgroundColor` needs to be set otherwise the
     // autocomplete input will disappear on text input.
-    backgroundColor: '#F5FCFF',
+    backgroundColor: '#FFF',
     marginTop: 8
   },
   infoText: {
@@ -241,9 +239,14 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   textfieldStyle: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1
+    height: 60,
+    borderWidth: 1,
+    borderColor: Colors.default.mediumGray,
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+    padding: 8,
+    fontSize: 20
   },
   textfieldStyleError: {
     height: 40,

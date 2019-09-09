@@ -52,7 +52,7 @@ export default class Textarea extends React.Component {
             errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
         }
 
-        return <View>
+        return <View style={styles.viewStyle}>
             <Text style={titleTextStyle}>{field['#title']}</Text>
             {errorMarkup}
             <FieldDescription description={(this.props.description) ? this.props.description : null} />
@@ -98,5 +98,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 1,
         borderColor: Colors.default.errorBackground
-    }
+    },
+  viewStyle: {
+    marginBottom: 15,
+  }
 });

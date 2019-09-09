@@ -70,7 +70,7 @@ export default class DatePick extends React.Component {
     }
 
     return (
-      <View>
+      <View style={styles.viewStyle}>
         <Text style={titleTextStyle}>{field['#title']}</Text>
         {errorMarkup}
         <FieldDescription description={(this.props.description) ? this.props.description : null}/>
@@ -142,5 +142,8 @@ const styles = StyleSheet.create({
     width: 200,
     height: 60,
     paddingTop: 15
+  },
+  viewStyle: {
+    marginBottom: 15,
   }
 });

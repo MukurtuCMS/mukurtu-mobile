@@ -123,5 +123,5 @@ const styles = StyleSheet.create({
     fontWeight: 'normal',
     fontSize: 14,
     color: '#464646'
-  }
+  },
 });

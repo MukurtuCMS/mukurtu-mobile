@@ -146,7 +146,7 @@ export default class Textfield extends React.Component {
     }
 
 
-    return <View>
+    return <View style={styles.viewStyle}>
       <Text style={titleTextStyle}>{title}</Text>
       {errorMarkup}
       <FieldDescription description={(this.props.description) ? this.props.description : null}/>
@@ -208,5 +208,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.default.gold,
     padding: 8,
     fontSize: 20
+  },
+  viewStyle: {
+    marginBottom: 15,
   }
 });

@@ -73,7 +73,7 @@ export default class Radios extends React.Component {
         if (error) {
             errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
         }
-        return <View>
+        return <View style={styles.viewStyle}>
             <Text style={titleTextStyle}>{field['#title']}</Text>
             {errorMarkup}
             <FieldDescription description={(this.props.description) ? this.props.description : null} />
@@ -119,5 +119,8 @@ const styles = StyleSheet.create({
         fontWeight: 'normal',
         fontSize: 14,
         color: '#464646'
-    }
+    },
+  viewStyle: {
+    marginBottom: 15,
+  }
 });

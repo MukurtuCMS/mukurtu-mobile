@@ -48,7 +48,7 @@ export default class Checkbox extends React.Component {
       errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
     }
 
-    return <View>
+    return <View style={styles.viewStyle}>
       {errorMarkup}
       <FieldDescription description={(this.props.description) ? this.props.description : null} />
       <Required required={this.props.required}/>
@@ -110,5 +110,8 @@ const styles = StyleSheet.create({
     fontWeight: 'normal',
     fontSize: 14,
     color: '#464646'
+  },
+  viewStyle: {
+    marginBottom: 15,
   }
 });
