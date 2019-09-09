@@ -27,6 +27,7 @@ class CreateContentScreen extends React.Component {
       backgroundColor: Colors.default.gold,
       marginTop: -20,
     },
+    headerTintColor: '#000',
   };
 
   constructor(props){

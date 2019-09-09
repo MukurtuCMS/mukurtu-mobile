@@ -60,7 +60,11 @@ export default class HomeScreen extends React.Component {
   }
 
   static navigationOptions = {
-    header: null,
+    headerStyle: {
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
+    },
+    headerTintColor: '#000',
   };
 
   componentDidMount() {
@@ -646,7 +650,6 @@ export default class HomeScreen extends React.Component {
 
     return (
         <ScrollView style={styles.container}>
-          <Button style={styles.buttonStyle} title="< Back" onPress={() => this.props.navigation.navigate('Home')}/>
           <View>
             <View style={styles.searchInputContainer}>
               <Ionicons name="md-search" size={32} style={styles.searchIcon} />
@@ -753,7 +756,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingLeft: 15,
-    paddingRight: 15
+    paddingRight: 15,
+    paddingTop: 15
   },
   developmentModeText: {
     marginBottom: 20,

@@ -9,6 +9,7 @@ export default class SettingsScreen extends React.Component {
       backgroundColor: Colors.default.gold,
       marginTop: -20,
     },
+    headerTintColor: '#000',
   };
 
   render() {
