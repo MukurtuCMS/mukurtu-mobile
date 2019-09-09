@@ -59,7 +59,7 @@ class SettingsOverview extends React.Component {
         month: 'numeric',
         year: 'numeric',
       });
-      lastUpdatedText = <Text>
+      lastUpdatedText = <Text style={styles.lastUpdate}>
         Last Sync: {lastSyncDate + ' ' + this.formatStandardTime(lastSyncTime)}
       </Text>
     }
@@ -140,6 +140,9 @@ const styles = StyleSheet.create({
   titleInfoStyle:{
     fontSize:16,
     color: '#8e8e93'
+  },
+  lastUpdate: {
+    padding: 15
   }
 });
 
