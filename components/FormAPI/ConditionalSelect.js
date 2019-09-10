@@ -82,6 +82,7 @@ export default class ConditionalSelect extends React.Component {
 
       childPicker = <Picker
           style={(Platform.OS === 'ios') ? styles.selectListIOS : styles.selectListAndroid}
+          itemStyle={{height: 60}}
           onValueChange={(itemValue, itemIndex, childKey) => {
             this.setState({
               childValue: itemValue
@@ -104,6 +105,7 @@ export default class ConditionalSelect extends React.Component {
       <Required required={this.props.required}/>
       <Picker
           style={(Platform.OS === 'ios') ? styles.selectListIOS : styles.selectListAndroid}
+          itemStyle={{height: 60}}
           // onValueChange={(val) => this.props.setFormValue(this.props.fieldName, val)}
           onValueChange={(itemValue, itemIndex) => {
               this.setState({parentValue: itemValue}, ()=> {
@@ -132,8 +134,10 @@ var styles = StyleSheet.create({
     width: 'auto'
   },
   selectListIOS: {
-    height: 100,
-    width: 'auto'
+    height: 60,
+    width: 'auto',
+    padding: 0,
+    marginTop: 0,
   },
   viewStyle: {
     marginBottom: 15,
