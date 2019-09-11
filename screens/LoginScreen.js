@@ -155,7 +155,7 @@ class LoginScreen extends React.Component {
                 .then((responseJson) => {
 
                   // If already logged in go ahead and grab user account
-                  if (responseJson[0] === 'Already logged in as admin.') {
+                  if (responseJson instanceof Array && responseJson[0].startsWith('Already logged in as')) {
                     fetch(this.state.url + '/app/system/connect', data)
                       .then((response) => response.json())
                       .then((responseJson) => {
