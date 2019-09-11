@@ -407,6 +407,8 @@ export default class App extends React.Component {
         tx.executeSql('select * from user;',
           '',
           (success, array) => {
+            console.log('logging user');
+            console.log(array);
             if (array.rows._array.length > 0) {
               this.setState({user: JSON.parse(array.rows._array[0].user)});
             }
