@@ -575,20 +575,20 @@ export default class App extends React.Component {
 
 
           // now let's sync all content type endpoints
-          // let urls = [];
-          // for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-          //   urls.push({url: state.siteUrl + '/app/node-form-fields/retrieve/' + machineName, machineName: machineName});
-          // }
-          // Promise.all(urls.map(url =>
-          //   fetch(url.url, data)
-          //     .then(this.checkStatus)
-          //     .then(this.parseJSON)
-          //     .then((response) => this.insertContentType(response, state, url.machineName))
-          //     .catch(error => console.log(error))
-          // ))
-          //   .then(() => {
-          //     console.log('complete');
-          //   })
+          let urls = [];
+          for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+            urls.push({url: state.siteUrl + '/app/node-form-fields/retrieve/' + machineName, machineName: machineName});
+          }
+          Promise.all(urls.map(url =>
+            fetch(url.url, data)
+              .then(this.checkStatus)
+              .then(this.parseJSON)
+              .then((response) => this.insertContentType(response, state, url.machineName))
+              .catch(error => console.log(error))
+          ))
+            .then(() => {
+              console.log('complete');
+            })
         }
       })
   }
@@ -866,7 +866,10 @@ export default class App extends React.Component {
                 })
             })
             .then(() => {
-              this.setState({'sync': false})
+              this.setState({
+                'sync': false,
+                'syncing': false
+              })
             })
             .catch((error) => {
               console.error(error);
