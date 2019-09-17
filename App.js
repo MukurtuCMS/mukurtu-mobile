@@ -132,7 +132,7 @@ export default class App extends React.Component {
     setInterval(() => {
       if (self.state.db !== null && self.state.loggedIn && self.state.isConnected) {
         console.log('here');
-        this.updateEntities(this.state.db, this.state, this.syncCompleted());
+        this.updateEntities(this.state.db, this.state);
         // Sync.syncContentTypes(this.state, this.syncCompleted);
         // Sync.syncSiteInfo(this.state);
       }
@@ -219,7 +219,7 @@ export default class App extends React.Component {
             } else {
               this.setState({'syncing': true});
               console.log('we are logged in');
-
+              this.updateEntities(this.state.db, this.state, this.syncCompleted());
               // Sync.syncContentTypes(this.state, this.syncCompleted);
               // Sync.syncSiteInfo(this.state);
             }
