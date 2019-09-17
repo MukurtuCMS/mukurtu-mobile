@@ -1,15 +1,15 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, View, Text, NetInfo, YellowBox } from 'react-native';
+import {Platform, StatusBar, StyleSheet, View, Text, NetInfo, YellowBox} from 'react-native';
 import {AppLoading} from 'expo';
 import {SQLite} from 'expo-sqlite';
-import { Asset } from 'expo-asset';
+import {Asset} from 'expo-asset';
 import * as BackgroundFetch from 'expo-background-fetch'
 import Constants from 'expo-constants'
 import * as Font from 'expo-font'
 import * as Icon from '@expo/vector-icons'
 import * as TaskManager from 'expo-task-manager'
 import AppNavigator from './navigation/AppNavigator';
-import { Provider } from 'react-redux';
+import {Provider} from 'react-redux';
 import {LoginText} from "./components/LoginText";
 import InitializingApp from "./components/InitializingApp"
 import AjaxSpinner from "./components/AjaxSpinner"
@@ -19,6 +19,7 @@ import configureStore from './store';
 import axios from "axios";
 import {Feather} from "@expo/vector-icons";
 import AppHeader from "./components/AppHeader";
+import * as FileSystem from "expo-file-system";
 
 const store = configureStore();
 const db = SQLite.openDatabase('db.db');
@@ -69,7 +70,7 @@ export default class App extends React.Component {
       tx.executeSql(
         'select * from user limit 1;',
         '',
-        function(tx, result){
+        function (tx, result) {
           let user = null;
           let databaseName = null;
           let db = null;
@@ -129,12 +130,13 @@ export default class App extends React.Component {
     this._isMounted = true;
 
     setInterval(() => {
-      if(self.state.db !== null && self.state.loggedIn && self.state.isConnected){
+      if (self.state.db !== null && self.state.loggedIn && self.state.isConnected) {
         console.log('here');
-        Sync.updateEntities(this.state.db, this.state, this.syncCompleted());
+        this.updateEntities(this.state.db, this.state, this.syncCompleted());
         // Sync.syncContentTypes(this.state, this.syncCompleted);
         // Sync.syncSiteInfo(this.state);
-      };
+      }
+      ;
     }, 15 * 60 * 1000);
 
     // delete all data and start fresh
@@ -148,7 +150,7 @@ export default class App extends React.Component {
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
   }
 
-  syncCompleted (sync = false) {
+  syncCompleted(sync = false) {
     if (sync) {
       this.setState({sync: false});
     } else {
@@ -169,31 +171,30 @@ export default class App extends React.Component {
     if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn && this.state.sync && !this.state.syncing) {
       this.setState({'syncing': true});
       console.log('there');
-      Sync.updateEntities(this.state.db, this.state);
+      this.updateEntities(this.state.db, this.state);
       // Sync.syncContentTypes(this.state, this.syncCompleted);
       // Sync.syncSiteInfo(this.state);
     }
 
-/*    if (!prevState.sync && this.state.sync) {
+    /*    if (!prevState.sync && this.state.sync) {
 
-      this.setDatabaseName();
+          this.setDatabaseName();
 
-    }
-    if (this.state.isConnected && !prevState.db && this.state.db && this.state.sync) {
-      this._getAuth();
-    }
-    if (this.state.isConnected && !prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
-      Sync.updateEntities(this.state.db, this.state);
-      Sync.syncContentTypes(this.state, this.syncCompleted);
-    } else if (this.state.isConnected && prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
-      this.syncCompleted();
-    }
-    if (!prevState.isConnected && !prevState.db && this.state.isConnected && this.state.db) {
-      this.registerBackgroundSync();
-      this.logRegisteredTasks();
-      this.createTokenTable();
-    }*/
-
+        }
+        if (this.state.isConnected && !prevState.db && this.state.db && this.state.sync) {
+          this._getAuth();
+        }
+        if (this.state.isConnected && !prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
+          Sync.updateEntities(this.state.db, this.state);
+          Sync.syncContentTypes(this.state, this.syncCompleted);
+        } else if (this.state.isConnected && prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
+          this.syncCompleted();
+        }
+        if (!prevState.isConnected && !prevState.db && this.state.isConnected && this.state.db) {
+          this.registerBackgroundSync();
+          this.logRegisteredTasks();
+          this.createTokenTable();
+        }*/
 
 
     if (this.state.sync && !this.state.syncing) {
@@ -258,15 +259,15 @@ export default class App extends React.Component {
 
     // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
     if (this.state.sync) {
-      return (<AjaxSpinner />);
+      return (<AjaxSpinner/>);
     }
 
-    if (this.state.databaseName === false){
-      return (<InitializingApp />);
-  }
+    if (this.state.databaseName === false) {
+      return (<InitializingApp/>);
+    }
     // loggedIn state should only be false or true. If null, the checks have not run yet.
     if (this.state.loggedIn === null) {
-      return (<InitializingApp />);
+      return (<InitializingApp/>);
     }
 
     let screenProps = {
@@ -283,7 +284,7 @@ export default class App extends React.Component {
       _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
-        };
+    };
 
     // @todo: replace this with InitializingApp, keep now for debugging
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
@@ -305,7 +306,7 @@ export default class App extends React.Component {
               url={this.state.siteUrl}
               screenProps={screenProps}
             />
-            <AppNavigator screenProps={screenProps} />
+            <AppNavigator screenProps={screenProps}/>
           </View>
         </Provider>
       );
@@ -335,13 +336,13 @@ export default class App extends React.Component {
   };
 
   _handleFinishLoading = () => {
-    this.setState({ isLoadingComplete: true });
+    this.setState({isLoadingComplete: true});
   };
 
   _handleSiteUrlUpdate = (url, uid, sync = false) => {
-      // create database and set database name state
-      const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
-      const databaseName = siteUrl.replace(/\./g,'_') + '_' + uid;
+    // create database and set database name state
+    const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
+    const databaseName = siteUrl.replace(/\./g, '_') + '_' + uid;
 
     // we need to update our global databasename
     globalDB.transaction(
@@ -349,20 +350,18 @@ export default class App extends React.Component {
         tx.executeSql('replace into database (siteUrl, databaseName) values (?, ?)',
           [siteUrl, databaseName],
           (success) => {
-              if (sync) {
-                this.setState({sync: true})
-              }
+            if (sync) {
+              this.setState({sync: true})
+            }
           },
           (success, error) => {
             console.log(error);
           }
-
-
         );
       }
     );
 
-    this.setState({ siteUrl: url, databaseName: databaseName});
+    this.setState({siteUrl: url, databaseName: databaseName});
   };
 
   _handleLoginStatusUpdate = (status) => {
@@ -381,17 +380,17 @@ export default class App extends React.Component {
     // problems, but right now it seems like a good safeguard.
     this.deleteAll();
     this.setState(
-        {
-          isLoggedIn: false,
-          token: false,
-          cookie: false,
-          isConnected: false,
-          databaseName: false,
-          db: null,
-          loggedIn: false,
-          user: {},
-          sync: false
-        }
+      {
+        isLoggedIn: false,
+        token: false,
+        cookie: false,
+        isConnected: false,
+        databaseName: false,
+        db: null,
+        loggedIn: false,
+        user: {},
+        sync: false
+      }
     );
   };
 
@@ -403,7 +402,9 @@ export default class App extends React.Component {
         'select * from auth limit 1;',
         '',
         (_, {rows: {_array}}) => this.connect(_array),
-        (tx, error) => {this._handleAuthError(error)}
+        (tx, error) => {
+          this._handleAuthError(error)
+        }
       );
     });
   }
@@ -445,8 +446,7 @@ export default class App extends React.Component {
               });
 
               console.log('three');
-              Sync.updateEntities(this.state.db, this.state, true);
-              this._doneSyncing()
+              this.updateEntities(this.state.db, this.state, true);
 
             },
 
@@ -459,6 +459,423 @@ export default class App extends React.Component {
 
   _doneSyncing = () => {
     this.setState({'sync': false})
+  }
+
+  buildFetchData = (method = 'GET', state) => {
+    const token = state.token;
+    const cookie = state.cookie;
+    const data = {
+      method: method,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': token,
+        'Cookie': cookie,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': 0
+      }
+    };
+    return data;
+  }
+
+  buildRemovalNids = (nids, state) => {
+    state.db.transaction(tx => {
+      tx.executeSql(
+        'select nid from nodes;',
+        '',
+        (_, {rows: {_array}}) => this.removeNids(_array, nids, state)
+      );
+    });
+  }
+
+  removeNids = (currentNids, newNids, state) => {
+    for (var i = 0; i < currentNids.length; i++) {
+      var currentlyStarred = false;
+      for (const [nid, timestamp] of Object.entries(newNids)) {
+        if (currentNids[i].nid == nid) {
+          currentlyStarred = true;
+        }
+      }
+      if (!(currentlyStarred)) {
+        var currentNid = currentNids[i].nid;
+        state.db.transaction(tx => {
+          tx.executeSql(
+            'delete from nodes where nid = ?;',
+            [currentNid],
+            (_, {rows: {_array}}) => console.log('')
+          );
+        });
+      }
+    }
+  }
+  checkStatus = (response) => {
+    if (response.ok) {
+      return Promise.resolve(response);
+    } else {
+      return Promise.reject(new Error(response.statusText));
+    }
+  }
+
+  saveNode = (nid, data, editable, state) => {
+    fetch(state.siteUrl + '/app/node/' + nid + '.json', data)
+      .then((response) => response.json())
+      .then((node) => {
+        state.db.transaction(tx => {
+          tx.executeSql(
+            'delete from nodes where nid = ?;',
+            [node.nid],
+            (_, {rows: {_array}}) => ''
+          );
+        });
+
+        state.db.transaction(
+          tx => {
+            tx.executeSql('insert into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
+              [node.nid, node.title, JSON.stringify(node), editable],
+              (success) => success,
+              (success, error) => ''
+            );
+          }
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  getCreatableTypes = async (state, data, complete) => {
+    fetch(state.siteUrl + '/app/creatable-types/retrieve', data)
+      .then((response) => response.json())
+      .then((responseJson) => {
+        if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
+          console.log('access denied');
+        }
+        if (typeof responseJson === 'object' && responseJson !== null) {
+          state.db.transaction(
+            tx => {
+              tx.executeSql('delete from content_types;',
+                [],
+                (success) => {
+                  // run this after things have been deleted
+                  state.db.transaction(
+                    tx => {
+                      tx.executeSql('insert into content_types (id, blob) values (?, ?)',
+                        [1, JSON.stringify(responseJson)],
+                        (success) => '',
+                        (success, error) => console.log(' ')
+                      );
+                    }
+                  );
+                },
+                (success, error) => console.log(error)
+              );
+            }
+          );
+
+
+          // now let's sync all content type endpoints
+          // let urls = [];
+          // for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+          //   urls.push({url: state.siteUrl + '/app/node-form-fields/retrieve/' + machineName, machineName: machineName});
+          // }
+          // Promise.all(urls.map(url =>
+          //   fetch(url.url, data)
+          //     .then(this.checkStatus)
+          //     .then(this.parseJSON)
+          //     .then((response) => this.insertContentType(response, state, url.machineName))
+          //     .catch(error => console.log(error))
+          // ))
+          //   .then(() => {
+          //     console.log('complete');
+          //   })
+        }
+      })
+  }
+
+  parseJSON = (response) => {
+    return response.json();
+  }
+
+  insertContentType = (response, state, machineName) => {
+    state.db.transaction(
+      tx => {
+        tx.executeSql('insert into content_type (machine_name, blob) values (?, ?)',
+          [machineName, JSON.stringify(response)],
+          (success) => () => {
+          console.log('success');
+            return 'success'
+          },
+          (success, error) => {
+          console.log(error);
+          }
+        );
+      }
+    );
+    return response;
+
+  }
+
+  saveAtom = (sid, data, state) => {
+    fetch(state.siteUrl + '/app/scald/retrieve/' + sid + '.json', data)
+      .then((response) => response.json())
+      .then((atom) => {
+
+        state.db.transaction(
+          tx => {
+            tx.executeSql('replace into atom (sid, title, entity) values (?, ?, ?)',
+              [atom.sid, atom.title, JSON.stringify(atom)],
+              (success) => success,
+              (success, error) => ''
+            );
+          }
+        );
+
+
+        if (atom.base_entity && atom.base_entity.fid) {
+          const fid = atom.base_entity.fid;
+          // now grab file blob and save to filesystem
+          fetch(state.siteUrl + '/app/file/' + fid + '.json', data)
+            .then((response) => response.json())
+            .then(async (file) => {
+
+              // It appears that sometimes the payload is too large on these, which we'll probably have to address.
+              // In the meantime catching the error so it doesn't error out the app.
+              try {
+                const savedFile = await FileSystem.writeAsStringAsync(FileSystem.documentDirectory + file.filename, file.file);
+              } catch (error) {
+                console.log(error);
+              }
+
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  saveTaxonomy = (tid, data, state) => {
+    fetch(state.siteUrl + '/app/tax-term/' + tid + '.json', data)
+      .then((response) => response.json())
+      .then((term) => {
+
+        state.db.transaction(
+          tx => {
+            tx.executeSql('replace into taxonomy (tid, title, entity) values (?, ?, ?)',
+              [term.tid, term.name, JSON.stringify(term)],
+              (success) => success,
+              (success, error) => ''
+            );
+          }
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  updateSync = (state) => {
+    const time = new Date().getTime()
+    state.db.transaction(
+      tx => {
+        tx.executeSql('delete from sync;',
+        );
+      }
+    );
+    state.db.transaction(
+      tx => {
+        tx.executeSql('insert into sync (id, last) values (?, ?)',
+          [1, time],
+          (success) => success,
+          (success, error) => ''
+        );
+      }
+    );
+  }
+
+  updateEntities = (db, state, complete) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'select * from auth limit 1;',
+        '',
+        (_, {rows: {array}}) => {
+
+
+          const token = state.token;
+          const cookie = state.cookie;
+
+          let data = this.buildFetchData('GET', state);
+
+          fetch(state.siteUrl + '/app/synced-entities/retrieve', data)
+            .then((response) => response.json())
+            .then((responseJson) => {
+              if (typeof responseJson.nodes === 'object') {
+                let nodes = {};
+                for (const [type, entity] of Object.entries(responseJson.nodes)) {
+                  if (typeof responseJson.nodes[type] === 'object') {
+                    for (const [nid, object] of Object.entries(responseJson.nodes[type])) {
+                      if (typeof responseJson.nodes[type] === 'object') {
+                        nodes[nid] = object;
+                      }
+                    }
+                  }
+                }
+                this.buildRemovalNids(nodes, state);
+                for (const [nid, object] of Object.entries(nodes)) {
+                  // @todo don't update all nodes but starring a node does not save
+                  // if (timestamp > this.state.syncUpdated) {
+                  this.saveNode(nid, data, object.editable, state);
+                  // }
+                }
+
+                // now lets sync the taxonomy terms as well
+              }
+              if (typeof responseJson.terms === 'object') {
+                for (const [tid, object] of Object.entries(responseJson.terms)) {
+                  // @todo don't update all nodes but starring a node does not save
+                  // if (timestamp > this.state.syncUpdated) {
+                  this.saveTaxonomy(tid, data, state);
+                  // }
+                }
+              }
+              if (typeof responseJson.atoms === 'object') {
+                for (const [sid, object] of Object.entries(responseJson.atoms)) {
+                  // @todo don't update all nodes but starring a node does not save
+                  // if (timestamp > this.state.syncUpdated) {
+                  this.saveAtom(sid, data, state);
+                  // }
+                }
+              }
+              this.updateSync(state);
+            })
+            .then(() => {
+              let returnData = 'failure';
+              const data = this.buildFetchData('GET', state);
+
+
+              fetch(state.siteUrl + '/app/creatable-types/retrieve', data)
+                .then((response) => response.json())
+                .then((responseJson) => {
+                  if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
+                    console.log('access denied');
+                  }
+                  if (typeof responseJson === 'object' && responseJson !== null) {
+                    state.db.transaction(
+                      tx => {
+                        tx.executeSql('delete from content_types;',
+                          [],
+                          (success) => {
+                            // run this after things have been deleted
+                            state.db.transaction(
+                              tx => {
+                                tx.executeSql('insert into content_types (id, blob) values (?, ?)',
+                                  [1, JSON.stringify(responseJson)],
+                                  (success) => '',
+                                  (success, error) => console.log(' ')
+                                );
+                              }
+                            );
+                          },
+                          (success, error) => console.log(error)
+                        );
+                      }
+                    );
+
+
+                    // now let's sync all content type endpoints
+                    let urls = [];
+                    for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+                      urls.push({
+                        url: state.siteUrl + '/app/node-form-fields/retrieve/' + machineName,
+                        machineName: machineName
+                      });
+                    }
+                    Promise.all(urls.map(url =>
+                      fetch(url.url, data)
+                        .then(this.checkStatus)
+                        .then(this.parseJSON)
+                        .then((response) => this.insertContentType(response, state, url.machineName))
+                        .catch(error => console.log(error))
+                    ))
+                      .then(data => {
+                        complete(true);
+                      })
+                  }
+                })
+
+            })
+            .then(() => {
+
+
+              // ***
+
+              // Now let's do the same thing for the display modes
+              fetch(state.siteUrl + '/app/viewable-types/retrieve', data)
+                .then((response) => response.json())
+                .then((responseJson) => {
+                  if (typeof responseJson === 'object' && responseJson !== null) {
+
+                    // now let's sync all content type display endpoints
+                    for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+                      fetch(state.siteUrl + '/app/node-view-fields/retrieve/' + machineName, data)
+                        .then((response) => response.json())
+                        .then((responseJson) => {
+                          let returnData = 'success';
+
+                          state.db.transaction(
+                            tx => {
+                              tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
+                                [machineName, JSON.stringify(responseJson)],
+                                (success) => '',
+                                (success, error) => ''
+                              );
+                            }
+                          );
+
+                          // @todo: We will need to grab the listing display as well
+                        })
+                        .catch((error) => {
+                          returnData = 'failure';
+                        });
+                    }
+                  }
+                })
+
+            })
+            .then(() => {
+              const data = this.buildFetchData('GET', state);
+              fetch(state.siteUrl + '/app/site-info/retrieve', data)
+                .then((response) => response.json())
+                .then((siteInfo) => {
+                  if (siteInfo && siteInfo.site_name) {
+
+                    state.db.transaction(
+                      tx => {
+                        tx.executeSql('replace into site_info (site_name, mobile_enabled, logo) values (?, ?, ?)',
+                          [siteInfo.site_name, siteInfo.mukurtu_mobile_enabled, siteInfo.logo],
+                          (success) => '',
+                          (success, error) => ''
+                        );
+                      }
+                    );
+                  }
+                })
+            })
+            .then(() => {
+              this.setState({'sync': false})
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+
+
+        }
+      );
+    });
   }
 
   _handleAuthError = () => {
@@ -502,21 +919,21 @@ export default class App extends React.Component {
     };
 
     fetch(this.state.siteUrl + '/app/system/connect', data)
-         .then((response) => response.json())
-         .then((responseJson) => {
-           // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
-           try {
-             // If this uid is not 0, the user is currently authenticated
-             if (responseJson.user.uid !== 0) {
-               this.setState({loggedIn: true, isLoggedIn: true});
-               return;
-             }
-           } catch(e) {
+      .then((response) => response.json())
+      .then((responseJson) => {
+        // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
+        try {
+          // If this uid is not 0, the user is currently authenticated
+          if (responseJson.user.uid !== 0) {
+            this.setState({loggedIn: true, isLoggedIn: true});
+            return;
+          }
+        } catch (e) {
 
-           }
-        })
-        .catch((error) => {
-        });
+        }
+      })
+      .catch((error) => {
+      });
 
     // If the user was loggedIn, we should have set the state and bounced already.
     this.setState({loggedIn: false});

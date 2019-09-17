@@ -70,15 +70,20 @@ export default class NodeTeaser extends React.Component {
             typeof node.entity[key]['und'] !== 'undefined' &&
             typeof node.entity[key]['und']['0']['nid'] !== 'undefined') {
           let refNid = node.entity[key]['und']['0']['nid'];
-          let refNode = this.props.allNodes.filter(node => node.nid == refNid);
-          refNode = refNode[0];
+          if(this.props.allNodes.length > 0) {
+            let refNode = this.props.allNodes.filter(node => node.nid == refNid);
 
-          viewableFields.push(
-              <View key={key + refNode.nid} style={styles.view}>
-                <Text style={styles.label}>{value.label}</Text>
-                <Text>{refNode.title}</Text>
-              </View>
-          )
+            refNode = refNode[0];
+
+            if (typeof refNode !== 'undefined') {
+              viewableFields.push(
+                <View key={key + refNode.nid} style={styles.view}>
+                  <Text style={styles.label}>{value.label}</Text>
+                  <Text>{refNode.title}</Text>
+                </View>
+              )
+            }
+          }
         } else if (typeof node.entity[key] !== 'undefined' &&
             typeof node.entity[key]['und'] !== 'undefined' &&
             typeof node.entity[key]['und']['0']['safe_value'] !== 'undefined'
