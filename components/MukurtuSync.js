@@ -6,12 +6,124 @@ export const Sync = () => {
 
 };
 
-export const updateEntities = (db, state) => {
+export const updateEntities = (db, state, complete) => {
   db.transaction(tx => {
     tx.executeSql(
         'select * from auth limit 1;',
         '',
-        (_, {rows: {_array}}) => getToken(_array, state)
+        (_, {rows: {array}}) =>  {
+
+
+          const token = state.token;
+          const cookie = state.cookie;
+
+          let data = buildFetchData('GET', state);
+
+          fetch(state.siteUrl + '/app/synced-entities/retrieve', data)
+            .then((response) => response.json())
+            .then((responseJson) => {
+              if (typeof responseJson.nodes === 'object') {
+                let nodes = {};
+                for (const [type, entity] of Object.entries(responseJson.nodes)) {
+                  if (typeof responseJson.nodes[type] === 'object') {
+                    for (const [nid, object] of Object.entries(responseJson.nodes[type])) {
+                      if (typeof responseJson.nodes[type] === 'object') {
+                        nodes[nid] = object;
+                      }
+                    }
+                  }
+                }
+                buildRemovalNids(nodes, state);
+                for (const [nid, object] of Object.entries(nodes)) {
+                  // @todo don't update all nodes but starring a node does not save
+                  // if (timestamp > this.state.syncUpdated) {
+                  saveNode(nid, data, object.editable, state);
+                  // }
+                }
+
+                // now lets sync the taxonomy terms as well
+              }
+              if (typeof responseJson.terms === 'object') {
+                for (const [tid, object] of Object.entries(responseJson.terms)) {
+                  // @todo don't update all nodes but starring a node does not save
+                  // if (timestamp > this.state.syncUpdated) {
+                  saveTaxonomy(tid, data, state);
+                  // }
+                }
+              }
+              if (typeof responseJson.atoms === 'object') {
+                for (const [sid, object] of Object.entries(responseJson.atoms)) {
+                  // @todo don't update all nodes but starring a node does not save
+                  // if (timestamp > this.state.syncUpdated) {
+                  saveAtom(sid, data, state);
+                  // }
+                }
+              }
+              updateSync(state);
+            })
+            .then(() => {
+              let returnData = 'failure';
+              const data = buildFetchData('GET', state);
+              getCreatableTypes(state, data, complete);
+
+              // Now let's do the same thing for the display modes
+              fetch(state.siteUrl + '/app/viewable-types/retrieve', data)
+                .then((response) => response.json())
+                .then((responseJson) => {
+                  if (typeof responseJson === 'object' && responseJson !== null) {
+
+                    // now let's sync all content type display endpoints
+                    for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+                      fetch(state.siteUrl + '/app/node-view-fields/retrieve/' + machineName, data)
+                        .then((response) => response.json())
+                        .then((responseJson) => {
+                          returnData = 'success';
+
+                          state.db.transaction(
+                            tx => {
+                              tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
+                                [machineName, JSON.stringify(responseJson)],
+                                (success) => '',
+                                (success, error) => ''
+                              );
+                            }
+                          );
+
+                          // @todo: We will need to grab the listing display as well
+                        })
+                        .catch((error) => {
+                          returnData = 'failure';
+                        });
+                    }
+                  }
+                })
+
+            })
+            .then(() => {
+              const data = buildFetchData('GET', state);
+              fetch(state.siteUrl + '/app/site-info/retrieve', data)
+                .then((response) => response.json())
+                .then((siteInfo) => {
+                  if (siteInfo && siteInfo.site_name) {
+
+                    state.db.transaction(
+                      tx => {
+                        tx.executeSql('replace into site_info (site_name, mobile_enabled, logo) values (?, ?, ?)',
+                          [siteInfo.site_name, siteInfo.mukurtu_mobile_enabled, siteInfo.logo],
+                          (success) => '',
+                          (success, error) => ''
+                        );
+                      }
+                    );
+                  }
+                })
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+
+
+    }
     );
   });
 }

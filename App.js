@@ -57,7 +57,8 @@ export default class App extends React.Component {
       loggedIn: null,
       user: {},
       firstTime: false,
-      sync: false
+      sync: false,
+      syncing: false
     };
   }
 
@@ -129,9 +130,10 @@ export default class App extends React.Component {
 
     setInterval(() => {
       if(self.state.db !== null && self.state.loggedIn && self.state.isConnected){
-        Sync.updateEntities(this.state.db, this.state);
-        Sync.syncContentTypes(this.state, this.syncCompleted);
-        Sync.syncSiteInfo(this.state);
+        console.log('here');
+        Sync.updateEntities(this.state.db, this.state, this.syncCompleted());
+        // Sync.syncContentTypes(this.state, this.syncCompleted);
+        // Sync.syncSiteInfo(this.state);
       };
     }, 15 * 60 * 1000);
 
@@ -164,10 +166,12 @@ export default class App extends React.Component {
     }
 
     // We are connected, AND token was just set (via getAuth)
-    if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn) {
+    if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn && this.state.sync && !this.state.syncing) {
+      this.setState({'syncing': true});
+      console.log('there');
       Sync.updateEntities(this.state.db, this.state);
-      Sync.syncContentTypes(this.state, this.syncCompleted);
-      Sync.syncSiteInfo(this.state);
+      // Sync.syncContentTypes(this.state, this.syncCompleted);
+      // Sync.syncSiteInfo(this.state);
     }
 
 /*    if (!prevState.sync && this.state.sync) {
@@ -190,7 +194,9 @@ export default class App extends React.Component {
       this.createTokenTable();
     }*/
 
-    if (this.state.sync) {
+
+
+    if (this.state.sync && !this.state.syncing) {
       console.log('sync');
       if (this.state.isConnected) {
         console.log('connected');
@@ -210,10 +216,11 @@ export default class App extends React.Component {
               console.log('lets login');
               this._insertAuth();
             } else {
+              this.setState({'syncing': true});
               console.log('we are logged in');
-              Sync.updateEntities(this.state.db, this.state);
-              Sync.syncContentTypes(this.state, this.syncCompleted);
-              Sync.syncSiteInfo(this.state);
+
+              // Sync.syncContentTypes(this.state, this.syncCompleted);
+              // Sync.syncSiteInfo(this.state);
             }
           }
         }
@@ -437,6 +444,10 @@ export default class App extends React.Component {
                 isLoggedIn: true
               });
 
+              console.log('three');
+              Sync.updateEntities(this.state.db, this.state, true);
+              this._doneSyncing()
+
             },
 
             (success, error) => console.log(' ')
@@ -444,6 +455,10 @@ export default class App extends React.Component {
         }
       );
     }
+  }
+
+  _doneSyncing = () => {
+    this.setState({'sync': false})
   }
 
   _handleAuthError = () => {
