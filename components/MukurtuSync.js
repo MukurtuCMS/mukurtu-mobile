@@ -6,15 +6,7 @@ export const Sync = () => {
 
 };
 
-export const updateEntities = (db, state) => {
-  db.transaction(tx => {
-    tx.executeSql(
-        'select * from auth limit 1;',
-        '',
-        (_, {rows: {_array}}) => getToken(_array, state)
-    );
-  });
-}
+
 
 export const syncContentTypes = (state, complete) => {
   let returnData = 'failure';
