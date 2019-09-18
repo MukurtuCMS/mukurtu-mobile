@@ -364,13 +364,16 @@ export default class App extends React.Component {
     this.setState({siteUrl: url, databaseName: databaseName});
   };
 
-  _handleLoginStatusUpdate = (status) => {
+  _handleLoginStatusUpdate = (status, cookie, token) => {
     // If we've logged in or re-logged in, we need to re-sync
     this.setState({
       isLoggedIn: true,
       loggedIn: true,
       sync: true,
-      isConnected: true
+      isConnected: true,
+      user: status,
+      cookie: cookie,
+      token: token
     });
   };
 
@@ -448,6 +451,7 @@ export default class App extends React.Component {
               });
 
               console.log('three');
+
               this.updateEntities(this.state.db, this.state, true);
 
             },
@@ -466,6 +470,7 @@ export default class App extends React.Component {
   buildFetchData = (method = 'GET', state) => {
     const token = state.token;
     const cookie = state.cookie;
+
     const data = {
       method: method,
       headers: {
@@ -476,8 +481,10 @@ export default class App extends React.Component {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': 0
-      }
+      },
+      cache:'no-store'
     };
+
     return data;
   }
 
@@ -700,21 +707,27 @@ export default class App extends React.Component {
   }
 
   updateEntities = (db, state, complete) => {
+
     db.transaction(tx => {
       tx.executeSql(
         'select * from auth limit 1;',
         '',
         (_, {rows: {array}}) => {
 
-
           const token = state.token;
           const cookie = state.cookie;
 
           let data = this.buildFetchData('GET', state);
 
+/*          axios.get(state.siteUrl + '/app/synced-entities/retrieve', {headers: data.headers})
+            .then((responseJson) => {
+              console.log(responseJson);
+            }).catch(error => console.log(error));*/
           fetch(state.siteUrl + '/app/synced-entities/retrieve', data)
             .then((response) => response.json())
             .then((responseJson) => {
+
+
               if (typeof responseJson.nodes === 'object') {
                 let nodes = {};
                 for (const [type, entity] of Object.entries(responseJson.nodes)) {
