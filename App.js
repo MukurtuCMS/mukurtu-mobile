@@ -366,9 +366,6 @@ export default class App extends React.Component {
 
   _handleLoginStatusUpdate = (status, cookie, token) => {
     // If we've logged in or re-logged in, we need to re-sync
-    console.log('token');
-    console.log(token);
-    console.log(cookie)
     this.setState({
       isLoggedIn: true,
       loggedIn: true,
@@ -472,9 +469,6 @@ export default class App extends React.Component {
     const token = state.token;
     const cookie = state.cookie;
 
-    console.log('fetchdata');
-    console.log(token);
-    console.log(cookie);
     const data = {
       method: method,
       headers: {
@@ -711,7 +705,7 @@ export default class App extends React.Component {
   }
 
   updateEntities = (db, state, complete) => {
-    console.log('test');
+
     db.transaction(tx => {
       tx.executeSql(
         'select * from auth limit 1;',
