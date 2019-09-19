@@ -63,7 +63,9 @@ export default class App extends React.Component {
     };
   }
 
-  setDatabaseName(updateEntities = false) {
+  setDatabaseName() {
+
+
     // This should always be run on app initialization. It check for the previous user object or set state to first time.
     const self = this;
     globalDB.transaction(tx => {
@@ -97,112 +99,16 @@ export default class App extends React.Component {
           } else {
             loggedIn = true;
           }
-          if(updateEntities) {
-
-          } else {
-
-          }
-
           self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
-
-
-          //
-          // console.log('database is set');
-          // ManageTables.createUniqueTables(this.state.db);
-          // this._insertAuth();
-          //
-          // if (!this.state.loggedIn) {
-          //   console.log('lets login');
-          //   this._insertAuth();
-          // } else {
-          //   this.setState({'syncing': true});
-          //   console.log('we are logged in');
-          //   this.updateEntities(this.state.db, this.state, this.syncCompleted());
-          //   // Sync.syncContentTypes(this.state, this.syncCompleted);
-          //   // Sync.syncSiteInfo(this.state);
-
-
         }
       );
+
+
     });
-
-
-
-
-
 
 
   };
 
-
-  setDatabaseNameChained() {
-
-    const self = this;
-    globalDB.transaction(tx => {
-      tx.executeSql(
-        'select * from user limit 1;',
-        '',
-        function (tx, result) {
-          let user = null;
-          let databaseName = null;
-          let db = null;
-          const array = result.rows._array;
-          if (array.length > 0) {
-            if (array[0] && array[0].user.length > 0) {
-              const siteUrl = array[0].siteUrl;
-              if (array[0].user) {
-                const userBlob = JSON.parse(array[0].user);
-                if (typeof userBlob.user === 'object' && userBlob.user.uid > 0) {
-                  user = userBlob;
-                  databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
-                  db = SQLite.openDatabase(databaseName);
-                }
-              }
-            }
-          }
-          let firstTime = false;
-          let loggedIn = null;
-          if (!user) {
-            firstTime = true;
-            databaseName = null;
-            loggedIn = false;
-          } else {
-            loggedIn = true;
-          }
-
-          self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
-
-
-
-
-
-          //
-          // console.log('database is set');
-          // ManageTables.createUniqueTables(this.state.db);
-          // this._insertAuth();
-          //
-          // if (!this.state.loggedIn) {
-          //   console.log('lets login');
-          //   this._insertAuth();
-          // } else {
-          //   this.setState({'syncing': true});
-          //   console.log('we are logged in');
-          //   this.updateEntities(this.state.db, this.state, this.syncCompleted());
-          //   // Sync.syncContentTypes(this.state, this.syncCompleted);
-          //   // Sync.syncSiteInfo(this.state);
-
-
-        }
-      );
-    });
-
-
-
-
-
-
-
-  };
 
   deleteAll = () => {
     // SQLite.openDatabase('global');
@@ -283,16 +189,12 @@ export default class App extends React.Component {
           this._insertUser();
         } else {
 
-
-
           if (!this.state.db) {
             console.log('set the database');
             this.setDatabaseName();
           } else {
             console.log('database is set');
             ManageTables.createUniqueTables(this.state.db);
-            this._insertAuth();
-
             if (!this.state.loggedIn) {
               console.log('lets login');
               this._insertAuth();
@@ -562,7 +464,7 @@ export default class App extends React.Component {
         'Pragma': 'no-cache',
         'Expires': 0
       },
-      cache:'no-store'
+      cache: 'no-store'
     };
 
     return data;
@@ -692,11 +594,11 @@ export default class App extends React.Component {
         tx.executeSql('insert into content_type (machine_name, blob) values (?, ?)',
           [machineName, JSON.stringify(response)],
           (success) => () => {
-          console.log('success');
+            console.log('success');
             return 'success'
           },
           (success, error) => {
-          console.log(error);
+            console.log(error);
           }
         );
       }
@@ -799,10 +701,10 @@ export default class App extends React.Component {
 
           let data = this.buildFetchData('GET', state);
 
-/*          axios.get(state.siteUrl + '/app/synced-entities/retrieve', {headers: data.headers})
-            .then((responseJson) => {
-              console.log(responseJson);
-            }).catch(error => console.log(error));*/
+          /*          axios.get(state.siteUrl + '/app/synced-entities/retrieve', {headers: data.headers})
+                      .then((responseJson) => {
+                        console.log(responseJson);
+                      }).catch(error => console.log(error));*/
           fetch(state.siteUrl + '/app/synced-entities/retrieve', data)
             .then((response) => {
               console.log(response);
