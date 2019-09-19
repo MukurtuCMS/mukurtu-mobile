@@ -609,8 +609,8 @@ export default class FormComponent extends React.Component {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRF-Token': this.state.token,
-        'Cookie': this.state.cookie
+        'X-CSRF-Token': this.props.screenProps.token,
+        'Cookie': this.props.screenProps.cookie
       },
       redirect: 'follow',
       referrer: 'no-referrer',
