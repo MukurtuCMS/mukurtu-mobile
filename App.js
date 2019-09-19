@@ -889,18 +889,28 @@ export default class App extends React.Component {
   // This will try and check if the current user is logged in. This will fail if the server or client is offline.
   // If failed, we will set the loggedIn to false so we know the connection has been attempted.
   connect(array) {
-    if (array === undefined || array.length < 1) {
-      this.setState({
-        cookie: null,
-        token: null,
-        loggedIn: false
-      });
 
-      return false;
+    // There's something going wrong with retrieving the auth data, but sometimes this is already set in state
+    if(!this.state.cookie && !this.state.token) {
+      if (array === undefined || array.length < 1) {
+        this.setState({
+          cookie: null,
+          token: null,
+          loggedIn: false
+        });
+
+        return false;
+      }
     }
 
-    const token = array[0].token;
-    const cookie = array[0].cookie;
+    let token = this.state.token;
+    let cookie = this.state.cookie;
+
+    if(!this.state.cookie && !this.state.token) {
+      token = array[0].token;
+      cookie = array[0].cookie;
+    }
+
 
     // Save cookie and token so we can use them to check login status
     this.setState({
