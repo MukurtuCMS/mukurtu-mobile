@@ -64,6 +64,8 @@ export default class App extends React.Component {
   }
 
   setDatabaseName() {
+
+
     // This should always be run on app initialization. It check for the previous user object or set state to first time.
     const self = this;
     globalDB.transaction(tx => {
@@ -100,8 +102,13 @@ export default class App extends React.Component {
           self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
         }
       );
+
+
     });
+
+
   };
+
 
   deleteAll = () => {
     // SQLite.openDatabase('global');
@@ -168,36 +175,12 @@ export default class App extends React.Component {
     }
 
     // We are connected, AND token was just set (via getAuth)
-    if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn && this.state.sync && !this.state.syncing) {
+    if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn && this.state.sync && !this.state.syncing && this.state.db) {
       this.setState({'syncing': true});
-      console.log('there');
       this.updateEntities(this.state.db, this.state);
       // Sync.syncContentTypes(this.state, this.syncCompleted);
       // Sync.syncSiteInfo(this.state);
-    }
-
-    /*    if (!prevState.sync && this.state.sync) {
-
-          this.setDatabaseName();
-
-        }
-        if (this.state.isConnected && !prevState.db && this.state.db && this.state.sync) {
-          this._getAuth();
-        }
-        if (this.state.isConnected && !prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
-          Sync.updateEntities(this.state.db, this.state);
-          Sync.syncContentTypes(this.state, this.syncCompleted);
-        } else if (this.state.isConnected && prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
-          this.syncCompleted();
-        }
-        if (!prevState.isConnected && !prevState.db && this.state.isConnected && this.state.db) {
-          this.registerBackgroundSync();
-          this.logRegisteredTasks();
-          this.createTokenTable();
-        }*/
-
-
-    if (this.state.sync && !this.state.syncing) {
+    } else if (this.state.sync && !this.state.syncing) {
       console.log('sync');
       if (this.state.isConnected) {
         console.log('connected');
@@ -205,14 +188,13 @@ export default class App extends React.Component {
           console.log('inserting user');
           this._insertUser();
         } else {
+
           if (!this.state.db) {
             console.log('set the database');
             this.setDatabaseName();
           } else {
             console.log('database is set');
             ManageTables.createUniqueTables(this.state.db);
-            this._insertAuth();
-
             if (!this.state.loggedIn) {
               console.log('lets login');
               this._insertAuth();
@@ -482,7 +464,7 @@ export default class App extends React.Component {
         'Pragma': 'no-cache',
         'Expires': 0
       },
-      cache:'no-store'
+      cache: 'no-store'
     };
 
     return data;
@@ -612,11 +594,11 @@ export default class App extends React.Component {
         tx.executeSql('insert into content_type (machine_name, blob) values (?, ?)',
           [machineName, JSON.stringify(response)],
           (success) => () => {
-          console.log('success');
+            console.log('success');
             return 'success'
           },
           (success, error) => {
-          console.log(error);
+            console.log(error);
           }
         );
       }
@@ -719,12 +701,15 @@ export default class App extends React.Component {
 
           let data = this.buildFetchData('GET', state);
 
-/*          axios.get(state.siteUrl + '/app/synced-entities/retrieve', {headers: data.headers})
-            .then((responseJson) => {
-              console.log(responseJson);
-            }).catch(error => console.log(error));*/
+          /*          axios.get(state.siteUrl + '/app/synced-entities/retrieve', {headers: data.headers})
+                      .then((responseJson) => {
+                        console.log(responseJson);
+                      }).catch(error => console.log(error));*/
           fetch(state.siteUrl + '/app/synced-entities/retrieve', data)
-            .then((response) => response.json())
+            .then((response) => {
+              console.log(response);
+              return response.json();
+            })
             .then((responseJson) => {
 
 
@@ -904,18 +889,28 @@ export default class App extends React.Component {
   // This will try and check if the current user is logged in. This will fail if the server or client is offline.
   // If failed, we will set the loggedIn to false so we know the connection has been attempted.
   connect(array) {
-    if (array === undefined || array.length < 1) {
-      this.setState({
-        cookie: null,
-        token: null,
-        loggedIn: false
-      });
 
-      return false;
+    // There's something going wrong with retrieving the auth data, but sometimes this is already set in state
+    if(!this.state.cookie && !this.state.token) {
+      if (array === undefined || array.length < 1) {
+        this.setState({
+          cookie: null,
+          token: null,
+          loggedIn: false
+        });
+
+        return false;
+      }
     }
 
-    const token = array[0].token;
-    const cookie = array[0].cookie;
+    let token = this.state.token;
+    let cookie = this.state.cookie;
+
+    if(!this.state.cookie && !this.state.token) {
+      token = array[0].token;
+      cookie = array[0].cookie;
+    }
+
 
     // Save cookie and token so we can use them to check login status
     this.setState({
