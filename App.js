@@ -63,7 +63,7 @@ export default class App extends React.Component {
     };
   }
 
-  setDatabaseName() {
+  setDatabaseName(updateEntities = false) {
     // This should always be run on app initialization. It check for the previous user object or set state to first time.
     const self = this;
     globalDB.transaction(tx => {
@@ -97,10 +97,111 @@ export default class App extends React.Component {
           } else {
             loggedIn = true;
           }
+          if(updateEntities) {
+
+          } else {
+
+          }
+
           self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
+
+
+          //
+          // console.log('database is set');
+          // ManageTables.createUniqueTables(this.state.db);
+          // this._insertAuth();
+          //
+          // if (!this.state.loggedIn) {
+          //   console.log('lets login');
+          //   this._insertAuth();
+          // } else {
+          //   this.setState({'syncing': true});
+          //   console.log('we are logged in');
+          //   this.updateEntities(this.state.db, this.state, this.syncCompleted());
+          //   // Sync.syncContentTypes(this.state, this.syncCompleted);
+          //   // Sync.syncSiteInfo(this.state);
+
+
         }
       );
     });
+
+
+
+
+
+
+
+  };
+
+
+  setDatabaseNameChained() {
+
+    const self = this;
+    globalDB.transaction(tx => {
+      tx.executeSql(
+        'select * from user limit 1;',
+        '',
+        function (tx, result) {
+          let user = null;
+          let databaseName = null;
+          let db = null;
+          const array = result.rows._array;
+          if (array.length > 0) {
+            if (array[0] && array[0].user.length > 0) {
+              const siteUrl = array[0].siteUrl;
+              if (array[0].user) {
+                const userBlob = JSON.parse(array[0].user);
+                if (typeof userBlob.user === 'object' && userBlob.user.uid > 0) {
+                  user = userBlob;
+                  databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
+                  db = SQLite.openDatabase(databaseName);
+                }
+              }
+            }
+          }
+          let firstTime = false;
+          let loggedIn = null;
+          if (!user) {
+            firstTime = true;
+            databaseName = null;
+            loggedIn = false;
+          } else {
+            loggedIn = true;
+          }
+
+          self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
+
+
+
+
+
+          //
+          // console.log('database is set');
+          // ManageTables.createUniqueTables(this.state.db);
+          // this._insertAuth();
+          //
+          // if (!this.state.loggedIn) {
+          //   console.log('lets login');
+          //   this._insertAuth();
+          // } else {
+          //   this.setState({'syncing': true});
+          //   console.log('we are logged in');
+          //   this.updateEntities(this.state.db, this.state, this.syncCompleted());
+          //   // Sync.syncContentTypes(this.state, this.syncCompleted);
+          //   // Sync.syncSiteInfo(this.state);
+
+
+        }
+      );
+    });
+
+
+
+
+
+
+
   };
 
   deleteAll = () => {
@@ -168,36 +269,12 @@ export default class App extends React.Component {
     }
 
     // We are connected, AND token was just set (via getAuth)
-    if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn && this.state.sync && !this.state.syncing) {
+    if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn && this.state.sync && !this.state.syncing && this.state.db) {
       this.setState({'syncing': true});
-      console.log('there');
       this.updateEntities(this.state.db, this.state);
       // Sync.syncContentTypes(this.state, this.syncCompleted);
       // Sync.syncSiteInfo(this.state);
-    }
-
-    /*    if (!prevState.sync && this.state.sync) {
-
-          this.setDatabaseName();
-
-        }
-        if (this.state.isConnected && !prevState.db && this.state.db && this.state.sync) {
-          this._getAuth();
-        }
-        if (this.state.isConnected && !prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
-          Sync.updateEntities(this.state.db, this.state);
-          Sync.syncContentTypes(this.state, this.syncCompleted);
-        } else if (this.state.isConnected && prevState.loggedIn && this.state.loggedIn && this.state.db && this.state.sync) {
-          this.syncCompleted();
-        }
-        if (!prevState.isConnected && !prevState.db && this.state.isConnected && this.state.db) {
-          this.registerBackgroundSync();
-          this.logRegisteredTasks();
-          this.createTokenTable();
-        }*/
-
-
-    if (this.state.sync && !this.state.syncing) {
+    } else if (this.state.sync && !this.state.syncing) {
       console.log('sync');
       if (this.state.isConnected) {
         console.log('connected');
@@ -205,6 +282,9 @@ export default class App extends React.Component {
           console.log('inserting user');
           this._insertUser();
         } else {
+
+
+
           if (!this.state.db) {
             console.log('set the database');
             this.setDatabaseName();
@@ -724,7 +804,10 @@ export default class App extends React.Component {
               console.log(responseJson);
             }).catch(error => console.log(error));*/
           fetch(state.siteUrl + '/app/synced-entities/retrieve', data)
-            .then((response) => response.json())
+            .then((response) => {
+              console.log(response);
+              return response.json();
+            })
             .then((responseJson) => {
 
 
