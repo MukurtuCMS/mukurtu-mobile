@@ -619,7 +619,7 @@ export default class FormComponent extends React.Component {
       .then((response) => response.json())
       .then((responseJson) => {
         if (responseJson.form_errors) {
-          this.setState({formErrors: responseJson.form_errors})
+          this.setState({formErrors: responseJson.form_errors, submitting: false})
         } else {
           this.setState({
             formSubmitted: true,
