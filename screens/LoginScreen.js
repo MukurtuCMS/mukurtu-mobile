@@ -18,6 +18,8 @@ import {WebBrowser} from 'expo';
 import {SQLite} from 'expo-sqlite';
 import Validator from 'validator';
 import * as Colors from "../constants/Colors";
+import axios from "axios";
+
 
 
 // create a global db for database list and last known user
@@ -129,8 +131,12 @@ class LoginScreen extends React.Component {
       url: url
     }, () => {
 
-      fetch(this.state.url + '/services/session/token')
-          .then((response) => response.text())
+
+      // Fetch was caching the token, but axios seems to work
+      axios.get(this.state.url + '/services/session/token')
+          .then((response) => {
+            return response.data;
+          })
           .then((response) => {
             let Token = response;
 
