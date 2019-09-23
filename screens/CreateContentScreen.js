@@ -152,6 +152,16 @@ class CreateContentScreen extends React.Component {
   }
 
   render() {
+
+    if(!this.props.screenProps.isLoggedIn) {
+      return (
+        <View style={{backgroundColor:'#EFEFF4',flex:1}}>
+          <Text>Please log in to create content.</Text>
+        </View>
+
+      );
+    }
+
     const { navigation } = this.props;
     var bgColor = '#DCE3F4';
 

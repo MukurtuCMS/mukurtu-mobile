@@ -21,7 +21,6 @@ import * as Colors from "../constants/Colors";
 import axios from "axios";
 
 
-
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global');
 
@@ -134,32 +133,37 @@ class LoginScreen extends React.Component {
 
       // Fetch was caching the token, but axios seems to work
       axios.get(this.state.url + '/services/session/token')
-          .then((response) => {
-            return response.data;
-          })
-          .then((response) => {
-            let Token = response;
+        .then((response) => {
+          return response.data;
+        })
+        .then((response) => {
+          let Token = response;
 
-            let data = {
-              method: 'POST',
-              body: JSON.stringify({
-                username: name,
-                password: pass
-              }),
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': Token,
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': 0
-              }
-            };
+          let data = {
+            method: 'POST',
+            body: JSON.stringify({
+              username: name,
+              password: pass
+            }),
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': Token,
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': 0
+            }
+          };
 
-            fetch(this.state.url + '/app/user/login.json', data)
+          // Hit logout first to ensure we're not already logged in
+          fetch(this.state.url + '/app/user/logout', data)
+            .then((response) => {
+
+              fetch(this.state.url + '/app/user/login.json', data)
                 .then((response) => response.json())
                 .then((responseJson) => {
 
+                  // This shouldn't happen, since we're already hitting logout before we get to this.
                   // If already logged in go ahead and grab user account
                   if (responseJson instanceof Array && responseJson[0].startsWith('Already logged in as')) {
 
@@ -197,9 +201,6 @@ class LoginScreen extends React.Component {
 
                                   fetch(this.state.url + '/app/user/logout', data)
                                     .then((response) => {
-
-
-
 
 
                                     });
@@ -271,7 +272,7 @@ class LoginScreen extends React.Component {
                           });
 
 
-                    });
+                      });
                   }
 
                   console.log(responseJson);
@@ -286,25 +287,25 @@ class LoginScreen extends React.Component {
 
                     // we need to update our global user
                     globalDB.transaction(
-                        tx => {
-                          tx.executeSql('delete from user;',
-                          );
-                        }
+                      tx => {
+                        tx.executeSql('delete from user;',
+                        );
+                      }
                     );
 
                     globalDB.transaction(
-                        tx => {
-                          tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
-                              [url, JSON.stringify(responseJson)],
-                              (success) => {
-                                this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
-                              },
+                      tx => {
+                        tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
+                          [url, JSON.stringify(responseJson)],
+                          (success) => {
+                            this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                          },
 
-                              (success, error) => {
-                                console.log('error');
-                              }
-                          );
-                        }
+                          (success, error) => {
+                            console.log('error');
+                          }
+                        );
+                      }
                     );
 
                     this.props.add(responseJson.session_name + '=' + responseJson.sessid);
@@ -338,11 +339,12 @@ class LoginScreen extends React.Component {
                   }
                   console.log(error.config);
                 });
-          })
-          .catch((error) => {
-            this.handleLoginError('Error logging in.');
-            // console.error(error);
-          });
+            });
+        })
+        .catch((error) => {
+          this.handleLoginError('Error logging in.');
+          // console.error(error);
+        });
 
     }, this);
   }
@@ -366,58 +368,58 @@ class LoginScreen extends React.Component {
     }
 
     return (
-        <View style={styles.container}>
-          <View style={styles.inputContainer}>
-            {showError}
-            <TextInput style={styles.inputs}
-                       placeholder="Username"
-                       underlineColorAndroid='transparent'
-                       placeholderTextColor="#464646"
-                       onChangeText={(name) => this.setState({name})}/>
-          </View>
-
-          <View>
-            <Text></Text>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.inputs}
-                       placeholder="Password"
-                       secureTextEntry={true}
-                       underlineColorAndroid='transparent'
-                       placeholderTextColor="#464646"
-                       onChangeText={(password) => this.setState({password})}/>
-          </View>
-
-          <View>
-            <Text>{urlInvalid}</Text>
-          </View>
-
-
-          <View style={styles.inputContainer}>
-
-            <TextInput style={styles.inputs}
-                       placeholder="Url"
-                       underlineColorAndroid='transparent'
-                       placeholderTextColor="#464646"
-                       onChangeText={
-                         (url) => {
-                           this.setState({url});
-                           this.setState({'urlInvalid': false})
-                         }
-                       }/>
-          </View>
-
-          <View>
-            <Text>{loginError}</Text>
-          </View>
-
-          <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
-                              onPress={() => this.onClickListener('login')}>
-            <Text style={styles.loginText}>Login</Text>
-          </TouchableHighlight>
-
+      <View style={styles.container}>
+        <View style={styles.inputContainer}>
+          {showError}
+          <TextInput style={styles.inputs}
+                     placeholder="Username"
+                     underlineColorAndroid='transparent'
+                     placeholderTextColor="#464646"
+                     onChangeText={(name) => this.setState({name})}/>
         </View>
+
+        <View>
+          <Text></Text>
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput style={styles.inputs}
+                     placeholder="Password"
+                     secureTextEntry={true}
+                     underlineColorAndroid='transparent'
+                     placeholderTextColor="#464646"
+                     onChangeText={(password) => this.setState({password})}/>
+        </View>
+
+        <View>
+          <Text>{urlInvalid}</Text>
+        </View>
+
+
+        <View style={styles.inputContainer}>
+
+          <TextInput style={styles.inputs}
+                     placeholder="Url"
+                     underlineColorAndroid='transparent'
+                     placeholderTextColor="#464646"
+                     onChangeText={
+                       (url) => {
+                         this.setState({url});
+                         this.setState({'urlInvalid': false})
+                       }
+                     }/>
+        </View>
+
+        <View>
+          <Text>{loginError}</Text>
+        </View>
+
+        <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
+                            onPress={() => this.onClickListener('login')}>
+          <Text style={styles.loginText}>Login</Text>
+        </TouchableHighlight>
+
+      </View>
     );
   }
 }
