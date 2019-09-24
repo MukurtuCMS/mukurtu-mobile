@@ -87,7 +87,7 @@ const getCreatableTypes = async (state, data, complete) => {
                   .catch(error => console.log(error))
           ))
               .then(data => {
-                complete(true);
+                // complete(true);
               })
         }
       })

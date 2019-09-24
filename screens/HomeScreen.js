@@ -64,7 +64,7 @@ class HomeScreen extends React.Component {
         );
       });
 
-      if (this.state.isConnected) {
+      if (this.props.screenProps.isConnected) {
         this.update();
       }
     }

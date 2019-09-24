@@ -102,8 +102,10 @@ export default class NodeTeaser extends React.Component {
           let termNames = [];
           for (let i = 0; i < node.entity[key]['en'].length; i++) {
             let tid = node.entity[key]['en'][i]['tid'];
-            let termTitle = this.state.terms[tid]['name'];
-            termNames.push(termTitle);
+            if(typeof this.state.terms[tid] !== 'undefined') {
+              let termTitle = this.state.terms[tid]['name'];
+              termNames.push(termTitle);
+            }
           }
 
           let termNamesString = termNames.join(', ');

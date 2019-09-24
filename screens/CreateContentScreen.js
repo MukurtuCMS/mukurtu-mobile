@@ -64,7 +64,7 @@ class CreateContentScreen extends React.Component {
         );
       });
 
-      if (this.state.isConnected) {
+      if (this.props.screenProps.isConnected) {
         this.update();
       }
     }
@@ -92,11 +92,18 @@ class CreateContentScreen extends React.Component {
   }
 
   getToken(array) {
-    if (array === undefined || array.length < 1) {
-      return false;
+    let token;
+    let cookie;
+    if(this.props.screenProps.token && this.props.screenProps.cookie) {
+      token = this.props.screenProps.token;
+      cookie = this.props.screenProps.cookie;
+    } else {
+      if (array === undefined || array.length < 1) {
+        return false;
+      }
+       token = array[0].token;
+      cookie = array[0].cookie;
     }
-    const token = array[0].token;
-    const cookie = array[0].cookie;
 
 
     let data = {

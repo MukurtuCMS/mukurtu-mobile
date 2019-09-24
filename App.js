@@ -802,7 +802,7 @@ export default class App extends React.Component {
                         .catch(error => console.log(error))
                     ))
                       .then(data => {
-                        complete(true);
+                        // complete(true);
                       })
                   }
                 })
@@ -810,8 +810,6 @@ export default class App extends React.Component {
             })
             .then(() => {
 
-
-              // ***
 
               // Now let's do the same thing for the display modes
               fetch(state.siteUrl + '/app/viewable-types/retrieve', data)
@@ -839,7 +837,7 @@ export default class App extends React.Component {
                           // @todo: We will need to grab the listing display as well
                         })
                         .catch((error) => {
-                          returnData = 'failure';
+
                         });
                     }
                   }
