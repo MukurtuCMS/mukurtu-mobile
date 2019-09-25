@@ -93,8 +93,11 @@ export default class HomeScreen extends React.Component {
     };
 
     // Get the fields we're supposed to display from the endpoint
-    fetch(this.props.screenProps.siteUrl + '/app/list-view-fields/retrieve/' + contentType, data)
-        .then((response) => response.json())
+    data.url = this.props.screenProps.siteUrl + '/app/list-view-fields/retrieve/' + contentType;
+      axios(data)
+      .then((response) => {
+        return response.data;
+      })
         .then((responseJson) => {
           this.setState({'viewableFields': responseJson});
         })
@@ -216,8 +219,12 @@ export default class HomeScreen extends React.Component {
     };
 
     let contentType = this.props.navigation.state.params.contentType;
-    fetch(this.props.screenProps.siteUrl + '/app/viewable-types/retrieve', data)
-        .then((response) => response.json())
+
+    data.url = this.props.screenProps.siteUrl + '/app/viewable-types/retrieve';
+      axios(data)
+        .then((response) => {
+          return response.data;
+        })
         .then((responseJson) => {
           if (typeof responseJson === 'object' && responseJson !== null) {
             return responseJson[contentType]['list view filters'];
@@ -439,8 +446,11 @@ export default class HomeScreen extends React.Component {
           }
         };
 
-        fetch(this.props.screenProps.siteUrl + '/app/one-time-login/retrieve', data)
-            .then((response) => response.json())
+        data.url = this.props.screenProps.siteUrl + '/app/one-time-login/retrieve';
+          axios(data)
+          .then((response) => {
+            return response.data;
+          })
             .then((responseText) => {
 
               let result = WebBrowser.openBrowserAsync(responseText[0]);

@@ -109,17 +109,22 @@ class HomeScreen extends React.Component {
       }
     };
 
-
-    fetch(this.props.screenProps.siteUrl + '/app/system/connect', data)
-      .then((response) => response.json())
+    data.url = this.props.screenProps.siteUrl + '/app/system/connect';
+      axios(data)
+      .then((response) => {
+        return response.data;
+      })
       .then((responseJson) => {
         if (responseJson.user.uid === 0) {
           return false;
         }
         data.method = 'GET';
 
-        fetch(this.props.screenProps.siteUrl + '/app/creatable-types/retrieve', data)
-          .then((response) => response.json())
+        data.url = this.props.screenProps.siteUrl + '/app/creatable-types/retrieve';
+        axios( data)
+          .then((response) => {
+            return response.data;
+          })
           .then((responseJson) => {
             this.setState({contentTypes: responseJson});
           })

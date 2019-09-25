@@ -509,8 +509,11 @@ export default class App extends React.Component {
   }
 
   saveNode = (nid, data, editable, state) => {
-    fetch(state.siteUrl + '/app/node/' + nid + '.json', data)
-      .then((response) => response.json())
+    data.url = state.siteUrl + '/app/node/' + nid + '.json';
+    axios(data)
+      .then((node) => {
+        return node.data;
+      })
       .then((node) => {
         state.db.transaction(tx => {
           tx.executeSql(
@@ -536,8 +539,11 @@ export default class App extends React.Component {
   }
 
   getCreatableTypes = async (state, data, complete) => {
-    fetch(state.siteUrl + '/app/creatable-types/retrieve', data)
-      .then((response) => response.json())
+    data.url = state.siteUrl + '/app/creatable-types/retrieve';
+    axios(data)
+      .then((response) => {
+        return response.data;
+      })
       .then((responseJson) => {
         if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
           console.log('access denied');
@@ -571,9 +577,11 @@ export default class App extends React.Component {
             urls.push({url: state.siteUrl + '/app/node-form-fields/retrieve/' + machineName, machineName: machineName});
           }
           Promise.all(urls.map(url =>
-            fetch(url.url, data)
+            axios({method: data.method, url: url.url, headers: data.headers})
+              .then((response) => {
+                return response.data;
+              })
               .then(this.checkStatus)
-              .then(this.parseJSON)
               .then((response) => this.insertContentType(response, state, url.machineName))
               .catch(error => console.log(error))
           ))
@@ -608,8 +616,11 @@ export default class App extends React.Component {
   }
 
   saveAtom = (sid, data, state) => {
-    fetch(state.siteUrl + '/app/scald/retrieve/' + sid + '.json', data)
-      .then((response) => response.json())
+    data.url = state.siteUrl + '/app/scald/retrieve/' + sid + '.json'
+    axios(data)
+      .then((response) => {
+        return response.data;
+      })
       .then((atom) => {
 
         state.db.transaction(
@@ -626,8 +637,11 @@ export default class App extends React.Component {
         if (atom.base_entity && atom.base_entity.fid) {
           const fid = atom.base_entity.fid;
           // now grab file blob and save to filesystem
-          fetch(state.siteUrl + '/app/file/' + fid + '.json', data)
-            .then((response) => response.json())
+          data.url = state.siteUrl + '/app/file/' + fid + '.json';
+          axios(data)
+            .then((response) => {
+              return response.data;
+            })
             .then(async (file) => {
 
               // It appears that sometimes the payload is too large on these, which we'll probably have to address.
@@ -650,8 +664,11 @@ export default class App extends React.Component {
   }
 
   saveTaxonomy = (tid, data, state) => {
-    fetch(state.siteUrl + '/app/tax-term/' + tid + '.json', data)
-      .then((response) => response.json())
+    data.url = state.siteUrl + '/app/tax-term/' + tid + '.json';
+    axios(data)
+      .then((response) => {
+        return response.data;
+      })
       .then((term) => {
 
         state.db.transaction(
@@ -700,18 +717,16 @@ export default class App extends React.Component {
           const cookie = state.cookie;
 
           let data = this.buildFetchData('GET', state);
+          data.url = state.siteUrl + '/app/synced-entities/retrieve';
 
-          /*          axios.get(state.siteUrl + '/app/synced-entities/retrieve', {headers: data.headers})
-                      .then((responseJson) => {
-                        console.log(responseJson);
-                      }).catch(error => console.log(error));*/
-          fetch(state.siteUrl + '/app/synced-entities/retrieve', data)
+          //test
+          axios(data)
             .then((response) => {
-              console.log(response);
-              return response.json();
+              return response.data;
             })
             .then((responseJson) => {
 
+              console.log(responseJson);
 
               if (typeof responseJson.nodes === 'object') {
                 let nodes = {};
@@ -755,10 +770,13 @@ export default class App extends React.Component {
             .then(() => {
               let returnData = 'failure';
               const data = this.buildFetchData('GET', state);
+              data.url = state.siteUrl + '/app/creatable-types/retrieve';
 
 
-              fetch(state.siteUrl + '/app/creatable-types/retrieve', data)
-                .then((response) => response.json())
+              axios(data)
+                .then((response) => {
+                  return response.data;
+                })
                 .then((responseJson) => {
                   if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
                     console.log('access denied');
@@ -795,9 +813,11 @@ export default class App extends React.Component {
                       });
                     }
                     Promise.all(urls.map(url =>
-                      fetch(url.url, data)
+                      axios({method: data.method, url: url.url, headers: data.headers})
+                        .then((response) => {
+                          return response.data;
+                        })
                         .then(this.checkStatus)
-                        .then(this.parseJSON)
                         .then((response) => this.insertContentType(response, state, url.machineName))
                         .catch(error => console.log(error))
                     ))
@@ -812,15 +832,21 @@ export default class App extends React.Component {
 
 
               // Now let's do the same thing for the display modes
-              fetch(state.siteUrl + '/app/viewable-types/retrieve', data)
-                .then((response) => response.json())
+              data.url = state.siteUrl + '/app/viewable-types/retrieve';
+              axios(data)
+                .then((response) => {
+                  return response.data;
+                })
                 .then((responseJson) => {
                   if (typeof responseJson === 'object' && responseJson !== null) {
 
                     // now let's sync all content type display endpoints
                     for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-                      fetch(state.siteUrl + '/app/node-view-fields/retrieve/' + machineName, data)
-                        .then((response) => response.json())
+                      data.url = state.siteUrl + '/app/node-view-fields/retrieve/' + machineName;
+                      axios(data)
+                        .then((response) => {
+                          return response.data;
+                        })
                         .then((responseJson) => {
                           let returnData = 'success';
 
@@ -846,8 +872,11 @@ export default class App extends React.Component {
             })
             .then(() => {
               const data = this.buildFetchData('GET', state);
-              fetch(state.siteUrl + '/app/site-info/retrieve', data)
-                .then((response) => response.json())
+              data.url = state.siteUrl + '/app/site-info/retrieve';
+                axios(data)
+                  .then((response) => {
+                    return response.data;
+                  })
                 .then((siteInfo) => {
                   if (siteInfo && siteInfo.site_name) {
 
@@ -929,8 +958,11 @@ export default class App extends React.Component {
       }
     };
 
-    fetch(this.state.siteUrl + '/app/system/connect', data)
-      .then((response) => response.json())
+    data.url = this.state.siteUrl + '/app/system/connect';
+    axios(data)
+      .then((response) => {
+        return response.data;
+      })
       .then((responseJson) => {
         // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
         try {
