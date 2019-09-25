@@ -95,8 +95,11 @@ class NodeScreen extends React.Component {
       }
     };
 
-    fetch(this.state.url + '/app/viewable-types/retrieve', data)
-      .then((response) => response.json())
+    data.url = this.state.url + '/app/viewable-types/retrieve';
+    axios(data)
+      .then((response) => {
+        return response.data;
+      })
       .then((responseJson) => {
         if (typeof responseJson === 'object' && responseJson !== null) {
 

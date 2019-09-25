@@ -102,8 +102,11 @@ class LogoutScreen extends React.Component {
       }
     };
     // Log out of app
-    fetch(this.props.screenProps.siteUrl + '/app/user/logout', data)
-        .then((response) => response.json())
+    data.url = this.props.screenProps.siteUrl + '/app/user/logout',
+      axios(data)
+        .then((response) => {
+          return response.data;
+        })
         .catch((error) => {
           console.error(error);
         });
