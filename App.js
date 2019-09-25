@@ -972,14 +972,13 @@ export default class App extends React.Component {
             return;
           }
         } catch (e) {
-
+          this.setState({loggedIn: false});
         }
       })
       .catch((error) => {
+        this.setState({loggedIn: false});
       });
 
-    // If the user was loggedIn, we should have set the state and bounced already.
-    this.setState({loggedIn: false});
   }
 
 

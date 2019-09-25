@@ -31,7 +31,7 @@ export default class WebviewScreen extends React.Component {
     header: null,
   };
 
-  componentWillMount() {
+  componentDidMount() {
 
     let isLoggedInBrowser = false;
 
@@ -88,11 +88,6 @@ export default class WebviewScreen extends React.Component {
           loading: false
         });
       });
-
-
-    this.setState({
-      loading: false
-    });
   }
 
 
@@ -126,7 +121,6 @@ export default class WebviewScreen extends React.Component {
 
   render() {
 
-
     let activityIndicator;
     if (this.state.loading === true) {
       activityIndicator =
@@ -142,6 +136,8 @@ export default class WebviewScreen extends React.Component {
             <ActivityIndicator size="large" color="#159EC4"/>
           </View>
         </Overlay>
+
+
     }
 
     // If it's an invalid URL or the user is not logged in, don't open browser
