@@ -168,7 +168,9 @@ export default class App extends React.Component {
     if (!prevState.db && this.state.db && this.state.isConnected) {
       // We cannot create any of our unique tables until we have our unique database created and stored in state
       ManageTables.createUniqueTables(this.state.db);
-      this._getAuth();
+      // The getAuth function is causing problems, and ultimately doesn't seem like it's needed — we're authorizing via
+      // login
+      // this._getAuth();
     } else if (!prevState.db && this.state.db && !this.state.isConnected) {
       // db and user exist, but cannot check auth
       ManageTables.createUniqueTables(this.state.db);
@@ -252,8 +254,9 @@ export default class App extends React.Component {
       return (<InitializingApp/>);
     }
 
+
     let screenProps = {
-      user: this.state.user,
+      user: {},
       siteUrl: this.state.siteUrl,
       isLoggedIn: this.state.isLoggedIn,
       token: this.state.token,
@@ -267,6 +270,11 @@ export default class App extends React.Component {
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
     };
+    if (typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
+      screenProps.user = this.state.user;
+    } else if (typeof this.state.user === 'object') {
+      screenProps.user.user = this.state.user;
+    }
 
     // @todo: replace this with InitializingApp, keep now for debugging
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
@@ -284,8 +292,8 @@ export default class App extends React.Component {
         <Provider store={store}>
           <View style={styles.container}>
             <AppHeader
-              loggedIn={this.state.loggedIn}
-              url={this.state.siteUrl}
+              loggedIn={screenProps.loggedIn}
+              url={screenProps.siteUrl}
               screenProps={screenProps}
             />
             <AppNavigator screenProps={screenProps}/>
@@ -863,20 +871,25 @@ export default class App extends React.Component {
                           // @todo: We will need to grab the listing display as well
                         })
                         .catch((error) => {
-
+                          console.log('error 1');
+                          console.log(error);
                         });
                     }
                   }
+                })
+                .catch((error) => {
+                  console.log('error 2');
+                  console.log(error);
                 })
 
             })
             .then(() => {
               const data = this.buildFetchData('GET', state);
               data.url = state.siteUrl + '/app/site-info/retrieve';
-                axios(data)
-                  .then((response) => {
-                    return response.data;
-                  })
+              axios(data)
+                .then((response) => {
+                  return response.data;
+                })
                 .then((siteInfo) => {
                   if (siteInfo && siteInfo.site_name) {
 
@@ -891,6 +904,10 @@ export default class App extends React.Component {
                     );
                   }
                 })
+                .catch((error) => {
+                  console.log('error 3');
+                  console.log(error);
+                });
             })
             .then(() => {
               this.setState({
@@ -899,6 +916,7 @@ export default class App extends React.Component {
               })
             })
             .catch((error) => {
+              console.log('error 4');
               console.error(error);
             });
 
@@ -918,7 +936,7 @@ export default class App extends React.Component {
   connect(array) {
 
     // There's something going wrong with retrieving the auth data, but sometimes this is already set in state
-    if(!this.state.cookie && !this.state.token) {
+    if (!this.state.cookie && !this.state.token) {
       if (array === undefined || array.length < 1) {
         this.setState({
           cookie: null,
@@ -933,7 +951,7 @@ export default class App extends React.Component {
     let token = this.state.token;
     let cookie = this.state.cookie;
 
-    if(!this.state.cookie && !this.state.token) {
+    if (!this.state.cookie && !this.state.token) {
       token = array[0].token;
       cookie = array[0].cookie;
     }

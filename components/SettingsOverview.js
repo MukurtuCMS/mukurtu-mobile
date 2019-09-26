@@ -21,7 +21,16 @@ class SettingsOverview extends React.Component {
     const { navigation, screenProps } = this.props;
     this.onValueChange = this.onValueChange.bind(this);
     this.componentActive = this.componentActive.bind(this);
-    this.state = {db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null, switchValue: false, loggedIn: screenProps.loggedIn, token: false, user: (screenProps.user) ? screenProps.user : {}, places: '', placeName: '', lastSync: null};
+    this.state = {db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null, switchValue: false, loggedIn: screenProps.loggedIn, token: false,  places: '', placeName: '', lastSync: null};
+
+    if(typeof screenProps.user === 'object' && typeof screenProps.user.user === 'object') {
+      this.state.user = screenProps.user.user;
+    } else if(typeof screenProps.user === 'object') {
+      this.state.user = screenProps.user;
+    } else {
+      this.state.user = {};
+    }
+
   }
 
   componentDidMount(){
