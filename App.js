@@ -66,8 +66,9 @@ export default class App extends React.Component {
   setDatabaseName() {
 
 
+    let self = this;
     // This should always be run on app initialization. It check for the previous user object or set state to first time.
-    const self = this;
+
     globalDB.transaction(tx => {
       tx.executeSql(
         'select * from user limit 1;',
@@ -105,8 +106,6 @@ export default class App extends React.Component {
 
 
     });
-
-
   };
 
 
@@ -133,28 +132,28 @@ export default class App extends React.Component {
     // YellowBox.ignoreWarnings(['Failed prop type']);
     // console.disableYellowBox = true;
 
-    // var self = this;
-    // this._isMounted = true;
-    //
-    // setInterval(() => {
-    //   if (self.state.db !== null && self.state.loggedIn && self.state.isConnected) {
-    //     console.log('here');
-    //     this.updateEntities(this.state.db, this.state);
-    //     // Sync.syncContentTypes(this.state, this.syncCompleted);
-    //     // Sync.syncSiteInfo(this.state);
-    //   }
-    //   ;
-    // }, 15 * 60 * 1000);
-    //
-    // // delete all data and start fresh
-    // // this.deleteAll();
-    // ManageTables.createGlobalTables();
-    //
-    // // let's first check if this is a first time user, redirect to login
-    // this.firstTimeCheck();
-    //
-    // this.setDatabaseName();
-    // NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    var self = this;
+    this._isMounted = true;
+
+    setInterval(() => {
+      if (self.state.db !== null && self.state.loggedIn && self.state.isConnected) {
+        console.log('here');
+        this.updateEntities(this.state.db, this.state);
+        // Sync.syncContentTypes(this.state, this.syncCompleted);
+        // Sync.syncSiteInfo(this.state);
+      }
+      ;
+    }, 15 * 60 * 1000);
+
+    // delete all data and start fresh
+    // this.deleteAll();
+    ManageTables.createGlobalTables();
+
+    // let's first check if this is a first time user, redirect to login
+    this.firstTimeCheck();
+
+    this.setDatabaseName();
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
   }
 
   syncCompleted(sync = false) {
@@ -270,7 +269,7 @@ export default class App extends React.Component {
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
     };
-    if (typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
+    if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
       screenProps.user = this.state.user;
     } else if (typeof this.state.user === 'object') {
       screenProps.user.user = this.state.user;
@@ -715,215 +714,207 @@ export default class App extends React.Component {
 
   updateEntities = (db, state, complete) => {
 
-    db.transaction(tx => {
-      tx.executeSql(
-        'select * from auth limit 1;',
-        '',
-        (_, {rows: {array}}) => {
 
-          const token = state.token;
-          const cookie = state.cookie;
+    const token = state.token;
+    const cookie = state.cookie;
 
-          let data = this.buildFetchData('GET', state);
-          data.url = state.siteUrl + '/app/synced-entities/retrieve';
+    let data = this.buildFetchData('GET', state);
+    data.url = state.siteUrl + '/app/synced-entities/retrieve';
 
-          //test
-          axios(data)
-            .then((response) => {
-              return response.data;
-            })
-            .then((responseJson) => {
+    //test
+    axios(data)
+      .then((response) => {
+        return response.data;
+      })
+      .then((responseJson) => {
 
-              console.log(responseJson);
+        console.log(responseJson);
 
-              if (typeof responseJson.nodes === 'object') {
-                let nodes = {};
-                for (const [type, entity] of Object.entries(responseJson.nodes)) {
-                  if (typeof responseJson.nodes[type] === 'object') {
-                    for (const [nid, object] of Object.entries(responseJson.nodes[type])) {
-                      if (typeof responseJson.nodes[type] === 'object') {
-                        nodes[nid] = object;
-                      }
-                    }
-                  }
-                }
-                this.buildRemovalNids(nodes, state);
-                for (const [nid, object] of Object.entries(nodes)) {
-                  // @todo don't update all nodes but starring a node does not save
-                  // if (timestamp > this.state.syncUpdated) {
-                  this.saveNode(nid, data, object.editable, state);
-                  // }
-                }
-
-                // now lets sync the taxonomy terms as well
-              }
-              if (typeof responseJson.terms === 'object') {
-                for (const [tid, object] of Object.entries(responseJson.terms)) {
-                  // @todo don't update all nodes but starring a node does not save
-                  // if (timestamp > this.state.syncUpdated) {
-                  this.saveTaxonomy(tid, data, state);
-                  // }
+        if (typeof responseJson.nodes === 'object') {
+          let nodes = {};
+          for (const [type, entity] of Object.entries(responseJson.nodes)) {
+            if (typeof responseJson.nodes[type] === 'object') {
+              for (const [nid, object] of Object.entries(responseJson.nodes[type])) {
+                if (typeof responseJson.nodes[type] === 'object') {
+                  nodes[nid] = object;
                 }
               }
-              if (typeof responseJson.atoms === 'object') {
-                for (const [sid, object] of Object.entries(responseJson.atoms)) {
-                  // @todo don't update all nodes but starring a node does not save
-                  // if (timestamp > this.state.syncUpdated) {
-                  this.saveAtom(sid, data, state);
-                  // }
-                }
-              }
-              this.updateSync(state);
-            })
-            .then(() => {
-              let returnData = 'failure';
-              const data = this.buildFetchData('GET', state);
-              data.url = state.siteUrl + '/app/creatable-types/retrieve';
+            }
+          }
+          this.buildRemovalNids(nodes, state);
+          for (const [nid, object] of Object.entries(nodes)) {
+            // @todo don't update all nodes but starring a node does not save
+            // if (timestamp > this.state.syncUpdated) {
+            this.saveNode(nid, data, object.editable, state);
+            // }
+          }
+
+          // now lets sync the taxonomy terms as well
+        }
+        if (typeof responseJson.terms === 'object') {
+          for (const [tid, object] of Object.entries(responseJson.terms)) {
+            // @todo don't update all nodes but starring a node does not save
+            // if (timestamp > this.state.syncUpdated) {
+            this.saveTaxonomy(tid, data, state);
+            // }
+          }
+        }
+        if (typeof responseJson.atoms === 'object') {
+          for (const [sid, object] of Object.entries(responseJson.atoms)) {
+            // @todo don't update all nodes but starring a node does not save
+            // if (timestamp > this.state.syncUpdated) {
+            this.saveAtom(sid, data, state);
+            // }
+          }
+        }
+        this.updateSync(state);
+      })
+      .then(() => {
+        let returnData = 'failure';
+        const data = this.buildFetchData('GET', state);
+        data.url = state.siteUrl + '/app/creatable-types/retrieve';
 
 
-              axios(data)
-                .then((response) => {
-                  return response.data;
-                })
-                .then((responseJson) => {
-                  if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
-                    console.log('access denied');
-                  }
-                  if (typeof responseJson === 'object' && responseJson !== null) {
-                    state.db.transaction(
-                      tx => {
-                        tx.executeSql('delete from content_types;',
-                          [],
-                          (success) => {
-                            // run this after things have been deleted
-                            state.db.transaction(
-                              tx => {
-                                tx.executeSql('insert into content_types (id, blob) values (?, ?)',
-                                  [1, JSON.stringify(responseJson)],
-                                  (success) => '',
-                                  (success, error) => console.log(' ')
-                                );
-                              }
-                            );
-                          },
-                          (success, error) => console.log(error)
-                        );
-                      }
-                    );
-
-
-                    // now let's sync all content type endpoints
-                    let urls = [];
-                    for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-                      urls.push({
-                        url: state.siteUrl + '/app/node-form-fields/retrieve/' + machineName,
-                        machineName: machineName
-                      });
-                    }
-                    Promise.all(urls.map(url =>
-                      axios({method: data.method, url: url.url, headers: data.headers})
-                        .then((response) => {
-                          return response.data;
-                        })
-                        .then(this.checkStatus)
-                        .then((response) => this.insertContentType(response, state, url.machineName))
-                        .catch(error => console.log(error))
-                    ))
-                      .then(data => {
-                        // complete(true);
-                      })
-                  }
-                })
-
-            })
-            .then(() => {
-
-
-              // Now let's do the same thing for the display modes
-              data.url = state.siteUrl + '/app/viewable-types/retrieve';
-              axios(data)
-                .then((response) => {
-                  return response.data;
-                })
-                .then((responseJson) => {
-                  if (typeof responseJson === 'object' && responseJson !== null) {
-
-                    // now let's sync all content type display endpoints
-                    for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-                      data.url = state.siteUrl + '/app/node-view-fields/retrieve/' + machineName;
-                      axios(data)
-                        .then((response) => {
-                          return response.data;
-                        })
-                        .then((responseJson) => {
-                          let returnData = 'success';
-
-                          state.db.transaction(
-                            tx => {
-                              tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
-                                [machineName, JSON.stringify(responseJson)],
-                                (success) => '',
-                                (success, error) => ''
-                              );
-                            }
+        axios(data)
+          .then((response) => {
+            return response.data;
+          })
+          .then((responseJson) => {
+            if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
+              console.log('access denied');
+            }
+            if (typeof responseJson === 'object' && responseJson !== null) {
+              state.db.transaction(
+                tx => {
+                  tx.executeSql('delete from content_types;',
+                    [],
+                    (success) => {
+                      // run this after things have been deleted
+                      state.db.transaction(
+                        tx => {
+                          tx.executeSql('insert into content_types (id, blob) values (?, ?)',
+                            [1, JSON.stringify(responseJson)],
+                            (success) => '',
+                            (success, error) => console.log(' ')
                           );
+                        }
+                      );
+                    },
+                    (success, error) => console.log(error)
+                  );
+                }
+              );
 
-                          // @todo: We will need to grab the listing display as well
-                        })
-                        .catch((error) => {
-                          console.log('error 1');
-                          console.log(error);
-                        });
-                    }
-                  }
-                })
-                .catch((error) => {
-                  console.log('error 2');
-                  console.log(error);
-                })
 
-            })
-            .then(() => {
-              const data = this.buildFetchData('GET', state);
-              data.url = state.siteUrl + '/app/site-info/retrieve';
-              axios(data)
-                .then((response) => {
-                  return response.data;
+              // now let's sync all content type endpoints
+              let urls = [];
+              for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+                urls.push({
+                  url: state.siteUrl + '/app/node-form-fields/retrieve/' + machineName,
+                  machineName: machineName
+                });
+              }
+              Promise.all(urls.map(url =>
+                axios({method: data.method, url: url.url, headers: data.headers})
+                  .then((response) => {
+                    return response.data;
+                  })
+                  .then(this.checkStatus)
+                  .then((response) => this.insertContentType(response, state, url.machineName))
+                  .catch(error => console.log(error))
+              ))
+                .then(data => {
+                  // complete(true);
                 })
-                .then((siteInfo) => {
-                  if (siteInfo && siteInfo.site_name) {
+            }
+          })
+
+      })
+      .then(() => {
+
+
+        // Now let's do the same thing for the display modes
+        data.url = state.siteUrl + '/app/viewable-types/retrieve';
+        axios(data)
+          .then((response) => {
+            return response.data;
+          })
+          .then((responseJson) => {
+            if (typeof responseJson === 'object' && responseJson !== null) {
+
+              // now let's sync all content type display endpoints
+              for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+                data.url = state.siteUrl + '/app/node-view-fields/retrieve/' + machineName;
+                axios(data)
+                  .then((response) => {
+                    return response.data;
+                  })
+                  .then((responseJson) => {
+                    let returnData = 'success';
 
                     state.db.transaction(
                       tx => {
-                        tx.executeSql('replace into site_info (site_name, mobile_enabled, logo) values (?, ?, ?)',
-                          [siteInfo.site_name, siteInfo.mukurtu_mobile_enabled, siteInfo.logo],
+                        tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
+                          [machineName, JSON.stringify(responseJson)],
                           (success) => '',
                           (success, error) => ''
                         );
                       }
                     );
-                  }
-                })
-                .catch((error) => {
-                  console.log('error 3');
-                  console.log(error);
-                });
-            })
-            .then(() => {
-              this.setState({
-                'sync': false,
-                'syncing': false
-              })
-            })
-            .catch((error) => {
-              console.log('error 4');
-              console.error(error);
-            });
+
+                    // @todo: We will need to grab the listing display as well
+                  })
+                  .catch((error) => {
+                    console.log('error 1');
+                    console.log(error);
+                  });
+              }
+            }
+          })
+          .catch((error) => {
+            console.log('error 2');
+            console.log(error);
+          })
+
+      })
+      .then(() => {
+        const data = this.buildFetchData('GET', state);
+        data.url = state.siteUrl + '/app/site-info/retrieve';
+        axios(data)
+          .then((response) => {
+            return response.data;
+          })
+          .then((siteInfo) => {
+            if (siteInfo && siteInfo.site_name) {
+
+              state.db.transaction(
+                tx => {
+                  tx.executeSql('replace into site_info (site_name, mobile_enabled, logo) values (?, ?, ?)',
+                    [siteInfo.site_name, siteInfo.mukurtu_mobile_enabled, siteInfo.logo],
+                    (success) => '',
+                    (success, error) => ''
+                  );
+                }
+              );
+            }
+          })
+          .catch((error) => {
+            console.log('error 3');
+            console.log(error);
+          });
+      })
+      .then(() => {
+        this.setState({
+          'sync': false,
+          'syncing': false
+        })
+      })
+      .catch((error) => {
+        console.log('error 4');
+        console.error(error);
+      });
 
 
-        }
-      );
-    });
   }
 
   _handleAuthError = () => {
@@ -931,8 +922,8 @@ export default class App extends React.Component {
       // There must not be auth
     }
   }
-  // This will try and check if the current user is logged in. This will fail if the server or client is offline.
-  // If failed, we will set the loggedIn to false so we know the connection has been attempted.
+// This will try and check if the current user is logged in. This will fail if the server or client is offline.
+// If failed, we will set the loggedIn to false so we know the connection has been attempted.
   connect(array) {
 
     // There's something going wrong with retrieving the auth data, but sometimes this is already set in state
