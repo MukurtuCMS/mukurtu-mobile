@@ -10,7 +10,7 @@ import {
   View,
   Alert,
   Button,
-  Linking, NetInfo, Picker, TouchableHighlight
+  Linking, NetInfo, Picker, TouchableHighlight, ActivityIndicator
 } from 'react-native';
 import RNPickerSelect, {defaultStyles} from 'react-native-picker-select';
 import {WebBrowser} from 'expo';
@@ -23,6 +23,7 @@ import SettingsList from "react-native-settings-list";
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import * as Colors from "../constants/Colors"
 import { Ionicons } from '@expo/vector-icons';
+import {Overlay} from "react-native-elements";
 
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global');
@@ -55,7 +56,8 @@ export default class HomeScreen extends React.Component {
       keywordsList: [],
       keywordsSelected: '0',
       filteredContentList: [],
-      search: ''
+      search: '',
+      loading: true
     }
   }
 
@@ -226,99 +228,108 @@ export default class HomeScreen extends React.Component {
           return response.data;
         })
         .then((responseJson) => {
-          if (typeof responseJson === 'object' && responseJson !== null) {
+          if (typeof responseJson === 'object' && responseJson !== null && typeof responseJson[contentType] === 'object') {
             return responseJson[contentType]['list view filters'];
+          } else {
+            return null;
           }
         })
         .then((validFilters) => {
 
-          let categoriesList = {};
-          if (typeof validFilters.field_category !== 'undefined' && this.state.nodes.length > 0) {
-            // Set our label to state
-            this.setState({'field_category_label': validFilters.field_category});
-            for (var i = 0; i < this.state.nodes.length; i++) {
-              if (this.state.nodes[i].entity.field_category) {
-                const lang = Object.keys(this.state.nodes[i].entity.field_category)[0];
+          if(validFilters !== null && typeof validFilters !== 'undefined') {
+
+            let categoriesList = {};
+            if (typeof validFilters.field_category !== 'undefined' && this.state.nodes.length > 0) {
+              // Set our label to state
+              this.setState({'field_category_label': validFilters.field_category});
+              for (var i = 0; i < this.state.nodes.length; i++) {
                 if (this.state.nodes[i].entity.field_category) {
-                  const categories = this.state.nodes[i].entity.field_category[lang];
-                  for (var k = 0; k < categories.length; k++) {
-                    if (this.state.terms[categories[k].tid]) {
-                      categoriesList[categories[k].tid] = this.state.terms[categories[k].tid].name;
+                  const lang = Object.keys(this.state.nodes[i].entity.field_category)[0];
+                  if (this.state.nodes[i].entity.field_category) {
+                    const categories = this.state.nodes[i].entity.field_category[lang];
+                    for (var k = 0; k < categories.length; k++) {
+                      if (this.state.terms[categories[k].tid]) {
+                        categoriesList[categories[k].tid] = this.state.terms[categories[k].tid].name;
+                      }
                     }
                   }
                 }
               }
             }
-          }
-          let keywordsList = {};
-          if (typeof validFilters.field_tags !== 'undefined' && this.state.nodes.length > 0) {
-            // Set our label to state
-            this.setState({'field_tags_label': validFilters.field_tags});
-            for (var i = 0; i < this.state.nodes.length; i++) {
-              if (this.state.nodes[i].entity.field_tags) {
-                const lang = Object.keys(this.state.nodes[i].entity.field_tags)[0];
+            let keywordsList = {};
+            if (typeof validFilters.field_tags !== 'undefined' && this.state.nodes.length > 0) {
+              // Set our label to state
+              this.setState({'field_tags_label': validFilters.field_tags});
+              for (var i = 0; i < this.state.nodes.length; i++) {
                 if (this.state.nodes[i].entity.field_tags) {
-                  const keywords = this.state.nodes[i].entity.field_tags[lang];
-                  if (keywords) {
-                    for (var k = 0; k < keywords.length; k++) {
-                      if (this.state.terms[keywords[k].tid]) {
-                        keywordsList[keywords[k].tid] = this.state.terms[keywords[k].tid].name;
+                  const lang = Object.keys(this.state.nodes[i].entity.field_tags)[0];
+                  if (this.state.nodes[i].entity.field_tags) {
+                    const keywords = this.state.nodes[i].entity.field_tags[lang];
+                    if (keywords) {
+                      for (var k = 0; k < keywords.length; k++) {
+                        if (this.state.terms[keywords[k].tid]) {
+                          keywordsList[keywords[k].tid] = this.state.terms[keywords[k].tid].name;
+                        }
                       }
                     }
                   }
                 }
               }
             }
-          }
-          let communityList = {};
-          if (typeof validFilters.field_community_ref !== 'undefined' && this.state.nodes.length > 0 && this.state.nodeList.length > 0) {
-            this.setState({'field_community_ref_label': validFilters.field_community_ref});
-            for (var i = 0; i < this.state.nodes.length; i++) {
-              if (this.state.nodes[i].entity.field_community_ref) {
-                const lang = Object.keys(this.state.nodes[i].entity.field_community_ref)[0];
+            let communityList = {};
+            if (typeof validFilters.field_community_ref !== 'undefined' && this.state.nodes.length > 0 && this.state.nodeList.length > 0) {
+              this.setState({'field_community_ref_label': validFilters.field_community_ref});
+              for (var i = 0; i < this.state.nodes.length; i++) {
                 if (this.state.nodes[i].entity.field_community_ref) {
-                  const community = this.state.nodes[i].entity.field_community_ref[lang];
-                  if (community) {
-                    for (var k = 0; k < community.length; k++) {
-                      if (this.state.nodes[community[k].nid]) {
-                        communityList[community[k].nid] = this.state.nodeList[community[k].nid].title;
+                  const lang = Object.keys(this.state.nodes[i].entity.field_community_ref)[0];
+                  if (this.state.nodes[i].entity.field_community_ref) {
+                    const community = this.state.nodes[i].entity.field_community_ref[lang];
+                    if (community) {
+                      for (var k = 0; k < community.length; k++) {
+                        if (this.state.nodes[community[k].nid]) {
+                          communityList[community[k].nid] = this.state.nodeList[community[k].nid].title;
+                        }
                       }
                     }
                   }
                 }
               }
             }
-          }
-          let collectionList = {};
-          if (typeof validFilters.field_collection !== 'undefined' && this.state.nodes.length > 0) {
-            this.setState({'field_collection_label': validFilters.field_collection});
-            for (var i = 0; i < this.state.nodes.length; i++) {
-              if (this.state.nodes[i].entity.field_collection) {
-                const lang = Object.keys(this.state.nodes[i].entity.field_collection)[0];
+            let collectionList = {};
+            if (typeof validFilters.field_collection !== 'undefined' && this.state.nodes.length > 0) {
+              this.setState({'field_collection_label': validFilters.field_collection});
+              for (var i = 0; i < this.state.nodes.length; i++) {
                 if (this.state.nodes[i].entity.field_collection) {
-                  const collections = this.state.nodes[i].entity.field_collection[lang];
-                  if (collections) {
-                    for (var k = 0; k < collections.length; k++) {
-                      if (this.state.nodes[collections[k].nid]) {
-                        collectionList[collections[k].nid] = this.state.nodeList[collections[k].nid].title;
+                  const lang = Object.keys(this.state.nodes[i].entity.field_collection)[0];
+                  if (this.state.nodes[i].entity.field_collection) {
+                    const collections = this.state.nodes[i].entity.field_collection[lang];
+                    if (collections) {
+                      for (var k = 0; k < collections.length; k++) {
+                        if (this.state.nodes[collections[k].nid]) {
+                          collectionList[collections[k].nid] = this.state.nodeList[collections[k].nid].title;
+                        }
                       }
                     }
                   }
                 }
               }
             }
+            this.setState({
+              categoriesList: categoriesList,
+              communityList: communityList,
+              collectionList: collectionList,
+              keywordsList: keywordsList,
+              loading: false
+            });
+          } else {
+            this.setState({'loading': false});
           }
-          this.setState({
-            categoriesList: categoriesList,
-            communityList: communityList,
-            collectionList: collectionList,
-            keywordsList: keywordsList
-          });
 
 
         })
         .catch((error) => {
           console.log(error);
+          this.setState({'loading': false});
           return false;
         });
 
@@ -364,6 +375,11 @@ export default class HomeScreen extends React.Component {
 
     // First we want to restrict this to just the nodes in this content type
     filteredContentList = filteredContentList.filter(node => (node.entity.type === this.props.navigation.state.params.contentType));
+
+    // If the filtered content list length is zero without any filters applied, return a string.
+    if(filteredContentList.length === 0) {
+      return 'No synced nodes available.';
+    }
 
     if (this.state.categoriesSelected !== '0') {
       filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_category, this.state.categoriesSelected));
@@ -505,6 +521,25 @@ export default class HomeScreen extends React.Component {
   }
 
   render() {
+
+    if (this.state.loading === true) {
+      return <View>
+        <Overlay
+          isVisible={true}
+          windowBackgroundColor="rgba(255, 255, 255, .5)"
+          overlayBackgroundColor="rgba(255, 255, 255, 1)"
+          width="auto"
+          height="auto"
+        >
+          <View style={styles.activityContainer}>
+            <Text style={{marginBottom: 10}}>Loading...</Text>
+            <ActivityIndicator size="large" color="#159EC4"/>
+          </View>
+        </Overlay>
+      </View>
+
+    }
+
 
     if (this.state.nodes.length < 1) {
       return (
@@ -657,6 +692,26 @@ export default class HomeScreen extends React.Component {
     }
 
     const filteredContentList = this.getFilteredContentList();
+    let filteredContentListRender;
+
+    if(typeof filteredContentList === 'string') {
+      filteredContentListRender = <Text>{filteredContentList}</Text>;
+    } else {
+      filteredContentListRender = filteredContentList.map((node) => (
+        <NodeTeaser
+          key={i++}
+          node={node}
+          viewableFields={this.state.viewableFields}
+          token={this.props.screenProps.token}
+          cookie={this.props.screenProps.cookie}
+          url={this.props.screenProps.siteUrl}
+          db={this.state.db}
+          terms={this.state.terms}
+          allNodes={this.state.allNodes}
+          navigation={this.props.navigation}
+        />
+      ))
+    }
 
     return (
         <ScrollView style={styles.container}>
@@ -670,28 +725,11 @@ export default class HomeScreen extends React.Component {
                 onChangeText={(text) => this.setSearchText(text)}
               />
             </View>
-
-
             {categoriesList}
             {keywordsList}
             {communityList}
             {collectionList}
-            {
-              filteredContentList.map((node) => (
-                  <NodeTeaser
-                      key={i++}
-                      node={node}
-                      viewableFields={this.state.viewableFields}
-                      token={this.props.screenProps.token}
-                      cookie={this.props.screenProps.cookie}
-                      url={this.props.screenProps.siteUrl}
-                      db={this.state.db}
-                      terms={this.state.terms}
-                      allNodes={this.state.allNodes}
-                      navigation={this.props.navigation}
-                  />
-              ))
-            }
+            {filteredContentListRender}
           </View>
 
         </ScrollView>

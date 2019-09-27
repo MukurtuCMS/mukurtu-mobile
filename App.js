@@ -588,7 +588,7 @@ export default class App extends React.Component {
               .then((response) => {
                 return response.data;
               })
-              .then(this.checkStatus)
+              // .then(this.checkStatus)
               .then((response) => this.insertContentType(response, state, url.machineName))
               .catch(error => console.log(error))
           ))
@@ -819,7 +819,7 @@ export default class App extends React.Component {
                   .then((response) => {
                     return response.data;
                   })
-                  .then(this.checkStatus)
+                  // .then(this.checkStatus)
                   .then((response) => this.insertContentType(response, state, url.machineName))
                   .catch(error => console.log(error))
               ))

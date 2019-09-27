@@ -14,6 +14,7 @@ import {Star} from "../components/Star";
 import {ScaldItem} from "../components/ScaldItem";
 import {ParagraphView} from "../components/ParagraphView";
 import {Term} from "../components/Term";
+import axios from "axios";
 
 
 // create a global db for database list and last known user

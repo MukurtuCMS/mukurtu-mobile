@@ -46,16 +46,7 @@ class CreateContentFormScreen extends React.Component {
   }
 
   componentDidMount() {
-    this.props.navigation.addListener('willFocus', this.componentActive)
-  }
-
-  retrieveContentType(array) {
-    if (array.length > 0 && array[0].blob !== undefined) {
-      this.setState({form: JSON.parse(array[0].blob), oldForm: JSON.parse(array[0].blob)});
-    }
-  }
-
-  componentActive = () => {
+    // this.props.navigation.addListener('willFocus', this.componentActive)
     // first set content types from db, then try connecting
     if (!this.state.db) {
       this.alertNotLoggedIn();
@@ -79,6 +70,13 @@ class CreateContentFormScreen extends React.Component {
       }
     }
   }
+
+  retrieveContentType(array) {
+    if (array.length > 0 && array[0].blob !== undefined) {
+      this.setState({form: JSON.parse(array[0].blob), oldForm: JSON.parse(array[0].blob)});
+    }
+  }
+
 
   getType(array) {
     const contentType = this.props.navigation.getParam('contentType');

@@ -23,6 +23,11 @@ export default class NodeTeaser extends React.Component {
     })
   }
 
+  componentDidMount() {
+    this.setState({'viewableFields': this.props.viewableFields});
+    this.setState({'terms': this.props.terms});
+  }
+
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (this.props.viewableFields !== prevProps.viewableFields) {
       this.setState({'viewableFields': this.props.viewableFields});
