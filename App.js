@@ -238,70 +238,76 @@ export default class App extends React.Component {
   }
 
   render() {
-    // We need to make sure our component is not rendering until we have checked offline/online and whether user is
-    // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
-
-    // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
-    if (this.state.sync) {
-      return (<AjaxSpinner/>);
-    }
-
-    if (this.state.databaseName === false) {
-      return (<InitializingApp/>);
-    }
-    // loggedIn state should only be false or true. If null, the checks have not run yet.
-    if (this.state.loggedIn === null) {
-      return (<InitializingApp/>);
-    }
-
-
-    let screenProps = {
-      user: {},
-      siteUrl: this.state.siteUrl,
-      isLoggedIn: this.state.isLoggedIn,
-      token: this.state.token,
-      cookie: this.state.cookie,
-      loggedIn: this.state.loggedIn,
-      databaseName: this.state.databaseName,
-      isConnected: this.state.isConnected,
-      firstTime: this.state.firstTime,
-      sync: this.state.sync,
-      _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
-      _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
-      _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
-    };
-    if (typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
-      screenProps.user = this.state.user;
-    } else if (typeof this.state.user === 'object') {
-      screenProps.user.user = this.state.user;
-    }
-
-    // @todo: replace this with InitializingApp, keep now for debugging
-    if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
-      return (
-        <Provider store={store}>
-          <AppLoading
-            startAsync={this._loadResourcesAsync}
-            onError={this._handleLoadingError}
-            onFinish={this._handleFinishLoading}
-          />
-        </Provider>
-      );
-    } else {
-      return (
-        <Provider store={store}>
-          <View style={styles.container}>
-            <AppHeader
-              loggedIn={screenProps.loggedIn}
-              url={screenProps.siteUrl}
-              screenProps={screenProps}
-            />
-            <AppNavigator screenProps={screenProps}/>
-          </View>
-        </Provider>
-      );
-    }
+    return<View>
+      <Text>Working</Text>
+    </View>;
   }
+
+  // render() {
+  //   // We need to make sure our component is not rendering until we have checked offline/online and whether user is
+  //   // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
+  //
+  //   // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
+  //   if (this.state.sync) {
+  //     return (<AjaxSpinner/>);
+  //   }
+  //
+  //   if (this.state.databaseName === false) {
+  //     return (<InitializingApp/>);
+  //   }
+  //   // loggedIn state should only be false or true. If null, the checks have not run yet.
+  //   if (this.state.loggedIn === null) {
+  //     return (<InitializingApp/>);
+  //   }
+  //
+  //
+  //   let screenProps = {
+  //     user: {},
+  //     siteUrl: this.state.siteUrl,
+  //     isLoggedIn: this.state.isLoggedIn,
+  //     token: this.state.token,
+  //     cookie: this.state.cookie,
+  //     loggedIn: this.state.loggedIn,
+  //     databaseName: this.state.databaseName,
+  //     isConnected: this.state.isConnected,
+  //     firstTime: this.state.firstTime,
+  //     sync: this.state.sync,
+  //     _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
+  //     _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
+  //     _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
+  //   };
+  //   if (typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
+  //     screenProps.user = this.state.user;
+  //   } else if (typeof this.state.user === 'object') {
+  //     screenProps.user.user = this.state.user;
+  //   }
+  //
+  //   // @todo: replace this with InitializingApp, keep now for debugging
+  //   if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
+  //     return (
+  //       <Provider store={store}>
+  //         <AppLoading
+  //           startAsync={this._loadResourcesAsync}
+  //           onError={this._handleLoadingError}
+  //           onFinish={this._handleFinishLoading}
+  //         />
+  //       </Provider>
+  //     );
+  //   } else {
+  //     return (
+  //       <Provider store={store}>
+  //         <View style={styles.container}>
+  //           <AppHeader
+  //             loggedIn={screenProps.loggedIn}
+  //             url={screenProps.siteUrl}
+  //             screenProps={screenProps}
+  //           />
+  //           <AppNavigator screenProps={screenProps}/>
+  //         </View>
+  //       </Provider>
+  //     );
+  //   }
+  // }
 
   _loadResourcesAsync = async () => {
     return Promise.all([
