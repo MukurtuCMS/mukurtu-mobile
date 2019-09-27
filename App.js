@@ -242,17 +242,17 @@ export default class App extends React.Component {
     // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
 
     // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
-    if (this.state.sync) {
-      return (<AjaxSpinner/>);
-    }
-
-    if (this.state.databaseName === false) {
-      return (<InitializingApp/>);
-    }
-    // loggedIn state should only be false or true. If null, the checks have not run yet.
-    if (this.state.loggedIn === null) {
-      return (<InitializingApp/>);
-    }
+    // if (this.state.sync) {
+    //   return (<AjaxSpinner/>);
+    // }
+    //
+    // if (this.state.databaseName === false) {
+    //   return (<InitializingApp/>);
+    // }
+    // // loggedIn state should only be false or true. If null, the checks have not run yet.
+    // if (this.state.loggedIn === null) {
+    //   return (<InitializingApp/>);
+    // }
 
 
     let screenProps = {
