@@ -127,34 +127,34 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    YellowBox.ignoreWarnings(['Setting a timer']);
-    YellowBox.ignoreWarnings(['Network request failed']);
-    YellowBox.ignoreWarnings(['Each child in a list']);
-    YellowBox.ignoreWarnings(['Failed prop type']);
-    console.disableYellowBox = true;
+    // YellowBox.ignoreWarnings(['Setting a timer']);
+    // YellowBox.ignoreWarnings(['Network request failed']);
+    // YellowBox.ignoreWarnings(['Each child in a list']);
+    // YellowBox.ignoreWarnings(['Failed prop type']);
+    // console.disableYellowBox = true;
 
-    var self = this;
-    this._isMounted = true;
-
-    setInterval(() => {
-      if (self.state.db !== null && self.state.loggedIn && self.state.isConnected) {
-        console.log('here');
-        this.updateEntities(this.state.db, this.state);
-        // Sync.syncContentTypes(this.state, this.syncCompleted);
-        // Sync.syncSiteInfo(this.state);
-      }
-      ;
-    }, 15 * 60 * 1000);
-
-    // delete all data and start fresh
-    // this.deleteAll();
-    ManageTables.createGlobalTables();
-
-    // let's first check if this is a first time user, redirect to login
-    this.firstTimeCheck();
-
-    this.setDatabaseName();
-    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    // var self = this;
+    // this._isMounted = true;
+    //
+    // setInterval(() => {
+    //   if (self.state.db !== null && self.state.loggedIn && self.state.isConnected) {
+    //     console.log('here');
+    //     this.updateEntities(this.state.db, this.state);
+    //     // Sync.syncContentTypes(this.state, this.syncCompleted);
+    //     // Sync.syncSiteInfo(this.state);
+    //   }
+    //   ;
+    // }, 15 * 60 * 1000);
+    //
+    // // delete all data and start fresh
+    // // this.deleteAll();
+    // ManageTables.createGlobalTables();
+    //
+    // // let's first check if this is a first time user, redirect to login
+    // this.firstTimeCheck();
+    //
+    // this.setDatabaseName();
+    // NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
   }
 
   syncCompleted(sync = false) {
@@ -242,17 +242,17 @@ export default class App extends React.Component {
     // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
 
     // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
-    // if (this.state.sync) {
-    //   return (<AjaxSpinner/>);
-    // }
-    //
-    // if (this.state.databaseName === false) {
-    //   return (<InitializingApp/>);
-    // }
-    // // loggedIn state should only be false or true. If null, the checks have not run yet.
-    // if (this.state.loggedIn === null) {
-    //   return (<InitializingApp/>);
-    // }
+    if (this.state.sync) {
+      return (<AjaxSpinner/>);
+    }
+
+    if (this.state.databaseName === false) {
+      return (<InitializingApp/>);
+    }
+    // loggedIn state should only be false or true. If null, the checks have not run yet.
+    if (this.state.loggedIn === null) {
+      return (<InitializingApp/>);
+    }
 
 
     let screenProps = {
