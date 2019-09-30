@@ -407,8 +407,6 @@ export default class App extends React.Component {
         tx.executeSql('select * from user;',
           '',
           (success, array) => {
-            console.log('logging user');
-            console.log(array);
             if (array.rows._array.length > 0) {
               this.setState({user: JSON.parse(array.rows._array[0].user)});
             }
@@ -728,8 +726,6 @@ export default class App extends React.Component {
       })
       .then((responseJson) => {
 
-        console.log(responseJson);
-
         if (typeof responseJson.nodes === 'object') {
           let nodes = {};
           for (const [type, entity] of Object.entries(responseJson.nodes)) {
@@ -832,7 +828,6 @@ export default class App extends React.Component {
       })
       .then(() => {
 
-
         // Now let's do the same thing for the display modes
         data.url = state.siteUrl + '/app/viewable-types/retrieve';
         axios(data)
@@ -911,7 +906,8 @@ export default class App extends React.Component {
       })
       .catch((error) => {
         console.log('error 4');
-        console.error(error);
+        console.error(error.response);
+        // this.updateEntities();
       });
 
 
