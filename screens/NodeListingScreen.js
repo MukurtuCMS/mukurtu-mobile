@@ -159,7 +159,6 @@ export default class HomeScreen extends React.Component {
     if(!this.state.allNodes) {
       this.setState({'allNodes': array});
     }
-
     let nodeList = {};
     // let's parse the json blobs before setting state
     for (var i = 0; i < array.length; i++) {
@@ -171,6 +170,8 @@ export default class HomeScreen extends React.Component {
       }
     }
 
+    // Eliminate all nodes that aren't current content type
+    array = array.filter(node => (node.entity.type === this.props.navigation.state.params.contentType));
 
 
     this.setState({nodes: array, filteredContentList: array, nodeList: nodeList});
