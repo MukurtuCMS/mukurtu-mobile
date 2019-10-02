@@ -22,7 +22,6 @@ import AppHeader from "./components/AppHeader";
 import * as FileSystem from "expo-file-system";
 
 const store = configureStore();
-const db = SQLite.openDatabase('db.db');
 
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global');
@@ -268,6 +267,7 @@ export default class App extends React.Component {
       _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
+      deleteAllData: this.deleteAllData,
     };
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
       screenProps.user = this.state.user;
@@ -365,6 +365,40 @@ export default class App extends React.Component {
       token: token
     });
   };
+
+  deleteAllData() {
+
+
+    this.state = {
+      isLoadingComplete: false,
+      siteUrl: '',
+      isLoggedIn: false,
+      token: false,
+      cookie: false,
+      isConnected: false,
+      databaseName: false,
+      db: null,
+      loggedIn: null,
+      user: {},
+      firstTime: false,
+      sync: false,
+      syncing: false
+    };
+
+    globalDB.transaction(tx => {
+      tx.executeSql(
+        'delete from user; delete from database;'
+      );
+    });
+
+    if(this.state.db) {
+      this.state.db.transaction(tx => {
+        tx.executeSql(
+          'delete from saved_offline; delete from auth; delete from nodes; delete from content_types; delete from content_type; delete from sync; delete from user;'
+        );
+      });
+    }
+  }
 
 
   _handleLogoutStatusUpdate = (status) => {

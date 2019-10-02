@@ -44,6 +44,7 @@ class LoginScreen extends React.Component {
     const siteUrl = screenProps.siteUrl;
     this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
+    this.deleteAllData = screenProps.deleteAllData.bind(this);
     this.state = {
       url: siteUrl,
       name: false,
@@ -417,6 +418,12 @@ class LoginScreen extends React.Component {
         <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
                             onPress={() => this.onClickListener('login')}>
           <Text style={styles.loginText}>Login</Text>
+        </TouchableHighlight>
+
+
+        <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
+                            onPress={() => this.deleteAllData()}>
+          <Text style={styles.loginText}>Delete All Data</Text>
         </TouchableHighlight>
 
       </View>
