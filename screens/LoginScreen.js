@@ -91,25 +91,7 @@ class LoginScreen extends React.Component {
 
 
   onClickListener = (viewId) => {
-    /*    userAuth(this.state.name, this.state.password, this.state.url)
-          .then((res) => {
-            Alert(res.message);
-            if(res.message === 'Not Found') {
-              this.setState({
-                error: 'User not found'
-              });
-            }
-            else {
-              this.props.navigator.push({
-                title: res.name || 'No Title',
-                passProps: {userInfo: res}
-              });
-              this.setState({
-                error: false,
-                username: ''
-              })
-            }
-          });*/
+
     if (this.state.name !== false) {
       var name = this.state.name.toLowerCase().trim();
     }
@@ -164,159 +146,162 @@ class LoginScreen extends React.Component {
                 .then((response) => response.json())
                 .then((responseJson) => {
 
+                  this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                  this._handleLoginStatusUpdate(Token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
+                  this.props.navigation.navigate('Home')
+
                   // This shouldn't happen, since we're already hitting logout before we get to this.
                   // If already logged in go ahead and grab user account
-                  if (responseJson instanceof Array && responseJson[0].startsWith('Already logged in as')) {
+                  // if (responseJson instanceof Array && responseJson[0].startsWith('Already logged in as')) {
+                  //
+                  //   fetch(this.state.url + '/app/user/logout', data)
+                  //     .then((response) => {
+                  //
+                  //
+                  //       fetch(this.state.url + '/services/session/token')
+                  //         .then((response) => response.text())
+                  //         .then((response) => {
+                  //           let Token = response;
+                  //
+                  //           let data = {
+                  //             method: 'POST',
+                  //             body: JSON.stringify({
+                  //               username: name,
+                  //               password: pass
+                  //             }),
+                  //             headers: {
+                  //               'Accept': 'application/json',
+                  //               'Content-Type': 'application/json',
+                  //               'X-CSRF-Token': Token,
+                  //               'Cache-Control': 'no-cache, no-store, must-revalidate',
+                  //               'Pragma': 'no-cache',
+                  //               'Expires': 0
+                  //             }
+                  //           };
+                  //
+                  //           fetch(this.state.url + '/app/user/login.json', data)
+                  //             .then((response) => response.json())
+                  //             .then((responseJson) => {
+                  //
+                  //               // If already logged in go ahead and grab user account
+                  //               if (responseJson instanceof Array && responseJson[0].startsWith('Already logged in as')) {
+                  //
+                  //                 fetch(this.state.url + '/app/user/logout', data)
+                  //                   .then((response) => {
+                  //
+                  //
+                  //                   });
+                  //               }
+                  //
+                  //               // Check for user in response. If there's no user, the response is an error message.
+                  //               if (typeof responseJson.user === 'undefined') {
+                  //                 this.handleLoginError(responseJson);
+                  //               } else {
+                  //                 // remove http:// from url
+                  //                 const url = this.state.url.replace(/(^\w+:|^)\/\//, '');
+                  //
+                  //                 // we need to update our global user
+                  //                 // globalDB.transaction(
+                  //                 //   tx => {
+                  //                 //     tx.executeSql('delete from user;',
+                  //                 //     );
+                  //                 //   }
+                  //                 // );
+                  //
+                  //                 globalDB.transaction(
+                  //                   tx => {
+                  //                     tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
+                  //                       [url, JSON.stringify(responseJson)],
+                  //                       (success) => {
+                  //                         // this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                  //                       },
+                  //
+                  //                       (success, error) => {
+                  //                         console.log('error');
+                  //                       }
+                  //                     );
+                  //                   }
+                  //                 );
+                  //
+                  //                 this.props.add(responseJson.session_name + '=' + responseJson.sessid);
+                  //                 this.props.addUserProp(responseJson);
+                  //                 this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                  //                 this._handleLoginStatusUpdate(Token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
+                  //                 this.props.navigation.navigate('Home')
+                  //               }
+                  //
+                  //             })
+                  //
+                  //
+                  //             .catch((error) => {
+                  //               this.handleLoginError('Error logging in.');
+                  //               if (error.response) {
+                  //                 // The request was made and the server responded with a status code
+                  //                 // that falls out of the range of 2xx
+                  //                 console.log(error.response.data);
+                  //                 console.log(error.response.status);
+                  //                 console.log(error.response.headers);
+                  //               } else if (error.request) {
+                  //                 // The request was made but no response was received
+                  //                 // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                  //                 // http.ClientRequest in node.js
+                  //                 console.log(error.request);
+                  //               } else {
+                  //                 // Something happened in setting up the request that triggered an Error
+                  //                 console.log('Error', error.message);
+                  //               }
+                  //               console.log(error.config);
+                  //             });
+                  //         })
+                  //         .catch((error) => {
+                  //           this.handleLoginError('Error logging in.');
+                  //           // console.error(error);
+                  //         });
+                  //
+                  //
+                  //     });
+                  // }
 
-                    fetch(this.state.url + '/app/user/logout', data)
-                      .then((response) => {
+                  // console.log(responseJson);
+                  //
+                  // // Check for user in response. If there's no user, the response is an error message.
+                  // if (typeof responseJson.user === 'undefined') {
+                  //   this.handleLoginError(responseJson);
+                  // } else {
+                  //   // remove http:// from url
+                  //   const url = this.state.url.replace(/(^\w+:|^)\/\//, '');
+                  //   console.log(responseJson);
+                  //
+                  //   // we need to update our global user
+                  //   globalDB.transaction(
+                  //     tx => {
+                  //       tx.executeSql('delete from user;',
+                  //       );
+                  //     }
+                  //   );
+                  //
+                  //   globalDB.transaction(
+                  //     tx => {
+                  //       tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
+                  //         [url, JSON.stringify(responseJson)],
+                  //         (success) => {
+                  //           this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                  //         },
+                  //
+                  //         (success, error) => {
+                  //           console.log('error');
+                  //         }
+                  //       );
+                  //     }
+                  //   );
+                  //
+                  //   this.props.add(responseJson.session_name + '=' + responseJson.sessid);
+                  //   this.props.addUserProp(responseJson);
+                  //   this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                  //
+                  //   console.log('end response');
+                  //   this._handleLoginStatusUpdate(responseJson.user, responseJson.session_name + '=' + responseJson.sessid, responseJson.token);
 
-
-                        fetch(this.state.url + '/services/session/token')
-                          .then((response) => response.text())
-                          .then((response) => {
-                            let Token = response;
-
-                            let data = {
-                              method: 'POST',
-                              body: JSON.stringify({
-                                username: name,
-                                password: pass
-                              }),
-                              headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json',
-                                'X-CSRF-Token': Token,
-                                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                                'Pragma': 'no-cache',
-                                'Expires': 0
-                              }
-                            };
-
-                            fetch(this.state.url + '/app/user/login.json', data)
-                              .then((response) => response.json())
-                              .then((responseJson) => {
-
-                                // If already logged in go ahead and grab user account
-                                if (responseJson instanceof Array && responseJson[0].startsWith('Already logged in as')) {
-
-                                  fetch(this.state.url + '/app/user/logout', data)
-                                    .then((response) => {
-
-
-                                    });
-                                }
-
-                                // Check for user in response. If there's no user, the response is an error message.
-                                if (typeof responseJson.user === 'undefined') {
-                                  this.handleLoginError(responseJson);
-                                } else {
-                                  // remove http:// from url
-                                  const url = this.state.url.replace(/(^\w+:|^)\/\//, '');
-
-                                  // we need to update our global user
-                                  globalDB.transaction(
-                                    tx => {
-                                      tx.executeSql('delete from user;',
-                                      );
-                                    }
-                                  );
-
-                                  globalDB.transaction(
-                                    tx => {
-                                      tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
-                                        [url, JSON.stringify(responseJson)],
-                                        (success) => {
-                                          this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
-                                        },
-
-                                        (success, error) => {
-                                          console.log('error');
-                                        }
-                                      );
-                                    }
-                                  );
-
-                                  this.props.add(responseJson.session_name + '=' + responseJson.sessid);
-                                  this.props.addUserProp(responseJson);
-                                  this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
-                                  this._handleLoginStatusUpdate(responseJson.user, responseJson.session_name + '=' + responseJson.sessid);
-                                  this.props.navigation.navigate('Home')
-                                }
-
-                              })
-
-
-                              .catch((error) => {
-                                this.handleLoginError('Error logging in.');
-                                if (error.response) {
-                                  // The request was made and the server responded with a status code
-                                  // that falls out of the range of 2xx
-                                  console.log(error.response.data);
-                                  console.log(error.response.status);
-                                  console.log(error.response.headers);
-                                } else if (error.request) {
-                                  // The request was made but no response was received
-                                  // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-                                  // http.ClientRequest in node.js
-                                  console.log(error.request);
-                                } else {
-                                  // Something happened in setting up the request that triggered an Error
-                                  console.log('Error', error.message);
-                                }
-                                console.log(error.config);
-                              });
-                          })
-                          .catch((error) => {
-                            this.handleLoginError('Error logging in.');
-                            // console.error(error);
-                          });
-
-
-                      });
-                  }
-
-                  console.log(responseJson);
-
-                  // Check for user in response. If there's no user, the response is an error message.
-                  if (typeof responseJson.user === 'undefined') {
-                    this.handleLoginError(responseJson);
-                  } else {
-                    // remove http:// from url
-                    const url = this.state.url.replace(/(^\w+:|^)\/\//, '');
-                    console.log(responseJson);
-
-                    // we need to update our global user
-                    globalDB.transaction(
-                      tx => {
-                        tx.executeSql('delete from user;',
-                        );
-                      }
-                    );
-
-                    globalDB.transaction(
-                      tx => {
-                        tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
-                          [url, JSON.stringify(responseJson)],
-                          (success) => {
-                            this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
-                          },
-
-                          (success, error) => {
-                            console.log('error');
-                          }
-                        );
-                      }
-                    );
-
-                    this.props.add(responseJson.session_name + '=' + responseJson.sessid);
-                    this.props.addUserProp(responseJson);
-                    this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
-
-                    console.log('end response');
-                    this._handleLoginStatusUpdate(responseJson.user, responseJson.session_name + '=' + responseJson.sessid, responseJson.token);
-                    this.props.navigation.navigate('Home')
-                  }
 
                 })
 

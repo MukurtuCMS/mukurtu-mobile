@@ -43,7 +43,7 @@ export default class App extends React.Component {
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
     this._handleLogoutStatusUpdate = this._handleLogoutStatusUpdate.bind(this);
     this.setDatabaseName = this.setDatabaseName.bind(this);
-    this.syncCompleted = this.syncCompleted.bind(this);
+    // this.syncCompleted = this.syncCompleted.bind(this);
 
     this.state = {
       isLoadingComplete: false,
@@ -62,49 +62,57 @@ export default class App extends React.Component {
     };
   }
 
+  getSiteDb() {
+
+
+    let databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
+    let db = SQLite.openDatabase(databaseName);
+    return db;
+
+  }
+
+
   setDatabaseName() {
-
-
-    let self = this;
-    // This should always be run on app initialization. It check for the previous user object or set state to first time.
-
-    globalDB.transaction(tx => {
-      tx.executeSql(
-        'select * from user limit 1;',
-        '',
-        function (tx, result) {
-          let user = null;
-          let databaseName = null;
-          let db = null;
-          const array = result.rows._array;
-          if (array.length > 0) {
-            if (array[0] && array[0].user.length > 0) {
-              const siteUrl = array[0].siteUrl;
-              if (array[0].user) {
-                const userBlob = JSON.parse(array[0].user);
-                if (typeof userBlob.user === 'object' && userBlob.user.uid > 0) {
-                  user = userBlob;
-                  databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
-                  db = SQLite.openDatabase(databaseName);
-                }
-              }
-            }
-          }
-          let firstTime = false;
-          let loggedIn = null;
-          if (!user) {
-            firstTime = true;
-            databaseName = null;
-            loggedIn = false;
-          } else {
-            loggedIn = true;
-          }
-          self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
-        }
-      );
-
-
-    });
+    // let self = this;
+    // // This should always be run on app initialization. It check for the previous user object or set state to first time.
+    //
+    // globalDB.transaction(tx => {
+    //   tx.executeSql(
+    //     'select * from user limit 1;',
+    //     '',
+    //     function (tx, result) {
+    //       let user = null;
+    //       let databaseName = null;
+    //       let db = null;
+    //       const array = result.rows._array;
+    //       if (array.length > 0) {
+    //         if (array[0] && array[0].user.length > 0) {
+    //           const siteUrl = array[0].siteUrl;
+    //           if (array[0].user) {
+    //             const userBlob = JSON.parse(array[0].user);
+    //             if (typeof userBlob.user === 'object' && userBlob.user.uid > 0) {
+    //               user = userBlob;
+    //               databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
+    //               db = SQLite.openDatabase(databaseName);
+    //             }
+    //           }
+    //         }
+    //       }
+    //       let firstTime = false;
+    //       let loggedIn = null;
+    //       if (!user) {
+    //         firstTime = true;
+    //         databaseName = null;
+    //         loggedIn = false;
+    //       } else {
+    //         loggedIn = true;
+    //       }
+    //       self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
+    //     }
+    //   );
+    //
+    //
+    // });
   };
 
 
@@ -130,126 +138,125 @@ export default class App extends React.Component {
     // YellowBox.ignoreWarnings(['Each child in a list']);
     // YellowBox.ignoreWarnings(['Failed prop type']);
     // console.disableYellowBox = true;
+    //
+    // var self = this;
+    // this._isMounted = true;
 
-    var self = this;
-    this._isMounted = true;
-
-    setInterval(() => {
-      if (self.state.db !== null && self.state.loggedIn && self.state.isConnected) {
-        console.log('here');
-        this.updateEntities(this.state.db, this.state);
-        // Sync.syncContentTypes(this.state, this.syncCompleted);
-        // Sync.syncSiteInfo(this.state);
-      }
-      ;
-    }, 15 * 60 * 1000);
+    // setInterval(() => {
+    //   if (self.state.db !== null && self.state.loggedIn && self.state.isConnected) {
+    //     console.log('here');
+    //     this.updateEntities(this.state.db, this.state);
+    //     // Sync.syncContentTypes(this.state, this.syncCompleted);
+    //     // Sync.syncSiteInfo(this.state);
+    //   }
+    //   ;
+    // }, 15 * 60 * 1000);
 
     // delete all data and start fresh
     // this.deleteAll();
+
+    // First, create global tables if they don't exist.
     ManageTables.createGlobalTables();
 
-    // let's first check if this is a first time user, redirect to login
-    this.firstTimeCheck();
+    // Then we check for
 
-    this.setDatabaseName();
+    // let's first check if this is a first time user, redirect to login
+    // this.firstTimeCheck();
+
+    // this.setDatabaseName();
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
   }
 
-  syncCompleted(sync = false) {
-    if (sync) {
-      this.setState({sync: false});
-    } else {
-    }
-  }
+  // syncCompleted(sync = false) {
+  //   if (sync) {
+  //     this.setState({sync: false});
+  //   } else {
+  //   }
+  // }
 
   componentDidUpdate(prevProps, prevState) {
-    if (!prevState.db && this.state.db && this.state.isConnected) {
-      // We cannot create any of our unique tables until we have our unique database created and stored in state
-      ManageTables.createUniqueTables(this.state.db);
-      // The getAuth function is causing problems, and ultimately doesn't seem like it's needed — we're authorizing via
-      // login
-      // this._getAuth();
-    } else if (!prevState.db && this.state.db && !this.state.isConnected) {
-      // db and user exist, but cannot check auth
-      ManageTables.createUniqueTables(this.state.db);
-    }
-
-    // We are connected, AND token was just set (via getAuth)
-    if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn && this.state.sync && !this.state.syncing && this.state.db) {
-      this.setState({'syncing': true});
-      this.updateEntities(this.state.db, this.state);
-      // Sync.syncContentTypes(this.state, this.syncCompleted);
-      // Sync.syncSiteInfo(this.state);
-    } else if (this.state.sync && !this.state.syncing) {
-      console.log('sync');
-      if (this.state.isConnected) {
-        console.log('connected');
-        if (!this.state.user) {
-          console.log('inserting user');
-          this._insertUser();
-        } else {
-
-          if (!this.state.db) {
-            console.log('set the database');
-            this.setDatabaseName();
-          } else {
-            console.log('database is set');
-            ManageTables.createUniqueTables(this.state.db);
-            if (!this.state.loggedIn) {
-              console.log('lets login');
-              this._insertAuth();
-            } else {
-              this.setState({'syncing': true});
-              console.log('we are logged in');
-              this.updateEntities(this.state.db, this.state, this.syncCompleted());
-              // Sync.syncContentTypes(this.state, this.syncCompleted);
-              // Sync.syncSiteInfo(this.state);
-            }
-          }
-        }
-      }
-    }
+    // if (!prevState.db && this.state.db && this.state.isConnected) {
+    //   // We cannot create any of our unique tables until we have our unique database created and stored in state
+    //   ManageTables.createUniqueTables(this.state.db);
+    //   // The getAuth function is causing problems, and ultimately doesn't seem like it's needed — we're authorizing via
+    //   // login
+    //   // this._getAuth();
+    // } else if (!prevState.db && this.state.db && !this.state.isConnected) {
+    //   // db and user exist, but cannot check auth
+    //   ManageTables.createUniqueTables(this.state.db);
+    // }
+    //
+    // // We are connected, AND token was just set (via getAuth)
+    // if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn && this.state.sync && !this.state.syncing && this.state.db) {
+    //   this.setState({'syncing': true});
+    //   this.updateEntities(this.state.db, this.state);
+    //   // Sync.syncContentTypes(this.state, this.syncCompleted);
+    //   // Sync.syncSiteInfo(this.state);
+    // } else if (this.state.sync && !this.state.syncing) {
+    //   console.log('sync');
+    //   if (this.state.isConnected) {
+    //     console.log('connected');
+    //     if (!this.state.user) {
+    //       console.log('inserting user');
+    //       this._insertUser();
+    //     } else {
+    //
+    //       if (!this.state.db) {
+    //         console.log('set the database');
+    //         this.setDatabaseName();
+    //       } else {
+    //         console.log('database is set');
+    //         ManageTables.createUniqueTables(this.state.db);
+    //         if (!this.state.loggedIn) {
+    //           console.log('lets login');
+    //           this._insertAuth();
+    //         } else {
+    //           this.setState({'syncing': true});
+    //           console.log('we are logged in');
+    //           this.updateEntities(this.state.db, this.state, this.syncCompleted());
+    //           // Sync.syncContentTypes(this.state, this.syncCompleted);
+    //           // Sync.syncSiteInfo(this.state);
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
   }
 
   handleConnectivityChange = isConnected => {
-    if (this._isMounted) {
-      this.setState({isConnected});
-    }
+    // if (this._isMounted) {
+    //   this.setState({isConnected});
+    // }
   }
 
   componentWillUnmount() {
-    this._isMounted = false;
     NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
-  registerBackgroundSync = async () => {
-    await BackgroundFetch.registerTaskAsync(taskName);
-  };
+  // registerBackgroundSync = async () => {
+  //   await BackgroundFetch.registerTaskAsync(taskName);
+  // };
+  //
+  // logRegisteredTasks = async () => {
+  //   const registeredTasks = await TaskManager.getRegisteredTasksAsync();
+  // };
 
-  logRegisteredTasks = async () => {
-    const registeredTasks = await TaskManager.getRegisteredTasksAsync();
-  };
-
-  firstTimeCheck = () => {
-
-  }
+  // firstTimeCheck = () => {
+  //
+  // }
 
   render() {
     // We need to make sure our component is not rendering until we have checked offline/online and whether user is
     // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
-
     // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
-    if (this.state.sync) {
-      return (<AjaxSpinner/>);
-    }
+    // if (this.state.databaseName === false) {
+    //   return (<InitializingApp/>);
+    // }
 
-    if (this.state.databaseName === false) {
-      return (<InitializingApp/>);
-    }
-    // loggedIn state should only be false or true. If null, the checks have not run yet.
-    if (this.state.loggedIn === null) {
-      return (<InitializingApp/>);
+    // If we're syncing, run the ajax spinner
+    if (this.state.syncing) {
+      return (<AjaxSpinner/>);
     }
 
 
@@ -276,30 +283,29 @@ export default class App extends React.Component {
     }
 
     // @todo: replace this with InitializingApp, keep now for debugging
-    if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
-      return (
-        <Provider store={store}>
-          <AppLoading
-            startAsync={this._loadResourcesAsync}
-            onError={this._handleLoadingError}
-            onFinish={this._handleFinishLoading}
+    // if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
+    //   return (
+    //     <Provider store={store}>
+    //       <AppLoading
+    //         startAsync={this._loadResourcesAsync}
+    //         onError={this._handleLoadingError}
+    //         onFinish={this._handleFinishLoading}
+    //       />
+    //     </Provider>
+    //   );
+    // } else {
+    return (
+      <Provider store={store}>
+        <View style={styles.container}>
+          <AppHeader
+            loggedIn={screenProps.loggedIn}
+            url={screenProps.siteUrl}
+            screenProps={screenProps}
           />
-        </Provider>
-      );
-    } else {
-      return (
-        <Provider store={store}>
-          <View style={styles.container}>
-            <AppHeader
-              loggedIn={screenProps.loggedIn}
-              url={screenProps.siteUrl}
-              screenProps={screenProps}
-            />
-            <AppNavigator screenProps={screenProps}/>
-          </View>
-        </Provider>
-      );
-    }
+          <AppNavigator screenProps={screenProps}/>
+        </View>
+      </Provider>
+    );
   }
 
   _loadResourcesAsync = async () => {
@@ -353,22 +359,69 @@ export default class App extends React.Component {
     this.setState({siteUrl: url, databaseName: databaseName});
   };
 
-  _handleLoginStatusUpdate = (status, cookie, token) => {
-    // If we've logged in or re-logged in, we need to re-sync
+  /**
+   *
+   * @param status
+   * @param cookie
+   * @param token
+   * @private
+   */
+  _handleLoginStatusUpdate = (token, cookie, url, user) => {
+    console.log('logging in');
+
+    // First, we have to update our databases.
+    // Insert user and database into global DB
+    globalDB.transaction(tx => {
+      tx.executeSql(
+        'delete from user; delete from database;',
+        [],
+        (success) => {
+          globalDB.transaction(
+            tx => {
+              tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
+                [url, user],
+                (success) => {
+                },
+                (success, error) => {
+                  console.log(error);
+                }
+              );
+            }
+          );
+        },
+        (success, error) => {
+          console.log('error');
+        });
+    });
+
+    // Then we need to create local database
+    // Previously this was also done on opening the app, might still need to do that
+    let databaseName = url.replace(/\./g, '_') + '_' + user.uid;
+    let db = SQLite.openDatabase(databaseName);
+
+
+    // Then we need to update our state to match the databases
+    // If we've logged in or re-logged in, we need to update our state, and then resync everything.
     this.setState({
-      isLoggedIn: true,
+      url: url,
+      db: db,
       loggedIn: true,
-      sync: true,
+      syncing: true,
       isConnected: true,
-      user: status,
+      user: user,
       cookie: cookie,
       token: token
+    }, () => {
+      this.syncEverything();
     });
+
   };
 
+
+  /**
+   * Deletes all data — temporary function
+   */
   deleteAllData() {
-
-
     this.state = {
       isLoadingComplete: false,
       siteUrl: '',
@@ -391,7 +444,7 @@ export default class App extends React.Component {
       );
     });
 
-    if(this.state.db) {
+    if (this.state.db) {
       this.state.db.transaction(tx => {
         tx.executeSql(
           'delete from saved_offline; delete from auth; delete from nodes; delete from content_types; delete from content_type; delete from sync; delete from user;'
@@ -404,7 +457,7 @@ export default class App extends React.Component {
   _handleLogoutStatusUpdate = (status) => {
     // Not positive if we want this — when we log out it nukes the database. Might be able to drop this if it causes
     // problems, but right now it seems like a good safeguard.
-    this.deleteAll();
+    // this.deleteAll();
     this.setState(
       {
         isLoggedIn: false,
@@ -418,22 +471,31 @@ export default class App extends React.Component {
         sync: false
       }
     );
+
+    // Remove auth from site database
+    if (this.state.db) {
+      this.state.db.transaction(tx => {
+        tx.executeSql(
+          'delete from auth;'
+        );
+      });
+    }
   };
 
 
   // This will check the database for an existing auth from the unique database
-  _getAuth() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'select * from auth limit 1;',
-        '',
-        (_, {rows: {_array}}) => this.connect(_array),
-        (tx, error) => {
-          this._handleAuthError(error)
-        }
-      );
-    });
-  }
+  // _getAuth() {
+  //   this.state.db.transaction(tx => {
+  //     tx.executeSql(
+  //       'select * from auth limit 1;',
+  //       '',
+  //       (_, {rows: {_array}}) => this.connect(_array),
+  //       (tx, error) => {
+  //         this._handleAuthError(error)
+  //       }
+  //     );
+  //   });
+  // }
 
   _insertUser() {
     globalDB.transaction(
@@ -474,8 +536,7 @@ export default class App extends React.Component {
               });
 
               console.log('three');
-
-              this.updateEntities(this.state.db, this.state, true);
+              // this.updateEntities(this.state.db, this.state, true);
 
             },
 
@@ -486,13 +547,13 @@ export default class App extends React.Component {
     }
   }
 
-  _doneSyncing = () => {
-    this.setState({'sync': false})
-  }
+  // _doneSyncing = () => {
+  //   this.setState({'sync': false})
+  // }
 
-  buildFetchData = (method = 'GET', state) => {
-    const token = state.token;
-    const cookie = state.cookie;
+  buildFetchData = (method = 'GET') => {
+    const token = this.state.token;
+    const cookie = this.state.cookie;
 
     const data = {
       method: method,
@@ -509,19 +570,19 @@ export default class App extends React.Component {
     };
 
     return data;
-  }
+  };
 
-  buildRemovalNids = (nids, state) => {
-    state.db.transaction(tx => {
+  buildRemovalNids = (nids) => {
+    this.state.db.transaction(tx => {
       tx.executeSql(
         'select nid from nodes;',
         '',
-        (_, {rows: {_array}}) => this.removeNids(_array, nids, state)
+        (_, {rows: {_array}}) => this.removeNids(_array, nids)
       );
     });
   }
 
-  removeNids = (currentNids, newNids, state) => {
+  removeNids = (currentNids, newNids) => {
     for (var i = 0; i < currentNids.length; i++) {
       var currentlyStarred = false;
       for (const [nid, timestamp] of Object.entries(newNids)) {
@@ -541,6 +602,7 @@ export default class App extends React.Component {
       }
     }
   }
+
   checkStatus = (response) => {
     if (response.ok) {
       return Promise.resolve(response);
@@ -549,14 +611,14 @@ export default class App extends React.Component {
     }
   }
 
-  saveNode = (nid, data, editable, state) => {
-    data.url = state.siteUrl + '/app/node/' + nid + '.json';
+  saveNode = (nid, data, editable) => {
+    data.url = this.state.siteUrl + '/app/node/' + nid + '.json';
     axios(data)
       .then((node) => {
         return node.data;
       })
       .then((node) => {
-        state.db.transaction(tx => {
+        this.state.db.transaction(tx => {
           tx.executeSql(
             'delete from nodes where nid = ?;',
             [node.nid],
@@ -564,7 +626,7 @@ export default class App extends React.Component {
           );
         });
 
-        state.db.transaction(
+        this.state.db.transaction(
           tx => {
             tx.executeSql('insert into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
               [node.nid, node.title, JSON.stringify(node), editable],
@@ -727,15 +789,15 @@ export default class App extends React.Component {
       });
   }
 
-  updateSync = (state) => {
+  updateSync = () => {
     const time = new Date().getTime()
-    state.db.transaction(
+    this.state.db.transaction(
       tx => {
         tx.executeSql('delete from sync;',
         );
       }
     );
-    state.db.transaction(
+    this.state.db.transaction(
       tx => {
         tx.executeSql('insert into sync (id, last) values (?, ?)',
           [1, time],
@@ -746,14 +808,15 @@ export default class App extends React.Component {
     );
   }
 
-  updateEntities = (db, state, complete) => {
+  /**
+   * Sync everything
+   */
+  syncEverything() {
 
+    let data = this.buildFetchData('GET');
+    data.url = this.state.siteUrl + '/app/synced-entities/retrieve';
 
-    const token = state.token;
-    const cookie = state.cookie;
-
-    let data = this.buildFetchData('GET', state);
-    data.url = state.siteUrl + '/app/synced-entities/retrieve';
+    let state = this.state; // need to fix this in all the functions below
 
     //test
     axios(data)
@@ -775,11 +838,11 @@ export default class App extends React.Component {
               }
             }
           }
-          this.buildRemovalNids(nodes, state);
+          this.buildRemovalNids(nodes);
           for (const [nid, object] of Object.entries(nodes)) {
             // @todo don't update all nodes but starring a node does not save
             // if (timestamp > this.state.syncUpdated) {
-            this.saveNode(nid, data, object.editable, state);
+            this.saveNode(nid, data, object.editable);
             // }
           }
 
@@ -801,7 +864,7 @@ export default class App extends React.Component {
             // }
           }
         }
-        this.updateSync(state);
+        this.updateSync();
       })
       .then(() => {
         let returnData = 'failure';
@@ -838,8 +901,6 @@ export default class App extends React.Component {
                   );
                 }
               );
-
-
               // now let's sync all content type endpoints
               let urls = [];
               for (const [machineName, TypeObject] of Object.entries(responseJson)) {
@@ -939,16 +1000,17 @@ export default class App extends React.Component {
       })
       .then(() => {
         this.setState({
-          'sync': false,
           'syncing': false
         })
       })
       .catch((error) => {
+        // Set our state to done syncing even if it fails
+        this.setState({
+          'syncing': false
+        })
         console.log('error 4');
         console.error(error);
       });
-
-
   }
 
   _handleAuthError = () => {
@@ -956,73 +1018,75 @@ export default class App extends React.Component {
       // There must not be auth
     }
   }
+
+
 // This will try and check if the current user is logged in. This will fail if the server or client is offline.
 // If failed, we will set the loggedIn to false so we know the connection has been attempted.
-  connect(array) {
-
-    // There's something going wrong with retrieving the auth data, but sometimes this is already set in state
-    if (!this.state.cookie && !this.state.token) {
-      if (array === undefined || array.length < 1) {
-        this.setState({
-          cookie: null,
-          token: null,
-          loggedIn: false
-        });
-
-        return false;
-      }
-    }
-
-    let token = this.state.token;
-    let cookie = this.state.cookie;
-
-    if (!this.state.cookie && !this.state.token) {
-      token = array[0].token;
-      cookie = array[0].cookie;
-    }
-
-
-    // Save cookie and token so we can use them to check login status
-    this.setState({
-      cookie: cookie,
-      token: token
-    });
-
-    let data = {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cookie': cookie,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': 0
-      }
-    };
-
-    data.url = this.state.siteUrl + '/app/system/connect';
-    axios(data)
-      .then((response) => {
-        return response.data;
-      })
-      .then((responseJson) => {
-        // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
-        try {
-          // If this uid is not 0, the user is currently authenticated
-          if (responseJson.user.uid !== 0) {
-            this.setState({loggedIn: true, isLoggedIn: true});
-            return;
-          }
-        } catch (e) {
-          this.setState({loggedIn: false});
-        }
-      })
-      .catch((error) => {
-        this.setState({loggedIn: false});
-      });
-
-  }
+//   connect(array) {
+//
+//     // There's something going wrong with retrieving the auth data, but sometimes this is already set in state
+//     if (!this.state.cookie && !this.state.token) {
+//       if (array === undefined || array.length < 1) {
+//         this.setState({
+//           cookie: null,
+//           token: null,
+//           loggedIn: false
+//         });
+//
+//         return false;
+//       }
+//     }
+//
+//     let token = this.state.token;
+//     let cookie = this.state.cookie;
+//
+//     if (!this.state.cookie && !this.state.token) {
+//       token = array[0].token;
+//       cookie = array[0].cookie;
+//     }
+//
+//
+//     // Save cookie and token so we can use them to check login status
+//     this.setState({
+//       cookie: cookie,
+//       token: token
+//     });
+//
+//     let data = {
+//       method: 'POST',
+//       headers: {
+//         'Accept': 'application/json',
+//         'Content-Type': 'application/json',
+//         'X-CSRF-Token': token,
+//         'Cookie': cookie,
+//         'Cache-Control': 'no-cache, no-store, must-revalidate',
+//         'Pragma': 'no-cache',
+//         'Expires': 0
+//       }
+//     };
+//
+//     data.url = this.state.siteUrl + '/app/system/connect';
+//     axios(data)
+//       .then((response) => {
+//         return response.data;
+//       })
+//       .then((responseJson) => {
+//         // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
+//         try {
+//           // If this uid is not 0, the user is currently authenticated
+//           if (responseJson.user.uid !== 0) {
+//             this.setState({loggedIn: true, isLoggedIn: true});
+//             return;
+//           }
+//         } catch (e) {
+//           this.setState({loggedIn: false});
+//         }
+//       })
+//       .catch((error) => {
+//         this.setState({loggedIn: false});
+//       });
+//
+//   }
 
 
 }
