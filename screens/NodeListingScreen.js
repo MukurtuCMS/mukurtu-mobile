@@ -393,15 +393,15 @@ export default class HomeScreen extends React.Component {
     if (text.length > 0) {
 
       let filteredNodes = {};
-      Object.keys(this.state.nodes).forEach(function(key,index) {
+      for(let key in this.state.nodes) {
         // key: the name of the object key
         // index: the ordinal position of the key within the object
-        if(this.state.nodes[key].indexOf(text) !== -1) {
+        if(this.state.nodes[key].title.indexOf(text) !== -1) {
           filteredNodes[key] = this.state.nodes[key];
         }
-      });
+      }
       this.setState({'nodes': filteredNodes});
-      this.updateNodes(filteredNodes);
+      // this.updateNodes(filteredNodes);
 
       // Filter nodes by title
 
