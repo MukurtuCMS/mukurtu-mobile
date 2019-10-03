@@ -19,7 +19,7 @@ export default class NodeTeaser extends React.Component {
       contentType: this.props.node.type,
       contentTypeLabel: this.props.node.title,
       node: this.props.node,
-      terms: this.props.screenProps.terms
+      terms: this.props.terms
     })
   }
 
@@ -42,7 +42,7 @@ export default class NodeTeaser extends React.Component {
 
     // Get our fields from list of viewable fields
     let viewableFields = [];
-    if (this.state && this.props.viewableFields && this.props.screenProps.terms && this.props.allNodes) {
+    if (this.state && this.props.viewableFields && this.props.terms && this.props.allNodes) {
       for (let [key, value] of Object.entries(this.props.viewableFields)) {
         if (typeof node[key] !== 'undefined' &&
             typeof node[key]['und'] !== 'undefined' &&
