@@ -20,7 +20,7 @@ import { WebBrowser} from 'expo';
 import {SQLite} from 'expo-sqlite';
 import * as Colors from "../constants/Colors";
 
-class CreateContentScreen extends React.Component {
+export default class CreateContentScreen extends React.Component {
   static navigationOptions = {
     title: 'Create Content',
     headerStyle: {
@@ -33,14 +33,17 @@ class CreateContentScreen extends React.Component {
   constructor(props){
     super(props);
     const { navigation, screenProps } = this.props;
-    this.onValueChange = this.onValueChange.bind(this);
-    this.componentActive = this.componentActive.bind(this);
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: '', isConnected: false, db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
+    // this.onValueChange = this.onValueChange.bind(this);
+    // this.componentActive = this.componentActive.bind(this);
+    // this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: '', isConnected: false, db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
   }
 
   componentDidMount(){
-    this.props.navigation.addListener('willFocus', this.componentActive);
-    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    // this.props.navigation.addListener('willFocus', this.componentActive);
+    // NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    if (this.props.screenProps.firstTime) {
+      this.props.navigation.navigate('Login');
+    }
   }
 
   componentWillUnmount() {
@@ -49,118 +52,95 @@ class CreateContentScreen extends React.Component {
 
   componentActive(){
     // Immediately check if first time, and rout to login screen
-    if (this.props.screenProps.firstTime) {
-      this.props.navigation.navigate('Login');
-    }
-    if (!this.state.db) {
-    } else {
 
       // first set content types from db, then try connecting
-      this.state.db.transaction(tx => {
-        tx.executeSql(
-          'select blob from content_types;',
-          '',
-          (_, {rows: {_array}}) => this.retrieveContentTypes(_array)
-        );
-      });
+      // this.props.screenProps.db.transaction(tx => {
+      //   tx.executeSql(
+      //     'select blob from content_types;',
+      //     '',
+      //     (_, {rows: {_array}}) => this.retrieveContentTypes(_array)
+      //   );
+      // });
 
-      if (this.props.screenProps.isConnected) {
-        this.update();
-      }
-    }
+      // if (this.props.screenProps.isConnected) {
+      //   this.update();
+      // }
   }
 
-  handleConnectivityChange = isConnected => {
-    this.setState({ isConnected });
-  }
+  // handleConnectivityChange = isConnected => {
+  //   this.setState({ isConnected });
+  // }
 
-  retrieveContentTypes(array) {
-    if (array[0] && array[0].blob !== undefined) {
-      this.setState({contentTypes: JSON.parse(array[0].blob)});
-    }
-  }
+  // retrieveContentTypes(array) {
+  //   if (array[0] && array[0].blob !== undefined) {
+  //     this.setState({contentTypes: JSON.parse(array[0].blob)});
+  //   }
+  // }
 
-  update() {
+  // update() {
+  //   //
+  //   //   this.state.db.transaction(tx => {
+  //   //     tx.executeSql(
+  //   //         'select * from auth limit 1;',
+  //   //         '',
+  //   //         (_, { rows: { _array } }) => this.getToken(_array)
+  //   //     );
+  //   //   });
+  //   // }
 
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-          'select * from auth limit 1;',
-          '',
-          (_, { rows: { _array } }) => this.getToken(_array)
-      );
-    });
-  }
+  // getToken(array) {
+  //   let token;
+  //   let cookie;
+  //   if(this.props.screenProps.token && this.props.screenProps.cookie) {
+  //     token = this.props.screenProps.token;
+  //     cookie = this.props.screenProps.cookie;
+  //   } else {
+  //     if (array === undefined || array.length < 1) {
+  //       return false;
+  //     }
+  //      token = array[0].token;
+  //     cookie = array[0].cookie;
+  //   }
+  //
+  //
+  //   let data = {
+  //     method: 'POST',
+  //     headers: {
+  //       'Accept':       'application/json',
+  //       'Content-Type': 'application/json',
+  //       'X-CSRF-Token': token,
+  //       'Cookie': cookie
+  //     }
+  //   };
+  //
+  //
+  //   fetch(this.props.screenProps.siteUrl + '/app/system/connect', data)
+  //       .then((response) => response.json())
+  //       .then((responseJson) => {
+  //         if (responseJson.user.uid === 0) {
+  //           return false;
+  //         }
+  //         data.method = 'GET';
+  //
+  //         fetch(this.props.screenProps.siteUrl + '/app/creatable-types/retrieve', data)
+  //             .then((response) => response.json())
+  //             .then((responseJson) => {
+  //               this.setState({contentTypes: responseJson});
+  //             })
+  //             .catch((error) => {
+  //               // console.error(error);
+  //             });
+  //       })
+  //       .catch((error) => {
+  //         console.error(error);
+  //         // this.alertNotLoggedIn(); Need to replace this with a login prompt
+  //       });
+  // }
 
-  getToken(array) {
-    let token;
-    let cookie;
-    if(this.props.screenProps.token && this.props.screenProps.cookie) {
-      token = this.props.screenProps.token;
-      cookie = this.props.screenProps.cookie;
-    } else {
-      if (array === undefined || array.length < 1) {
-        return false;
-      }
-       token = array[0].token;
-      cookie = array[0].cookie;
-    }
-
-
-    let data = {
-      method: 'POST',
-      headers: {
-        'Accept':       'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cookie': cookie
-      }
-    };
-
-
-    fetch(this.props.screenProps.siteUrl + '/app/system/connect', data)
-        .then((response) => response.json())
-        .then((responseJson) => {
-          if (responseJson.user.uid === 0) {
-            return false;
-          }
-          data.method = 'GET';
-
-          fetch(this.props.screenProps.siteUrl + '/app/creatable-types/retrieve', data)
-              .then((response) => response.json())
-              .then((responseJson) => {
-                this.setState({contentTypes: responseJson});
-              })
-              .catch((error) => {
-                // console.error(error);
-              });
-        })
-        .catch((error) => {
-          console.error(error);
-          // this.alertNotLoggedIn(); Need to replace this with a login prompt
-        });
-  }
-
-  alertNotLoggedIn() {
-    // This is done inline in some places,
-    // But setting it here as well as a catch to ensure state is updated.
-    this.setState({loggedIn: false});
-    Alert.alert(
-      'Connection Issue',
-      'We are having trouble reaching the servers.',
-      [
-        {
-          text: 'Continue Offline',
-          style: 'cancel',
-        },
-        {text: 'Log In', onPress: () => this.props.navigation.navigate('Login')},
-      ],
-      {cancelable: true}
-    )
-  }
 
   render() {
 
-    if(!this.props.screenProps.isLoggedIn) {
+    if(!this.props.screenProps.loggedIn) {
       return (
         <View style={{backgroundColor:'#EFEFF4',flex:1}}>
           <Text>Please log in to create content.</Text>
@@ -169,18 +149,15 @@ class CreateContentScreen extends React.Component {
       );
     }
 
-    const { navigation } = this.props;
-    var bgColor = '#DCE3F4';
-
     let list = [];
-    const contentTypes = this.state.contentTypes;
+    const contentTypes = this.props.screenProps.contentTypes;
     // check that content types is not empty
     if (!(Object.entries(contentTypes).length === 0) && contentTypes.constructor === Object) {
-      for (const [machineName, TypeObject] of Object.entries(this.state.contentTypes)) {
+      for (const [machineName, TypeObject] of Object.entries(this.props.screenProps.contentTypes)) {
         list.push(
             <SettingsList.Item
                 key={machineName}
-                title={this.state.contentTypes[machineName].label}
+                title={this.props.screenProps.contentTypes[machineName].label}
                 titleInfoStyle={styles.titleInfoStyle}
                 onPress={() =>
                     this.props.navigation.navigate('CreateContentForm', {
@@ -226,22 +203,4 @@ const styles = StyleSheet.create({
   }
 });
 
-const mapStateToProps = state => {
-  return {
-    places: state.places.places,
-    user: state.user.user
-  }
-}
 
-const mapDispatchToProps = dispatch => {
-  return {
-    add: (name) => {
-      dispatch(addPlace(name))
-    },
-    addUserProp: (name) => {
-      dispatch(addUser(name))
-    }
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(CreateContentScreen)

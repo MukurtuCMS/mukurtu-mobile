@@ -8,17 +8,17 @@ export default class NodeTeaser extends React.Component {
 
   editNode(node) {
     this.props.navigation.navigate('CreateContentForm', {
-      contentType: this.props.node.entity.type,
-      contentTypeLabel: this.props.node.entity.title,
-      node: this.props.node.entity
+      contentType: this.props.node.type,
+      contentTypeLabel: this.props.node.title,
+      node: this.props.node
     })
   }
 
   viewNode() {
     this.props.navigation.navigate('Node', {
-      contentType: this.props.node.entity.type,
-      contentTypeLabel: this.props.node.entity.title,
-      node: this.props.node.entity,
+      contentType: this.props.node.type,
+      contentTypeLabel: this.props.node.title,
+      node: this.props.node,
       terms: this.state.terms
     })
   }
@@ -37,8 +37,8 @@ export default class NodeTeaser extends React.Component {
     const node = this.props.node;
 
     let body = '';
-    if (node.entity.body !== undefined) {
-      body = node.entity.body[Object.keys(node.entity.body)[0]];
+    if (node.body !== undefined) {
+      body = node.body[Object.keys(node.body)[0]];
       const regex = /(<([^>]+)>)/ig;
       if (typeof body !== 'undefined') {
         body = body[0]['safe_value'].replace(regex, '');
@@ -49,9 +49,9 @@ export default class NodeTeaser extends React.Component {
     let viewableFields = [];
     if (this.state && this.state.viewableFields && this.state.terms && this.props.allNodes) {
       for (let [key, value] of Object.entries(this.state.viewableFields)) {
-        if (typeof node.entity[key] !== 'undefined' &&
-            typeof node.entity[key]['und'] !== 'undefined' &&
-            typeof node.entity[key]['und']['0']['sid'] !== 'undefined') {
+        if (typeof node[key] !== 'undefined' &&
+            typeof node[key]['und'] !== 'undefined' &&
+            typeof node[key]['und']['0']['sid'] !== 'undefined') {
           viewableFields.push(
               <View key={key} style={styles.view}>
                 <Text style={styles.label}>{value.label}</Text>
@@ -59,17 +59,17 @@ export default class NodeTeaser extends React.Component {
                     token={this.props.token}
                     cookie={this.props.cookie}
                     url={this.props.url}
-                    sid={node.entity[key]['und']['0']['sid']}
+                    sid={node[key]['und']['0']['sid']}
                     db={this.props.db}
                 />
               </View>
           )
         }
         // Node reference
-        else if (typeof node.entity[key] !== 'undefined' &&
-            typeof node.entity[key]['und'] !== 'undefined' &&
-            typeof node.entity[key]['und']['0']['nid'] !== 'undefined') {
-          let refNid = node.entity[key]['und']['0']['nid'];
+        else if (typeof node[key] !== 'undefined' &&
+            typeof node[key]['und'] !== 'undefined' &&
+            typeof node[key]['und']['0']['nid'] !== 'undefined') {
+          let refNid = node[key]['und']['0']['nid'];
           if(this.props.allNodes.length > 0) {
             let refNode = this.props.allNodes.filter(node => node.nid == refNid);
 
@@ -84,24 +84,24 @@ export default class NodeTeaser extends React.Component {
               )
             }
           }
-        } else if (typeof node.entity[key] !== 'undefined' &&
-            typeof node.entity[key]['und'] !== 'undefined' &&
-            typeof node.entity[key]['und']['0']['safe_value'] !== 'undefined'
+        } else if (typeof node[key] !== 'undefined' &&
+            typeof node[key]['und'] !== 'undefined' &&
+            typeof node[key]['und']['0']['safe_value'] !== 'undefined'
         ) {
           viewableFields.push(
               <View key={key} style={styles.view}>
                 <Text style={styles.label}>{value.label}</Text>
-                <Text>{node.entity[key]['und']['0']['safe_value']}</Text>
+                <Text>{node[key]['und']['0']['safe_value']}</Text>
               </View>
           )
         }
         // Taxonomy terms
-        else if (typeof node.entity[key] !== 'undefined' &&
-            typeof node.entity[key]['en'] !== 'undefined'
+        else if (typeof node[key] !== 'undefined' &&
+            typeof node[key]['en'] !== 'undefined'
         ) {
           let termNames = [];
-          for (let i = 0; i < node.entity[key]['en'].length; i++) {
-            let tid = node.entity[key]['en'][i]['tid'];
+          for (let i = 0; i < node[key]['en'].length; i++) {
+            let tid = node[key]['en'][i]['tid'];
             if(typeof this.state.terms[tid] !== 'undefined') {
               let termTitle = this.state.terms[tid]['name'];
               termNames.push(termTitle);
@@ -117,9 +117,9 @@ export default class NodeTeaser extends React.Component {
           )
         }
         // Paragraph
-        else if (typeof node.entity[key] !== 'undefined' &&
-            typeof node.entity[key]['und'] !== 'undefined' &&
-            typeof node.entity[key]['und']['0']['revision_id'] !== 'undefined'
+        else if (typeof node[key] !== 'undefined' &&
+            typeof node[key]['und'] !== 'undefined' &&
+            typeof node[key]['und']['0']['revision_id'] !== 'undefined'
         ) {
           viewableFields.push(
               <View key={key}  style={styles.view}>
@@ -127,7 +127,7 @@ export default class NodeTeaser extends React.Component {
                     token={this.props.token}
                     cookie={this.props.cookie}
                     url={this.props.url}
-                    pid={node.entity[key]['und']['0']['value']}
+                    pid={node[key]['und']['0']['value']}
                     viewableFields={this.state.viewableFields}
                     fieldName={key}
                 />

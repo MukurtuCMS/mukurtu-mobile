@@ -41,8 +41,8 @@ export default class HomeScreen extends React.Component {
       token: null,
       cookie: null,
       isConnected: false,
-      nodes: [],
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
+      nodes: this.props.screenProps.nodes,
+      db: this.props.screenProps.db,
       communityFilterList: [],
       terms: false,
       nodeList: false,
@@ -68,17 +68,18 @@ export default class HomeScreen extends React.Component {
   };
 
   componentDidMount() {
-    this.props.navigation.addListener('willFocus', this.componentActive);
+    // this.props.navigation.addListener('willFocus', this.componentActive);
     // Add listener for internet connection change
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
-    this.checkInitialConnection();
-    this.componentActive();
+    // this.checkInitialConnection();
+    // this.componentActive();
 
 
     // Get our viewable fields to pass to the node teaser
     let contentType = this.props.navigation.state.params.contentType;
 
 
+    // Need to move all of this to the initial props loading.
     const data = {
       method: 'GET',
       headers: {
@@ -109,43 +110,43 @@ export default class HomeScreen extends React.Component {
 
   }
 
-  checkInitialConnection = async () => {
-    const isConnected = await NetInfo.isConnected.fetch();
-    this.setState({isConnected: isConnected});
-  }
+  // checkInitialConnection = async () => {
+  //   const isConnected = await NetInfo.isConnected.fetch();
+  //   this.setState({isConnected: isConnected});
+  // }
 
   componentWillUnmount() {
-    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
+    // NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
-  handleConnectivityChange = isConnected => {
-    this.setState({isConnected});
-  }
+  // handleConnectivityChange = isConnected => {
+  //   this.setState({isConnected});
+  // }
 
-  componentActive = () => {
-    // Immediately check if first time, and rout to login screen
-    if (this.props.screenProps.firstTime) {
-      this.props.navigation.navigate('Login');
-    }
-    if (this.state.db) {
-
-      this.state.db.transaction(tx => {
-        tx.executeSql(
-            'select * from nodes;',
-            '',
-            (_, {rows: {_array}}) => this.updateNodes(_array)
-        );
-      });
-
-      this.state.db.transaction(tx => {
-        tx.executeSql(
-            'select * from taxonomy;',
-            '',
-            (query, result) => this.setTaxonomy(result.rows._array)
-        );
-      });
-    }
-  }
+  // componentActive = () => {
+  //   // Immediately check if first time, and rout to login screen
+  //   if (this.props.screenProps.firstTime) {
+  //     this.props.navigation.navigate('Login');
+  //   }
+  //   if (this.state.db) {
+  //
+  //     this.state.db.transaction(tx => {
+  //       tx.executeSql(
+  //           'select * from nodes;',
+  //           '',
+  //           (_, {rows: {_array}}) => this.updateNodes(_array)
+  //       );
+  //     });
+  //
+  //     this.state.db.transaction(tx => {
+  //       tx.executeSql(
+  //           'select * from taxonomy;',
+  //           '',
+  //           (query, result) => this.setTaxonomy(result.rows._array)
+  //       );
+  //     });
+  //   }
+  // }
 
   setTaxonomy = (array) => {
     let termList = {};
@@ -156,52 +157,50 @@ export default class HomeScreen extends React.Component {
   }
 
   updateNodes(array) {
-    if(!this.state.allNodes) {
-      this.setState({'allNodes': array});
-    }
     let nodeList = {};
-    // let's parse the json blobs before setting state
-    for (var i = 0; i < array.length; i++) {
-      if (array[i].entity && array[i].entity.length > 0) {
-        array[i].entity = JSON.parse(array[i].entity);
-        if (array[i]) {
-          nodeList[array[i].nid] = array[i].entity;
-        }
-      }
-    }
+    // Not sure this is needed anymore
+    // // let's parse the json blobs before setting state
+    // for (var i = 0; i < array.length; i++) {
+    //   if (array[i].entity && array[i].entity.length > 0) {
+    //     array[i].entity = JSON.parse(array[i].entity);
+    //     if (array[i]) {
+    //       nodeList[array[i].nid] = array[i].entity;
+    //     }
+    //   }
+    // }
 
     // Eliminate all nodes that aren't current content type
-    array = array.filter(node => (node.entity.type === this.props.navigation.state.params.contentType));
+    // array = array.filter(node => (node.entity.type === this.props.navigation.state.params.contentType));
 
 
-    this.setState({nodes: array, filteredContentList: array, nodeList: nodeList});
+    this.setState({nodes: array, filteredContentList: array});
     this.updateFilters();
   }
 
-  // @todo: Possibly remove this as I had to use a custom function for filtering anyways
-  preprocessFilteredContent = (array) => {
-    // we need to replace any languages with und so we can filter correctly
-    let count = 0;
-    count++;
-    let preprocessedArray = [];
-    if (array.length > 0) {
-      for (var i = 0; i < array.length; i++) {
-        count++;
-        if (array[i].entity) {
-          for (const [fieldName, fieldValue] of Object.entries(array[i].entity)) {
-            if (fieldValue && typeof fieldValue === 'object') {
-              const lang = (Object.keys(fieldValue)) ? Object.keys(fieldValue)[0] : null;
-              if (lang && lang === 'en') {
-                array[i].entity[fieldName]['und'] = array[i].entity[fieldName]['en'];
-                delete array[i].entity[fieldName][lang];
-              }
-            }
-          }
-        }
-      }
-    }
-    return array;
-  }
+  // // @todo: Possibly remove this as I had to use a custom function for filtering anyways
+  // preprocessFilteredContent = (array) => {
+  //   // we need to replace any languages with und so we can filter correctly
+  //   let count = 0;
+  //   count++;
+  //   let preprocessedArray = [];
+  //   if (array.length > 0) {
+  //     for (var i = 0; i < array.length; i++) {
+  //       count++;
+  //       if (array[i].entity) {
+  //         for (const [fieldName, fieldValue] of Object.entries(array[i].entity)) {
+  //           if (fieldValue && typeof fieldValue === 'object') {
+  //             const lang = (Object.keys(fieldValue)) ? Object.keys(fieldValue)[0] : null;
+  //             if (lang && lang === 'en') {
+  //               array[i].entity[fieldName]['und'] = array[i].entity[fieldName]['en'];
+  //               delete array[i].entity[fieldName][lang];
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return array;
+  // }
 
   updateFilters = () => {
 
@@ -361,22 +360,28 @@ export default class HomeScreen extends React.Component {
   }
 
   getFilteredContentList = () => {
-    let filteredContentList = this.state.nodes;
+
+    // Convert filtered content list to array for filtering
+    let filteredContentList  = Object.keys(this.state.nodes).map((key) => {
+      return [Number(key), this.state.nodes[key]];
+    });
+
+    // let filteredContentList = this.state.nodes;
 
     // First we want to restrict this to just the nodes in this content type
-    filteredContentList = filteredContentList.filter(node => (node.entity.type === this.props.navigation.state.params.contentType));
+    filteredContentList = filteredContentList.filter(node => (node[1].type === this.props.navigation.state.params.contentType));
 
     if (this.state.categoriesSelected !== '0') {
-      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_category, this.state.categoriesSelected));
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node[1].field_category, this.state.categoriesSelected));
     }
     if (this.state.communitySelected !== '0') {
-      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_community_ref, this.state.communitySelected, 'nid'));
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node[1].field_community_ref, this.state.communitySelected, 'nid'));
     }
     if (this.state.keywordsSelected !== '0') {
-      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_tags, this.state.keywordsSelected));
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node[1].field_tags, this.state.keywordsSelected));
     }
     if (this.state.collectionSelected !== '0') {
-      filteredContentList = filteredContentList.filter(node => this.filterCategory(node.entity.field_collection, this.state.collectionSelected, 'nid'));
+      filteredContentList = filteredContentList.filter(node => this.filterCategory(node[1].field_collection, this.state.collectionSelected, 'nid'));
     }
 
     return filteredContentList;
@@ -385,41 +390,38 @@ export default class HomeScreen extends React.Component {
   setSearchText = (text) => {
     this.setState({search: text});
     if (text.length > 0) {
-      this.state.db.transaction(tx => {
-        tx.executeSql(
-            "select * from nodes where instr(upper(entity), upper(?)) > 0;",
-            [text],
-            (_, {rows: {_array}}) => this.updateNodes(_array)
-        );
+
+      let filteredNodes = {};
+      Object.keys(this.state.nodes).forEach(function(key,index) {
+        // key: the name of the object key
+        // index: the ordinal position of the key within the object
+        if(this.state.nodes[key].indexOf(text) !== -1) {
+          filteredNodes[key] = this.state.nodes[key];
+        }
       });
+      this.setState({'nodes': filteredNodes});
+      this.updateNodes(filteredNodes);
+
+      // Filter nodes by title
+
+
+      // this.state.db.transaction(tx => {
+
+
+      //   tx.executeSql(
+      //       "select * from nodes where instr(upper(entity), upper(?)) > 0;",
+      //       [text],
+      //       (_, {rows: {_array}}) => this.updateNodes(_array)
+      //   );
+      // });
     } else {
-      this.state.db.transaction(tx => {
-        tx.executeSql(
-            "select * from nodes;",
-            '',
-            (_, {rows: {_array}}) => this.updateNodes(_array)
-        );
-      });
+      // Need to filter this to current content type
+      this.setState({'nodes': this.props.screenProps.nodes});
+
     }
   }
 
-  alertNotLoggedIn() {
-    // This is done inline in some places,
-    // But setting it here as well as a catch to ensure state is updated.
-    this.setState({loggedIn: false});
-    Alert.alert(
-        'Connection Issue',
-        'We are having trouble reaching the servers.',
-        [
-          {
-            text: 'Continue Offline',
-            style: 'cancel',
-          },
-          {text: 'Log In', onPress: () => this.props.navigation.navigate('Login')},
-        ],
-        {cancelable: true}
-    )
-  }
+
 
   /**
    * Handler for button that switches to browser
@@ -427,85 +429,86 @@ export default class HomeScreen extends React.Component {
    * @returns {Promise<void>}
    * @private
    */
-  _handlePressButtonAsync = async (url) => {
-
-    let isLoggedInBrowser = this._checkBrowserLoginStatus(url);
-
-    if (this.state.loggedIn === true) {
-
-      if (isLoggedInBrowser) {
-        let result = WebBrowser.openBrowserAsync(url);
-      } else {
-        // // If we're not logged in in the browser, get one time login link and then use it
-        let data = {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': this.state.token,
-            'Cookie': this.state.cookie
-          }
-        };
-
-        data.url = this.props.screenProps.siteUrl + '/app/one-time-login/retrieve';
-          axios(data)
-          .then((response) => {
-            return response.data;
-          })
-            .then((responseText) => {
-
-              let result = WebBrowser.openBrowserAsync(responseText[0]);
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-      }
-
-    } else {
-      // If user is not logged into app but is logged into browser, hit logout page with redirect to homepage
-      // That way login status stays in sync
-      if (isLoggedInBrowser) {
-        let result = WebBrowser.openBrowserAsync(url + '/user/logout?destination=' + url);
-      } else {
-        // If user not logged into app, and we're not logged into the browser, go to the homepage
-        let result = WebBrowser.openBrowserAsync(url);
-      }
-    }
-  };
+  // _handlePressButtonAsync = async (url) => {
+  //
+  //   let isLoggedInBrowser = this._checkBrowserLoginStatus(url);
+  //
+  //   if (this.state.loggedIn === true) {
+  //
+  //     if (isLoggedInBrowser) {
+  //       let result = WebBrowser.openBrowserAsync(url);
+  //     } else {
+  //       // // If we're not logged in in the browser, get one time login link and then use it
+  //       let data = {
+  //         method: 'GET',
+  //         headers: {
+  //           'Accept': 'application/json',
+  //           'Content-Type': 'application/json',
+  //           'X-CSRF-Token': this.state.token,
+  //           'Cookie': this.state.cookie
+  //         }
+  //       };
+  //
+  //       data.url = this.props.screenProps.siteUrl + '/app/one-time-login/retrieve';
+  //         axios(data)
+  //         .then((response) => {
+  //           return response.data;
+  //         })
+  //           .then((responseText) => {
+  //
+  //             let result = WebBrowser.openBrowserAsync(responseText[0]);
+  //           })
+  //           .catch((error) => {
+  //             console.error(error);
+  //           });
+  //     }
+  //
+  //   } else {
+  //     // If user is not logged into app but is logged into browser, hit logout page with redirect to homepage
+  //     // That way login status stays in sync
+  //     if (isLoggedInBrowser) {
+  //       let result = WebBrowser.openBrowserAsync(url + '/user/logout?destination=' + url);
+  //     } else {
+  //       // If user not logged into app, and we're not logged into the browser, go to the homepage
+  //       let result = WebBrowser.openBrowserAsync(url);
+  //     }
+  //   }
+  // };
 
   /**
    * Checks browser login status by fetching the homepage HTML and checking for logged-in class
    * @returns {boolean}
    * @private
    */
-  _checkBrowserLoginStatus(url) {
-    let loggedIn = false;
-
-    fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': this.state.token,
-      }
-    })
-        .then((response) => {
-          // When the page is loaded convert it to text
-          return response.text()
-        })
-        .then((html) => {
-          // Might be better to use a dom parser
-          loggedIn = html.includes(' logged-in');
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-
-    return loggedIn;
-  }
+  // _checkBrowserLoginStatus(url) {
+  //   let loggedIn = false;
+  //
+  //   fetch(url, {
+  //     method: 'GET',
+  //     credentials: 'include',
+  //     headers: {
+  //       'Accept': 'application/json',
+  //       'Content-Type': 'application/json',
+  //       'X-CSRF-Token': this.state.token,
+  //     }
+  //   })
+  //       .then((response) => {
+  //         // When the page is loaded convert it to text
+  //         return response.text()
+  //       })
+  //       .then((html) => {
+  //         // Might be better to use a dom parser
+  //         loggedIn = html.includes(' logged-in');
+  //       })
+  //       .catch((error) => {
+  //         console.error(error);
+  //       });
+  //
+  //   return loggedIn;
+  // }
 
   render() {
+
 
     if (this.state.nodes.length < 1) {
       return (
@@ -681,14 +684,14 @@ export default class HomeScreen extends React.Component {
               filteredContentList.map((node) => (
                   <NodeTeaser
                       key={i++}
-                      node={node}
+                      node={node[1]}
                       viewableFields={this.state.viewableFields}
                       token={this.props.screenProps.token}
                       cookie={this.props.screenProps.cookie}
                       url={this.props.screenProps.siteUrl}
-                      db={this.state.db}
+                      db={this.props.screenProps.db}
                       terms={this.state.terms}
-                      allNodes={this.state.allNodes}
+                      allNodes={this.props.screenProps.nodes}
                       navigation={this.props.navigation}
                   />
               ))

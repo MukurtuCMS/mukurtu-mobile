@@ -57,27 +57,27 @@ class CreateContentFormScreen extends React.Component {
 
   componentActive = () => {
     // first set content types from db, then try connecting
-    if (!this.state.db) {
-      this.alertNotLoggedIn();
-    } else {
-      this.state.db.transaction(tx => {
-        tx.executeSql(
-          'select blob from content_type where machine_name = ?;',
-          [this.props.navigation.getParam('contentType')],
-          (_, {rows: {_array}}) => this.retrieveContentType(_array)
-        );
-      });
-
-      if (this.state.isConnected) {
-        this.state.db.transaction(tx => {
-          tx.executeSql(
-            'select * from auth limit 1;',
-            '',
-            (_, {rows: {_array}}) => this.getType(_array)
-          );
-        });
-      }
-    }
+    // if (!this.state.db) {
+    //   this.alertNotLoggedIn();
+    // } else {
+    //   this.state.db.transaction(tx => {
+    //     tx.executeSql(
+    //       'select blob from content_type where machine_name = ?;',
+    //       [this.props.navigation.getParam('contentType')],
+    //       (_, {rows: {_array}}) => this.retrieveContentType(_array)
+    //     );
+    //   });
+    //
+    //   if (this.state.isConnected) {
+    //     this.state.db.transaction(tx => {
+    //       tx.executeSql(
+    //         'select * from auth limit 1;',
+    //         '',
+    //         (_, {rows: {_array}}) => this.getType(_array)
+    //       );
+    //     });
+    //   }
+    // }
   }
 
   getType(array) {
@@ -137,23 +137,7 @@ class CreateContentFormScreen extends React.Component {
     }
   }
 
-  alertNotLoggedIn() {
-    // This is done inline in some places,
-    // But setting it here as well as a catch to ensure state is updated.
-    this.setState({loggedIn: false});
-    Alert.alert(
-      'Connection Issue',
-      'We are having trouble reaching the servers.',
-      [
-        {
-          text: 'Continue Offline',
-          style: 'cancel',
-        },
-        {text: 'Log In', onPress: () => this.props.navigation.navigate('Login')},
-      ],
-      {cancelable: true}
-    )
-  }
+
 
   render() {
 

@@ -48,7 +48,6 @@ export default class App extends React.Component {
     this.state = {
       isLoadingComplete: false,
       siteUrl: '',
-      isLoggedIn: false,
       token: false,
       cookie: false,
       isConnected: false,
@@ -58,7 +57,8 @@ export default class App extends React.Component {
       user: {},
       firstTime: false,
       sync: false,
-      syncing: false
+      syncing: false,
+      nodes: {}
     };
   }
 
@@ -133,6 +133,9 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
+
+
+
     // YellowBox.ignoreWarnings(['Setting a timer']);
     // YellowBox.ignoreWarnings(['Network request failed']);
     // YellowBox.ignoreWarnings(['Each child in a list']);
@@ -247,6 +250,9 @@ export default class App extends React.Component {
   // }
 
   render() {
+
+
+
     // We need to make sure our component is not rendering until we have checked offline/online and whether user is
     // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
     // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
@@ -263,7 +269,6 @@ export default class App extends React.Component {
     let screenProps = {
       user: {},
       siteUrl: this.state.siteUrl,
-      isLoggedIn: this.state.isLoggedIn,
       token: this.state.token,
       cookie: this.state.cookie,
       loggedIn: this.state.loggedIn,
@@ -271,10 +276,12 @@ export default class App extends React.Component {
       isConnected: this.state.isConnected,
       firstTime: this.state.firstTime,
       sync: this.state.sync,
+      contentTypes: this.state.contentTypes,
       _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
       deleteAllData: this.deleteAllData,
+      nodes: this.state.nodes
     };
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
       screenProps.user = this.state.user;
@@ -460,7 +467,6 @@ export default class App extends React.Component {
     // this.deleteAll();
     this.setState(
       {
-        isLoggedIn: false,
         token: false,
         cookie: false,
         isConnected: false,
@@ -532,7 +538,6 @@ export default class App extends React.Component {
                 token: this.state.user.token,
                 cookie: this.state.user.session_name + '=' + this.state.user.sessid,
                 loggedIn: true,
-                isLoggedIn: true
               });
 
               console.log('three');
@@ -612,29 +617,53 @@ export default class App extends React.Component {
   }
 
   saveNode = (nid, data, editable) => {
-    data.url = this.state.siteUrl + '/app/node/' + nid + '.json';
-    axios(data)
-      .then((node) => {
-        return node.data;
+    let fetchurl = this.state.siteUrl + '/app/node/' + nid + '.json';
+    fetch(fetchurl, this.buildFetchData('GET'))
+      .then((response) => {
+        return response.json();
       })
       .then((node) => {
-        this.state.db.transaction(tx => {
-          tx.executeSql(
-            'delete from nodes where nid = ?;',
-            [node.nid],
-            (_, {rows: {_array}}) => ''
-          );
-        });
+        // this.state.db.transaction(tx => {
+        //   tx.executeSql(
+        //     'delete from nodes where nid = ?;',
+        //     [node.nid],
+        //     (success) => {
+        //       // unset our nodes state after they're deleted
+        //       if(typeof this.state.nodes[node.nid] !== undefined) {
+        //         delete this.state.nodes[node.nid];
+        //       }
+        //
+        //     },
+        //     (success, error) => {
+        //       console.log('node delete error');
+        //       console.log(error);
+        //     }
+        //   );
+        // });
+
 
         this.state.db.transaction(
           tx => {
             tx.executeSql('insert into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
               [node.nid, node.title, JSON.stringify(node), editable],
-              (success) => success,
-              (success, error) => ''
+              (success) => {
+
+
+              },
+              (success, error) => {
+
+                console.log(error);
+              }
             );
           }
         );
+
+        let currentNodes = this.state.nodes;
+
+
+        currentNodes[node.nid] = node;
+        this.setState({'nodes': currentNodes});
+
       })
       .catch((error) => {
         console.error(error);
@@ -891,7 +920,10 @@ export default class App extends React.Component {
                         tx => {
                           tx.executeSql('insert into content_types (id, blob) values (?, ?)',
                             [1, JSON.stringify(responseJson)],
-                            (success) => '',
+                            (success) => {
+                              // Set content types to state
+                              this.setState({contentTypes: JSON.stringify(responseJson)})
+                            },
                             (success, error) => console.log(' ')
                           );
                         }
