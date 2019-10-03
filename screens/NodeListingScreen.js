@@ -45,7 +45,6 @@ export default class HomeScreen extends React.Component {
       db: this.props.screenProps.db,
       communityFilterList: [],
       terms: false,
-      nodeList: false,
       categoriesList: [],
       categoriesSelected: '0',
       communityList: [],
@@ -74,6 +73,8 @@ export default class HomeScreen extends React.Component {
     // this.checkInitialConnection();
     // this.componentActive();
 
+
+    this.updateFilters();
 
     // Get our viewable fields to pass to the node teaser
     let contentType = this.props.navigation.state.params.contentType;
@@ -148,13 +149,13 @@ export default class HomeScreen extends React.Component {
   //   }
   // }
 
-  setTaxonomy = (array) => {
-    let termList = {};
-    for (var i = 0; i < array.length; i++) {
-      termList[array[i].tid] = JSON.parse(array[i].entity)
-    }
-    this.setState({terms: termList});
-  }
+  // setTaxonomy = (array) => {
+  //   let termList = {};
+  //   for (var i = 0; i < array.length; i++) {
+  //     termList[array[i]['tid']] = JSON.parse(array[i].entity)
+  //   }
+  //   this.setState({terms: termList});
+  // }
 
   updateNodes(array) {
     let nodeList = {};
@@ -170,7 +171,7 @@ export default class HomeScreen extends React.Component {
     // }
 
     // Eliminate all nodes that aren't current content type
-    // array = array.filter(node => (node.entity.type === this.props.navigation.state.params.contentType));
+    // array = array.filter(node => (node.type === this.props.navigation.state.params.contentType));
 
 
     this.setState({nodes: array, filteredContentList: array});
@@ -233,17 +234,17 @@ export default class HomeScreen extends React.Component {
         .then((validFilters) => {
 
           let categoriesList = {};
-          if (typeof validFilters.field_category !== 'undefined' && this.state.nodes.length > 0) {
+          if (typeof validFilters.field_category !== 'undefined') {
             // Set our label to state
             this.setState({'field_category_label': validFilters.field_category});
-            for (var i = 0; i < this.state.nodes.length; i++) {
-              if (this.state.nodes[i].entity.field_category) {
-                const lang = Object.keys(this.state.nodes[i].entity.field_category)[0];
-                if (this.state.nodes[i].entity.field_category) {
-                  const categories = this.state.nodes[i].entity.field_category[lang];
+            for (let i in this.state.nodes) {
+              if (this.state.nodes[i].field_category) {
+                const lang = Object.keys(this.state.nodes[i].field_category)[0];
+                if (this.state.nodes[i].field_category) {
+                  const categories = this.state.nodes[i].field_category[lang];
                   for (var k = 0; k < categories.length; k++) {
-                    if (this.state.terms[categories[k].tid]) {
-                      categoriesList[categories[k].tid] = this.state.terms[categories[k].tid].name;
+                    if (typeof categories[k]['tid'] !== 'undefined' && this.props.screenProps.terms[categories[k]['tid']]) {
+                      categoriesList[categories[k]['tid']] = this.props.screenProps.terms[categories[k]['tid']].name;
                     }
                   }
                 }
@@ -251,18 +252,18 @@ export default class HomeScreen extends React.Component {
             }
           }
           let keywordsList = {};
-          if (typeof validFilters.field_tags !== 'undefined' && this.state.nodes.length > 0) {
+          if (typeof validFilters.field_tags !== 'undefined') {
             // Set our label to state
             this.setState({'field_tags_label': validFilters.field_tags});
-            for (var i = 0; i < this.state.nodes.length; i++) {
-              if (this.state.nodes[i].entity.field_tags) {
-                const lang = Object.keys(this.state.nodes[i].entity.field_tags)[0];
-                if (this.state.nodes[i].entity.field_tags) {
-                  const keywords = this.state.nodes[i].entity.field_tags[lang];
+            for (let i in this.state.nodes) {
+              if (this.state.nodes[i].field_tags) {
+                const lang = Object.keys(this.state.nodes[i].field_tags)[0];
+                if (this.state.nodes[i].field_tags) {
+                  const keywords = this.state.nodes[i].field_tags[lang];
                   if (keywords) {
                     for (var k = 0; k < keywords.length; k++) {
-                      if (this.state.terms[keywords[k].tid]) {
-                        keywordsList[keywords[k].tid] = this.state.terms[keywords[k].tid].name;
+                      if (typeof keywords[k]['tid'] !== 'undefined' &&  this.props.screenProps.terms[keywords[k]['tid']]) {
+                        keywordsList[keywords[k]['tid']] = this.props.screenProps.terms[keywords[k]['tid']].name;
                       }
                     }
                   }
@@ -271,17 +272,17 @@ export default class HomeScreen extends React.Component {
             }
           }
           let communityList = {};
-          if (typeof validFilters.field_community_ref !== 'undefined' && this.state.nodes.length > 0 && this.state.nodeList.length > 0) {
+          if (typeof validFilters.field_community_ref !== 'undefined' ) {
             this.setState({'field_community_ref_label': validFilters.field_community_ref});
-            for (var i = 0; i < this.state.nodes.length; i++) {
-              if (this.state.nodes[i].entity.field_community_ref) {
-                const lang = Object.keys(this.state.nodes[i].entity.field_community_ref)[0];
-                if (this.state.nodes[i].entity.field_community_ref) {
-                  const community = this.state.nodes[i].entity.field_community_ref[lang];
+            for (let i in this.state.nodes) {
+              if (this.state.nodes[i].field_community_ref) {
+                const lang = Object.keys(this.state.nodes[i].field_community_ref)[0];
+                if (this.state.nodes[i].field_community_ref) {
+                  const community = this.state.nodes[i].field_community_ref[lang];
                   if (community) {
                     for (var k = 0; k < community.length; k++) {
                       if (this.state.nodes[community[k].nid]) {
-                        communityList[community[k].nid] = this.state.nodeList[community[k].nid].title;
+                        communityList[community[k].nid] = this.state.nodes[community[k].nid].title;
                       }
                     }
                   }
@@ -290,17 +291,17 @@ export default class HomeScreen extends React.Component {
             }
           }
           let collectionList = {};
-          if (typeof validFilters.field_collection !== 'undefined' && this.state.nodes.length > 0) {
+          if (typeof validFilters.field_collection !== 'undefined') {
             this.setState({'field_collection_label': validFilters.field_collection});
-            for (var i = 0; i < this.state.nodes.length; i++) {
-              if (this.state.nodes[i].entity.field_collection) {
-                const lang = Object.keys(this.state.nodes[i].entity.field_collection)[0];
-                if (this.state.nodes[i].entity.field_collection) {
-                  const collections = this.state.nodes[i].entity.field_collection[lang];
+            for (let i in this.state.nodes) {
+              if (this.state.nodes[i].field_collection) {
+                const lang = Object.keys(this.state.nodes[i].field_collection)[0];
+                if (this.state.nodes[i].field_collection) {
+                  const collections = this.state.nodes[i].field_collection[lang];
                   if (collections) {
                     for (var k = 0; k < collections.length; k++) {
                       if (this.state.nodes[collections[k].nid]) {
-                        collectionList[collections[k].nid] = this.state.nodeList[collections[k].nid].title;
+                        collectionList[collections[k].nid] = this.state.nodes[collections[k].nid].title;
                       }
                     }
                   }
@@ -345,7 +346,7 @@ export default class HomeScreen extends React.Component {
       this.setState({categoriesSelected: tid});
       let content = this.state.nodes;
       if (tid !== '0') {
-        content = content.filter(node => this.filterCategory(node.entity.field_category, tid));
+        content = content.filter(node => this.filterCategory(node.field_category, tid));
       }
       this.setState({filteredContentList: content});
     }
@@ -353,7 +354,7 @@ export default class HomeScreen extends React.Component {
       this.setState({communitySelected: tid});
       let content = this.state.nodes;
       if (tid !== '0') {
-        content = content.filter(node => this.filterCategory(node.entity.field_community_ref, tid, 'nid'));
+        content = content.filter(node => this.filterCategory(node.field_community_ref, tid, 'nid'));
       }
       this.setState({filteredContentList: content});
     }
@@ -510,7 +511,7 @@ export default class HomeScreen extends React.Component {
   render() {
 
 
-    if (this.state.nodes.length < 1) {
+    if(Object.entries(this.state.nodes).length === 0 && this.state.nodes.constructor === Object) {
       return (
         <ScrollView style={styles.container}>
           <View>
@@ -540,9 +541,9 @@ export default class HomeScreen extends React.Component {
         color: '#9EA0A4',
       };
       let options = [];
-      for (const [tid, name] of Object.entries(this.state.categoriesList)) {
+      for (let tid in this.state.categoriesList) {
         options.push({
-              label: name,
+              label: this.state.categoriesList[tid],
               value: tid
             }
         );
@@ -572,9 +573,9 @@ export default class HomeScreen extends React.Component {
         color: '#9EA0A4',
       };
       let options = [];
-      for (const [tid, name] of Object.entries(this.state.keywordsList)) {
+      for (let tid in this.state.keywordsList) {
         options.push({
-              label: name,
+              label: this.state.keywordsList[tid],
               value: tid
             }
         );
@@ -604,10 +605,10 @@ export default class HomeScreen extends React.Component {
         color: '#9EA0A4',
       };
       let options = [];
-      for (const [nid, title] of Object.entries(this.state.communityList)) {
+      for (let nid in this.state.communityList) {
         options.push({
-              label: name,
-              value: tid
+              label: this.state.communityList[nid],
+              value: nid
             }
         );
       }
@@ -636,10 +637,10 @@ export default class HomeScreen extends React.Component {
         color: '#9EA0A4',
       };
       let options = [];
-      for (const [nid, title] of Object.entries(this.state.collectionList)) {
+      for (let nid in this.state.collectionList) {
         options.push({
-              label: name,
-              value: tid
+              label: this.state.collectionList[nid],
+              value: nid
             }
         );
       }
@@ -690,7 +691,7 @@ export default class HomeScreen extends React.Component {
                       cookie={this.props.screenProps.cookie}
                       url={this.props.screenProps.siteUrl}
                       db={this.props.screenProps.db}
-                      terms={this.state.terms}
+                      terms={this.props.screenProps.terms}
                       allNodes={this.props.screenProps.nodes}
                       navigation={this.props.navigation}
                   />

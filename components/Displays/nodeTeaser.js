@@ -19,17 +19,12 @@ export default class NodeTeaser extends React.Component {
       contentType: this.props.node.type,
       contentTypeLabel: this.props.node.title,
       node: this.props.node,
-      terms: this.state.terms
+      terms: this.props.screenProps.terms
     })
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (this.props.viewableFields !== prevProps.viewableFields) {
-      this.setState({'viewableFields': this.props.viewableFields});
-    }
-    if (this.props.terms !== prevProps.terms) {
-      this.setState({'terms': this.props.terms});
-    }
+
   }
 
 
@@ -47,8 +42,8 @@ export default class NodeTeaser extends React.Component {
 
     // Get our fields from list of viewable fields
     let viewableFields = [];
-    if (this.state && this.state.viewableFields && this.state.terms && this.props.allNodes) {
-      for (let [key, value] of Object.entries(this.state.viewableFields)) {
+    if (this.state && this.props.viewableFields && this.props.screenProps.terms && this.props.allNodes) {
+      for (let [key, value] of Object.entries(this.props.viewableFields)) {
         if (typeof node[key] !== 'undefined' &&
             typeof node[key]['und'] !== 'undefined' &&
             typeof node[key]['und']['0']['sid'] !== 'undefined') {
@@ -102,8 +97,8 @@ export default class NodeTeaser extends React.Component {
           let termNames = [];
           for (let i = 0; i < node[key]['en'].length; i++) {
             let tid = node[key]['en'][i]['tid'];
-            if(typeof this.state.terms[tid] !== 'undefined') {
-              let termTitle = this.state.terms[tid]['name'];
+            if(typeof this.props.screenProps.terms[tid] !== 'undefined') {
+              let termTitle = this.props.screenProps.terms[tid]['name'];
               termNames.push(termTitle);
             }
           }
@@ -128,7 +123,7 @@ export default class NodeTeaser extends React.Component {
                     cookie={this.props.cookie}
                     url={this.props.url}
                     pid={node[key]['und']['0']['value']}
-                    viewableFields={this.state.viewableFields}
+                    viewableFields={this.props.viewableFields}
                     fieldName={key}
                 />
               </View>

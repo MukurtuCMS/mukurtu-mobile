@@ -58,6 +58,7 @@ export default class App extends React.Component {
       firstTime: false,
       sync: false,
       syncing: false,
+      terms: {},
       nodes: {}
     };
   }
@@ -277,6 +278,7 @@ export default class App extends React.Component {
       firstTime: this.state.firstTime,
       sync: this.state.sync,
       contentTypes: this.state.contentTypes,
+      terms: this.state.terms,
       _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
@@ -812,10 +814,15 @@ export default class App extends React.Component {
             );
           }
         );
+
+        let currentTerms = this.state.terms;
+        currentTerms[term.tid] = term;
+        this.setState({'terms': currentTerms});
       })
       .catch((error) => {
         console.error(error);
       });
+
   }
 
   updateSync = () => {
