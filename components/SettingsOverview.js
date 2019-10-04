@@ -76,7 +76,7 @@ class SettingsOverview extends React.Component {
       <View style={{backgroundColor:'#EFEFF4',flex:1}}>
         <View style={{backgroundColor:'#EFEFF4',flex:1}}>
           <SettingsList borderColor='#c8c7cc' defaultItemSize={50}>
-            {(this.props.screenProps.isLoggedIn && this.props.screenProps.user) ?
+            {(this.props.screenProps.loggedIn && this.props.screenProps.user) ?
               <SettingsList.Item
                 title='Log Out'
                 titleInfo={this.state.user.name}

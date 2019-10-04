@@ -928,8 +928,7 @@ export default class App extends React.Component {
                           tx.executeSql('insert into content_types (id, blob) values (?, ?)',
                             [1, JSON.stringify(responseJson)],
                             (success) => {
-                              // Set content types to state
-                              this.setState({contentTypes: JSON.stringify(responseJson)})
+
                             },
                             (success, error) => console.log(' ')
                           );
@@ -940,6 +939,8 @@ export default class App extends React.Component {
                   );
                 }
               );
+              // Set content types to state
+              this.setState({contentTypes: responseJson})
               // now let's sync all content type endpoints
               let urls = [];
               for (const [machineName, TypeObject] of Object.entries(responseJson)) {

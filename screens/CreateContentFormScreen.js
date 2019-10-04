@@ -47,6 +47,29 @@ class CreateContentFormScreen extends React.Component {
 
   componentDidMount() {
     this.props.navigation.addListener('willFocus', this.componentActive)
+
+
+    const contentType = this.props.navigation.getParam('contentType');
+
+
+    let data = {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': this.props.screenProps.token,
+        'Cookie': this.props.screenProps.cookie
+      }
+    };
+    fetch(this.props.screenProps.siteUrl + '/app/node-form-fields/retrieve/' + contentType, data)
+      .then((response) => response.json())
+      .then((responseJson) => {
+        this.setState({form: responseJson, oldForm: responseJson});
+      })
+      .catch((error) => {
+        // console.error(error);
+      });
+
   }
 
   retrieveContentType(array) {
@@ -81,39 +104,7 @@ class CreateContentFormScreen extends React.Component {
   }
 
   getType(array) {
-    const contentType = this.props.navigation.getParam('contentType');
 
-    if (array === undefined || array.length < 1) {
-      this.alertNotLoggedIn();
-      return false;
-    }
-    const token = array[0].token;
-    const cookie = array[0].cookie;
-
-    let data = {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cookie': cookie
-      }
-    };
-    fetch(this.props.screenProps.siteUrl + '/app/node-form-fields/retrieve/' + contentType, data)
-        .then((response) => response.json())
-        .then((responseJson) => {
-          let form = responseJson;
-          let groups = {};
-
-          for (const [machineName, groupObject] of Object.entries(form['#groups'])) {
-
-          }
-
-          this.setState({form: responseJson, oldForm: responseJson});
-        })
-        .catch((error) => {
-          // console.error(error);
-        });
   }
 
   onPress = async () => {

@@ -32,7 +32,6 @@ export default class FormComponent extends React.Component {
       cookie: null,
       token: null,
       formSubmitted: false,
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
       formErrors: null,
       submitting: false
     };
@@ -44,7 +43,7 @@ export default class FormComponent extends React.Component {
   }
 
   componentDidMount() {
-    this.update();
+    // this.update();
     this.preprocessNodeForSaving();
   }
 
@@ -68,15 +67,15 @@ export default class FormComponent extends React.Component {
     this.setState({selectedIndex})
   }
 
-  update() {
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'select * from auth limit 1;',
-        '',
-        (_, {rows: {_array}}) => this.getToken(_array)
-      );
-    });
-  }
+  // update() {
+  //   this.state.db.transaction(tx => {
+  //     tx.executeSql(
+  //       'select * from auth limit 1;',
+  //       '',
+  //       (_, {rows: {_array}}) => this.getToken(_array)
+  //     );
+  //   });
+  // }
 
   getToken(array) {
     if (array === undefined || array.length < 1) {
@@ -524,36 +523,24 @@ export default class FormComponent extends React.Component {
 
   saveNode() {
     if (!this.props.screenProps.isConnected) {
-      if (this.props.did) {
-        this.state.db.transaction(
-          tx => {
-            tx.executeSql('replace into saved_offline (id, blob, saved) values (?, ?, 0)',
-              [this.props.did, JSON.stringify(this.state.formValues)],
-              (success) => this.setState({formSubmitted: true}),
-              (success, error) => console.log(error)
-            );
-          }
-        );
-      } else {
-        this.state.db.transaction(
-          tx => {
-            tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
-              [JSON.stringify(this.state.formValues)],
-              (success) => this.setState({formSubmitted: true}),
-              (success, error) => console.log(error)
-            );
-          }
-        );
-      }
-    } else {
 
+      this.props.screenProps.db.transaction(
+        tx => {
+          tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
+            [JSON.stringify(this.state.formValues)],
+            (success) => this.setState({formSubmitted: true}),
+            (success, error) => console.log(error)
+          );
+        }
+      );
+    } else {
 
       if (this.state.formValues.nid) {
         this.setState({'submitting': true});
 
         // I have to do this right now because I am getting errors trying to use the postData method
-        const token = this.state.token;
-        const cookie = this.state.cookie;
+        const token = this.props.screenProps.token;
+        const cookie = this.props.screenProps.cookie;
         const data = {
           method: 'PUT',
           mode: 'cors',
@@ -570,7 +557,7 @@ export default class FormComponent extends React.Component {
         };
 
 
-        fetch(this.props.url + '/app/node/' + this.state.formValues.nid + '.json', data)
+        fetch(this.props.screenProps.siteUrl + '/app/node/' + this.state.formValues.nid + '.json', data)
           .then((response) => response.json())
           .then((responseJson) => {
             if (responseJson.form_errors) {
@@ -584,7 +571,7 @@ export default class FormComponent extends React.Component {
           });
 
       } else {
-        this.postData(this.props.url + '/app/node.json', this.state.formValues);
+        this.postData(this.props.screenProps.siteUrl + '/app/node.json', this.state.formValues);
 
       }
 
@@ -600,23 +587,33 @@ export default class FormComponent extends React.Component {
 
     this.setState({'submitting': true});
 
-    fetch(url, {
+    axios({
       method: method,
 
-      mode: 'cors',
+      // mode: 'cors',
       cache: 'no-cache',
       // credentials: 'same-origin',
       headers: {
+        // 'Accept': 'application/json',
+        // 'Content-Type': 'application/json',
+        'X-CSRF-Token': this.props.screenProps.token,
+        'Cookie': this.props.screenProps.cookie,
+
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRF-Token': this.props.screenProps.token,
-        'Cookie': this.props.screenProps.cookie
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': 0
       },
       redirect: 'follow',
       referrer: 'no-referrer',
       body: JSON.stringify(data),
+      url: url
     })
-      .then((response) => response.json())
+      .then((response) => {
+        console.log(response);
+        return response.json();
+      })
       .then((responseJson) => {
         if (responseJson.form_errors) {
           this.setState({formErrors: responseJson.form_errors, submitting: false})
@@ -644,7 +641,7 @@ export default class FormComponent extends React.Component {
 
   updateSyncedNids(nid) {
 
-    fetch(this.props.url + '/app/synced-entities/create', {
+    fetch(this.props.screenProps.siteUrl + '/app/synced-entities/create', {
       method: 'post',
 
       mode: 'cors',
@@ -817,9 +814,9 @@ export default class FormComponent extends React.Component {
                   formErrors={this.state.formErrors}
                   description={description}
                   chosenImage={chosenImage}
-                  cookie={this.state.cookie}
-                  token={this.state.token}
-                  url={this.props.url}
+                  cookie={this.props.screenProps.cookie}
+                  token={this.props.screenProps.token}
+                  url={this.props.screenProps.siteUrl}
                   cardinality={cardinality}
                 />);
               } else if (fieldArray['#type'] === 'textfield') {
@@ -1001,8 +998,8 @@ export default class FormComponent extends React.Component {
           height="auto"
         >
           <View style={styles.activityContainer}>
-          <Text style={{marginBottom: 10}}>Saving Node...</Text>
-          <ActivityIndicator size="large" color="#159EC4"/>
+            <Text style={{marginBottom: 10}}>Saving Node...</Text>
+            <ActivityIndicator size="large" color="#159EC4"/>
           </View>
         </Overlay>
     }

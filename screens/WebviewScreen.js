@@ -50,7 +50,7 @@ export default class WebviewScreen extends React.Component {
         isLoggedInBrowser = html.includes(' logged-in');
         this.setState({isLoggedInBrowser: isLoggedInBrowser});
         // If we're logged in to app but not browser, get one-time login link
-        if (this.props.screenProps.isLoggedIn && !isLoggedInBrowser) {
+        if (this.props.screenProps.loggedIn && !isLoggedInBrowser) {
           let returnUrl = null;
           let data = {
             method: 'GET',
@@ -141,7 +141,7 @@ export default class WebviewScreen extends React.Component {
     }
 
     // If it's an invalid URL or the user is not logged in, don't open browser
-    if (!Validator.isURL(this.state.targetUrl) || !this.props.screenProps.isLoggedIn) {
+    if (!Validator.isURL(this.state.targetUrl) || !this.props.screenProps.loggedIn) {
       return (
         <View style={styles.container}>
           <TouchableHighlight style={styles.buttonContainer} onPress={() => this.props.navigation.navigate('Login')}>

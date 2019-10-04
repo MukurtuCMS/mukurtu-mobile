@@ -140,7 +140,7 @@ export default class CreateContentScreen extends React.Component {
 
   render() {
 
-    if(!this.props.screenProps.loggedIn) {
+    if(!this.props.screenProps.loggedIn || typeof this.props.screenProps.contentTypes === 'undefined') {
       return (
         <View style={{backgroundColor:'#EFEFF4',flex:1}}>
           <Text>Please log in to create content.</Text>
@@ -153,16 +153,17 @@ export default class CreateContentScreen extends React.Component {
     const contentTypes = this.props.screenProps.contentTypes;
     // check that content types is not empty
     if (!(Object.entries(contentTypes).length === 0) && contentTypes.constructor === Object) {
-      for (const [machineName, TypeObject] of Object.entries(this.props.screenProps.contentTypes)) {
+      // key is content type machine name
+      for (let key in this.props.screenProps.contentTypes) {
         list.push(
             <SettingsList.Item
-                key={machineName}
-                title={this.props.screenProps.contentTypes[machineName].label}
+                key={key}
+                title={this.props.screenProps.contentTypes[key].label}
                 titleInfoStyle={styles.titleInfoStyle}
                 onPress={() =>
                     this.props.navigation.navigate('CreateContentForm', {
-                      contentType: machineName,
-                      contentTypeLabel: TypeObject.label
+                      contentType: key,
+                      contentTypeLabel: this.props.screenProps.contentTypes[key].label
                     })
                 }
             />
