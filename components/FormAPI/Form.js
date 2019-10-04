@@ -585,30 +585,24 @@ export default class FormComponent extends React.Component {
 
   postData(url = '', data = {}, method = 'POST') {
 
+
     this.setState({'submitting': true});
 
-    axios({
+    fetch(url, {
       method: method,
 
       // mode: 'cors',
       cache: 'no-cache',
-      // credentials: 'same-origin',
+      // credentials: 'include',
       headers: {
-        // 'Accept': 'application/json',
-        // 'Content-Type': 'application/json',
-        'X-CSRF-Token': this.props.screenProps.token,
-        'Cookie': this.props.screenProps.cookie,
-
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': 0
+        'X-CSRF-Token': this.props.screenProps.token,
+        'Cookie': this.props.screenProps.cookie
       },
       redirect: 'follow',
       referrer: 'no-referrer',
       body: JSON.stringify(data),
-      url: url
     })
       .then((response) => {
         console.log(response);

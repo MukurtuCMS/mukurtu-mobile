@@ -47,6 +47,7 @@ export default class App extends React.Component {
 
     this.state = {
       isLoadingComplete: false,
+      formFields: {},
       siteUrl: '',
       token: false,
       cookie: false,
@@ -277,6 +278,7 @@ export default class App extends React.Component {
       sync: this.state.sync,
       contentTypes: this.state.contentTypes,
       terms: this.state.terms,
+      formFields: this.state.formFields,
       _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
@@ -875,6 +877,7 @@ export default class App extends React.Component {
             this.saveNode(key, data)
           ))
             .then((response) => {
+              this.setState({'nodes': nodes});
               console.log('done syncing nodes');
             });
 
@@ -885,6 +888,7 @@ export default class App extends React.Component {
               this.saveTaxonomy(key, data)
             ))
               .then((response) => {
+                this.setState({'terms': responseJson.terms});
                 console.log('done syncing terms');
               });
 
@@ -897,6 +901,7 @@ export default class App extends React.Component {
               this.saveAtom(key, data)
             ))
               .then((response) => {
+                this.setState({'atoms': responseJson.atoms});
                 console.log('done syncing atoms');
             });
           }
@@ -960,6 +965,9 @@ export default class App extends React.Component {
               })
               .then((response) => this.insertContentType(response, url.machineName))
               .then((response) => {
+                let currentFormFieldsState = this.state.formFields;
+                currentFormFieldsState[url.machineName] = response;
+                this.setState({'formFields': currentFormFieldsState});
                 console.log('done with this promise')
               })
               .catch(error => {

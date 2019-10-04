@@ -52,22 +52,7 @@ class HomeScreen extends React.Component {
     if (this.props.screenProps.firstTime) {
       this.props.navigation.navigate('Login');
     }
-    if (!this.state.db) {
-    } else {
 
-      // first set content types from db, then try connecting
-      this.state.db.transaction(tx => {
-        tx.executeSql(
-          'select blob from content_types;',
-          '',
-          (_, {rows: {_array}}) => this.retrieveContentTypes(_array)
-        );
-      });
-
-      if (this.props.screenProps.isConnected) {
-        this.update();
-      }
-    }
   }
 
   handleConnectivityChange = isConnected => {
@@ -161,14 +146,21 @@ class HomeScreen extends React.Component {
     var bgColor = '#DCE3F4';
 
     let list = [];
-    const contentTypes = this.state.contentTypes;
+    if(typeof this.props.screenProps.contentTypes !== 'object') {
+      return (
+      <View>
+        <Text>Logging In...</Text>
+      </View>);
+    }
+    const contentTypes = this.props.screenProps.contentTypes;
+
     // check that content types is not empty
     if (!(Object.entries(contentTypes).length === 0) && contentTypes.constructor === Object) {
-      for (const [machineName, TypeObject] of Object.entries(this.state.contentTypes)) {
+      for (const [machineName, TypeObject] of Object.entries(contentTypes)) {
         list.push(
           <SettingsList.Item
             key={machineName}
-            title={this.state.contentTypes[machineName].label}
+            title={this.props.screenProps.contentTypes[machineName].label}
             titleInfoStyle={styles.titleInfoStyle}
             onPress={() =>
               this.props.navigation.navigate('NodeListing', {

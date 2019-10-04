@@ -52,23 +52,23 @@ class CreateContentFormScreen extends React.Component {
     const contentType = this.props.navigation.getParam('contentType');
 
 
-    let data = {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': this.props.screenProps.token,
-        'Cookie': this.props.screenProps.cookie
-      }
-    };
-    fetch(this.props.screenProps.siteUrl + '/app/node-form-fields/retrieve/' + contentType, data)
-      .then((response) => response.json())
-      .then((responseJson) => {
-        this.setState({form: responseJson, oldForm: responseJson});
-      })
-      .catch((error) => {
-        // console.error(error);
-      });
+    // let data = {
+    //   method: 'GET',
+    //   headers: {
+    //     'Accept': 'application/json',
+    //     'Content-Type': 'application/json',
+    //     'X-CSRF-Token': this.props.screenProps.token,
+    //     'Cookie': this.props.screenProps.cookie
+    //   }
+    // };
+    // fetch(this.props.screenProps.siteUrl + '/app/node-form-fields/retrieve/' + contentType, data)
+    //   .then((response) => response.json())
+    //   .then((responseJson) => {
+    //     this.setState({form: responseJson, oldForm: responseJson});
+    //   })
+    //   .catch((error) => {
+    //     // console.error(error);
+    //   });
 
   }
 
@@ -149,25 +149,28 @@ class CreateContentFormScreen extends React.Component {
     }
 
     let nodeForm = [];
-    const formObject = Object.entries(this.state.form).length;
+    const contentType = this.props.navigation.getParam('contentType');
+    let propsForm = this.props.screenProps.formFields[contentType];
+
+    const formObject = Object.entries(propsForm).length;
     if (formObject > 0) {
 
       // we need to order the form by groups and fields
       let sortedNodeForm = [];
       let sortGroups = [];
 
-      if (this.state.form['#groups'].length === 0) {
-        sortedNodeForm = Object.values(this.state.form);
+      if (propsForm['#groups'].length === 0) {
+        sortedNodeForm = Object.values(propsForm);
       } else {
-        let groups = this.state.form['#groups']['group_tabs'].children;
+        let groups = propsForm['#groups']['group_tabs'].children;
         for (var i = 0; i < groups.length; i++) {
           var group = groups[i];
-          sortGroups.push({'name': group, 'weight': this.state.form['#groups'][group]['weight']});
+          sortGroups.push({'name': group, 'weight': propsForm['#groups'][group]['weight']});
         }
         sortGroups = weightSort(sortGroups);
         for (var i = 0; i < sortGroups.length; i++) {
           var group = sortGroups[i]['name'];
-          sortedNodeForm.push(this.state.form['#groups'][group]);
+          sortedNodeForm.push(propsForm['#groups'][group]);
         }
 
 
@@ -180,7 +183,7 @@ class CreateContentFormScreen extends React.Component {
           for (var k = 0; k < fields.length; k++) {
             var field = fields[k];
             try {
-              sortFields.push({'name': field, 'weight': this.state.form[field]['#weight']});
+              sortFields.push({'name': field, 'weight': propsForm[field]['#weight']});
             } catch (e) {
               // console.log(field);
             }
@@ -188,7 +191,7 @@ class CreateContentFormScreen extends React.Component {
           sortFields = weightSort(sortFields);
           for (var k = 0; k < sortFields.length; k++) {
             var field = sortFields[k]['name'];
-            var fieldArray = this.state.form[field];
+            var fieldArray = propsForm[field];
 
             try {
               fieldArray['machine_name'] = field;
