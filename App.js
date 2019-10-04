@@ -136,7 +136,6 @@ export default class App extends React.Component {
   componentDidMount() {
 
 
-
     // YellowBox.ignoreWarnings(['Setting a timer']);
     // YellowBox.ignoreWarnings(['Network request failed']);
     // YellowBox.ignoreWarnings(['Each child in a list']);
@@ -251,7 +250,6 @@ export default class App extends React.Component {
   // }
 
   render() {
-
 
 
     // We need to make sure our component is not rendering until we have checked offline/online and whether user is
@@ -421,7 +419,7 @@ export default class App extends React.Component {
       cookie: cookie,
       token: token
     }, () => {
-      this.syncEverything();
+      this.newSyncEverything();
     });
 
   };
@@ -730,8 +728,8 @@ export default class App extends React.Component {
     return response.json();
   }
 
-  insertContentType = (response, state, machineName) => {
-    state.db.transaction(
+  insertContentType = (response, machineName) => {
+   this.state.db.transaction(
       tx => {
         tx.executeSql('insert into content_type (machine_name, blob) values (?, ?)',
           [machineName, JSON.stringify(response)],
@@ -749,7 +747,8 @@ export default class App extends React.Component {
 
   }
 
-  saveAtom = (sid, data, state) => {
+  saveAtom = (sid, data) => {
+    let state = this.state;
     data.url = state.siteUrl + '/app/scald/retrieve/' + sid + '.json'
     axios(data)
       .then((response) => {
@@ -797,7 +796,8 @@ export default class App extends React.Component {
       });
   }
 
-  saveTaxonomy = (tid, data, state) => {
+  saveTaxonomy = (tid, data) => {
+    let state = this.state;
     data.url = state.siteUrl + '/app/tax-term/' + tid + '.json';
     axios(data)
       .then((response) => {
@@ -844,6 +844,230 @@ export default class App extends React.Component {
     );
   }
 
+
+  syncEntities(data) {
+
+  }
+
+  newSyncEverything() {
+    let data = this.buildFetchData('GET');
+    data.url = this.state.siteUrl + '/app/synced-entities/retrieve';
+
+    // Set up the node request
+    let noderequest = axios(data)
+      .then((response) => {
+        return response.data;
+      })
+      .then((responseJson) => {
+        if (typeof responseJson.nodes === 'object') {
+          let nodes = {};
+          for (const [type, entity] of Object.entries(responseJson.nodes)) {
+            if (typeof responseJson.nodes[type] === 'object') {
+              for (const [nid, object] of Object.entries(responseJson.nodes[type])) {
+                if (typeof responseJson.nodes[type] === 'object') {
+                  nodes[nid] = object;
+                }
+              }
+            }
+          }
+          this.buildRemovalNids(nodes);
+          Promise.all(Object.keys(nodes).map((key, index) =>
+            this.saveNode(key, data)
+          ))
+            .then((response) => {
+              console.log('done syncing nodes');
+            });
+
+
+          // Run the taxonomy stuff
+          if (typeof responseJson.terms === 'object') {
+            Promise.all(Object.keys(responseJson.terms).map((key, index) =>
+              this.saveTaxonomy(key, data)
+            ))
+              .then((response) => {
+                console.log('done syncing terms');
+              });
+
+          }
+
+          // Run the atoms
+          if (typeof responseJson.atoms === 'object') {
+            Promise.all(Object.keys(responseJson.atoms).map((key, index) =>
+              // @todo don't update all nodes but starring a node does not save
+              this.saveAtom(key, data)
+            ))
+              .then((response) => {
+                console.log('done syncing atoms');
+            });
+          }
+
+          this.updateSync();
+
+        }
+      })
+      .then((t) => {
+        console.log('done fetching');
+      });
+
+
+    // set up the creatable types request
+    data.url = this.state.siteUrl + '/app/creatable-types/retrieve';
+    let creatableTypes = axios(data)
+      .then((response) => {
+        return response.data;
+      })
+      .then((responseJson) => {
+        if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
+          console.log('access denied');
+        }
+        if (typeof responseJson === 'object' && responseJson !== null) {
+          this.state.db.transaction(
+            tx => {
+              tx.executeSql('delete from content_types;',
+                [],
+                (success) => {
+                  // run this after things have been deleted
+                  this.state.db.transaction(
+                    tx => {
+                      tx.executeSql('insert into content_types (id, blob) values (?, ?)',
+                        [1, JSON.stringify(responseJson)],
+                        (success) => {
+
+                        },
+                        (success, error) => console.log(' ')
+                      );
+                    }
+                  );
+                },
+                (success, error) => console.log(error)
+              );
+            }
+          );
+          // Set content types to state
+          this.setState({contentTypes: responseJson});
+          // now let's sync all content type endpoints
+          let urls = [];
+          for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+            urls.push({
+              url: this.state.siteUrl + '/app/node-form-fields/retrieve/' + machineName,
+              machineName: machineName
+            });
+          }
+          return Promise.all(urls.map(url =>
+            axios({method: data.method, url: url.url, headers: data.headers})
+              .then((response) => {
+                return response.data;
+              })
+              .then((response) => this.insertContentType(response, url.machineName))
+              .then((response) => {
+                console.log('done with this promise')
+              })
+              .catch(error => {
+                console.log('error with this promise')
+                console.log(error)
+              })
+          ))
+        }
+      })
+      .then((response) => {
+        console.log('done syncing creatable types');
+    });
+
+    // Set up request for viewable types
+    data.url = this.state.siteUrl + '/app/viewable-types/retrieve';
+    let viewableTypes = axios(data)
+      .then((response) => {
+        return response.data;
+      })
+      .then((responseJson) => {
+        if (typeof responseJson === 'object' && responseJson !== null) {
+
+          // now let's sync all content type display endpoints
+
+
+          let retrieveFieldsFetch = [];
+          for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+            data.url = this.state.siteUrl + '/app/node-view-fields/retrieve/' + machineName;
+           retrieveFieldsFetch.push(axios(data)
+              .then((response) => {
+                return response.data;
+              })
+              .then((responseJson) => {
+
+                this.state.db.transaction(
+                  tx => {
+                    tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
+                      [machineName, JSON.stringify(responseJson)],
+                      (success) => '',
+                      (success, error) => ''
+                    );
+                  }
+                );
+
+
+                // @todo: We will need to grab the listing display as well
+              })
+              .catch((error) => {
+                console.log('error 1');
+                console.log(error);
+              })
+          );
+          }
+
+          return Promise.all(retrieveFieldsFetch)
+            .then(()=> {
+              console.log('done syncing viewable types')
+            });
+
+        }
+      })
+      .catch((error) => {
+        console.log('error 2');
+        console.log(error);
+      });
+
+    // Set up site info fetch
+    data.url = this.state.siteUrl + '/app/site-info/retrieve';
+    let siteInfo = axios(data)
+      .then((response) => {
+        return response.data;
+      })
+      .then((siteInfo) => {
+        if (siteInfo && siteInfo.site_name) {
+          this.state.db.transaction(
+            tx => {
+              tx.executeSql('replace into site_info (site_name, mobile_enabled, logo) values (?, ?, ?)',
+                [siteInfo.site_name, siteInfo.mukurtu_mobile_enabled, siteInfo.logo],
+                (success) => '',
+                (success, error) => ''
+              );
+            }
+          );
+          this.setState({'siteInfo': siteInfo});
+          console.log('done syncing site info')
+        }
+      })
+      .catch((error) => {
+        console.log('error 3');
+        console.log(error);
+      });
+
+
+
+
+    // Run all the requests
+    Promise.all([noderequest, creatableTypes, viewableTypes, siteInfo])
+      .then((values) => {
+        console.log('done syncing everything');
+        this.setState({'syncing': false})
+      })
+      .catch((error) => {
+        console.log('error syncing');
+        this.setState({'syncing': false})
+        console.log(error);
+      });
+  }
+
   /**
    * Sync everything
    */
@@ -875,12 +1099,25 @@ export default class App extends React.Component {
             }
           }
           this.buildRemovalNids(nodes);
-          for (const [nid, object] of Object.entries(nodes)) {
-            // @todo don't update all nodes but starring a node does not save
-            // if (timestamp > this.state.syncUpdated) {
-            this.saveNode(nid, data, object.editable);
-            // }
-          }
+          // let tempArray = [];
+
+          Promise.all(Object.keys(nodes).map((key, index) =>
+            this.saveNode(key, data)
+          ))
+            .then((response) => {
+              console.log('test');
+            });
+
+
+          // for (const [nid, object] of Object.entries(nodes)) {
+          //   // @todo don't update all nodes but starring a node does not save
+          //   // if (timestamp > this.state.syncUpdated) {
+          //   // this.saveNode(nid, data, object.editable);
+          //   tempArray[nid] = data;
+          //   // }
+          //
+          // }
+
 
           // now lets sync the taxonomy terms as well
         }
@@ -940,7 +1177,7 @@ export default class App extends React.Component {
                 }
               );
               // Set content types to state
-              this.setState({contentTypes: responseJson})
+              this.setState({contentTypes: responseJson});
               // now let's sync all content type endpoints
               let urls = [];
               for (const [machineName, TypeObject] of Object.entries(responseJson)) {
@@ -1131,9 +1368,10 @@ export default class App extends React.Component {
 
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-});
+const
+  styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+  });
