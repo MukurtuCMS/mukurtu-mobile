@@ -1055,7 +1055,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: Colors.primary,
     marginBottom: 10,
-    color: '#FFF',
+    // color: '#FFF',
     fontSize: 16,
   },
   selectedButtonStyle: {

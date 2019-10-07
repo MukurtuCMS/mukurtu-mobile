@@ -22,7 +22,7 @@ import JSONTree from 'react-native-json-tree'
 import SettingsList from "react-native-settings-list";
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import * as Colors from "../constants/Colors"
-import { Ionicons } from '@expo/vector-icons';
+import {Ionicons} from '@expo/vector-icons';
 
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global');
@@ -31,6 +31,19 @@ export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
     const {navigation, screenProps} = this.props;
+
+    // Filter the list of all nodes to just nodes in this content type
+    let contentType = this.props.navigation.state.params.contentType;
+    let filteredNodes = {};
+    for(let nid in this.props.screenProps.nodes) {
+      if (this.props.screenProps.nodes.hasOwnProperty(nid)) {
+        if (this.props.screenProps.nodes[nid].type === contentType) {
+          filteredNodes[nid] = this.props.screenProps.nodes[nid];
+        }
+      }
+    }
+
+
     this.state = {
       contentList: [],
       result: null,
@@ -41,7 +54,7 @@ export default class HomeScreen extends React.Component {
       token: null,
       cookie: null,
       isConnected: false,
-      nodes: this.props.screenProps.nodes,
+      nodes: filteredNodes,
       db: this.props.screenProps.db,
       communityFilterList: [],
       terms: false,
@@ -77,37 +90,37 @@ export default class HomeScreen extends React.Component {
     this.updateFilters();
 
     // Get our viewable fields to pass to the node teaser
-    let contentType = this.props.navigation.state.params.contentType;
-
-
-    // Need to move all of this to the initial props loading.
-    const data = {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': this.props.screenProps.token,
-        'Cookie': this.props.screenProps.cookie,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': 0
-      }
-    };
+    // let contentType = this.props.navigation.state.params.contentType;
+    //
+    //
+    // // Need to move all of this to the initial props loading.
+    // const data = {
+    //   method: 'GET',
+    //   headers: {
+    //     'Accept': 'application/json',
+    //     'Content-Type': 'application/json',
+    //     'X-CSRF-Token': this.props.screenProps.token,
+    //     'Cookie': this.props.screenProps.cookie,
+    //     'Cache-Control': 'no-cache, no-store, must-revalidate',
+    //     'Pragma': 'no-cache',
+    //     'Expires': 0
+    //   }
+    // };
 
     // Get the fields we're supposed to display from the endpoint
-    data.url = this.props.screenProps.siteUrl + '/app/list-view-fields/retrieve/' + contentType;
-      axios(data)
-      .then((response) => {
-        return response.data;
-      })
-        .then((responseJson) => {
-          this.setState({'viewableFields': responseJson});
-        })
-
-        .catch((error)=>{
-          console.log(error);
-
-        })
+    // data.url = this.props.screenProps.siteUrl + '/app/list-view-fields/retrieve/' + contentType;
+    //   axios(data)
+    //   .then((response) => {
+    //     return response.data;
+    //   })
+    //     .then((responseJson) => {
+    //       this.setState({'viewableFields': responseJson});
+    //     })
+    //
+    //     .catch((error)=>{
+    //       console.log(error);
+    //
+    //     })
 
   }
 
@@ -205,123 +218,98 @@ export default class HomeScreen extends React.Component {
 
   updateFilters = () => {
 
-    // Get our valid filters
-    const data = {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': this.props.screenProps.token,
-        'Cookie': this.props.screenProps.cookie,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': 0
-      }
-    };
 
     let contentType = this.props.navigation.state.params.contentType;
 
-    data.url = this.props.screenProps.siteUrl + '/app/viewable-types/retrieve';
-      axios(data)
-        .then((response) => {
-          return response.data;
-        })
-        .then((responseJson) => {
-          if (typeof responseJson === 'object' && responseJson !== null) {
-            return responseJson[contentType]['list view filters'];
-          }
-        })
-        .then((validFilters) => {
 
-          let categoriesList = {};
-          if (typeof validFilters.field_category !== 'undefined') {
-            // Set our label to state
-            this.setState({'field_category_label': validFilters.field_category});
-            for (let i in this.state.nodes) {
-              if (this.state.nodes[i].field_category) {
-                const lang = Object.keys(this.state.nodes[i].field_category)[0];
-                if (this.state.nodes[i].field_category) {
-                  const categories = this.state.nodes[i].field_category[lang];
-                  for (var k = 0; k < categories.length; k++) {
-                    if (typeof categories[k]['tid'] !== 'undefined' && this.props.screenProps.terms[categories[k]['tid']]) {
-                      categoriesList[categories[k]['tid']] = this.props.screenProps.terms[categories[k]['tid']].name;
-                    }
-                  }
-                }
-              }
-            }
-          }
-          let keywordsList = {};
-          if (typeof validFilters.field_tags !== 'undefined') {
-            // Set our label to state
-            this.setState({'field_tags_label': validFilters.field_tags});
-            for (let i in this.state.nodes) {
-              if (this.state.nodes[i].field_tags) {
-                const lang = Object.keys(this.state.nodes[i].field_tags)[0];
-                if (this.state.nodes[i].field_tags) {
-                  const keywords = this.state.nodes[i].field_tags[lang];
-                  if (keywords) {
-                    for (var k = 0; k < keywords.length; k++) {
-                      if (typeof keywords[k]['tid'] !== 'undefined' &&  this.props.screenProps.terms[keywords[k]['tid']]) {
-                        keywordsList[keywords[k]['tid']] = this.props.screenProps.terms[keywords[k]['tid']].name;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          let communityList = {};
-          if (typeof validFilters.field_community_ref !== 'undefined' ) {
-            this.setState({'field_community_ref_label': validFilters.field_community_ref});
-            for (let i in this.state.nodes) {
-              if (this.state.nodes[i].field_community_ref) {
-                const lang = Object.keys(this.state.nodes[i].field_community_ref)[0];
-                if (this.state.nodes[i].field_community_ref) {
-                  const community = this.state.nodes[i].field_community_ref[lang];
-                  if (community) {
-                    for (var k = 0; k < community.length; k++) {
-                      if (this.state.nodes[community[k].nid]) {
-                        communityList[community[k].nid] = this.state.nodes[community[k].nid].title;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          let collectionList = {};
-          if (typeof validFilters.field_collection !== 'undefined') {
-            this.setState({'field_collection_label': validFilters.field_collection});
-            for (let i in this.state.nodes) {
-              if (this.state.nodes[i].field_collection) {
-                const lang = Object.keys(this.state.nodes[i].field_collection)[0];
-                if (this.state.nodes[i].field_collection) {
-                  const collections = this.state.nodes[i].field_collection[lang];
-                  if (collections) {
-                    for (var k = 0; k < collections.length; k++) {
-                      if (this.state.nodes[collections[k].nid]) {
-                        collectionList[collections[k].nid] = this.state.nodes[collections[k].nid].title;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          this.setState({
-            categoriesList: categoriesList,
-            communityList: communityList,
-            collectionList: collectionList,
-            keywordsList: keywordsList
-          });
+    let validFilters = this.props.screenProps.viewableTypes[contentType]['list view filters'];
+    // If there aren't valid filters, just skip all this
+    if(typeof validFilters === 'undefined') {
+      return;
+    }
 
-
-        })
-        .catch((error) => {
-          console.log(error);
-          return false;
-        });
+    let categoriesList = {};
+    if (typeof validFilters.field_category !== 'undefined') {
+      // Set our label to state
+      this.setState({'field_category_label': validFilters.field_category});
+      for (let i in this.state.nodes) {
+        if (this.state.nodes[i].field_category) {
+          const lang = Object.keys(this.state.nodes[i].field_category)[0];
+          if (this.state.nodes[i].field_category) {
+            const categories = this.state.nodes[i].field_category[lang];
+            for (var k = 0; k < categories.length; k++) {
+              if (typeof categories[k]['tid'] !== 'undefined' && this.props.screenProps.terms[categories[k]['tid']]) {
+                categoriesList[categories[k]['tid']] = this.props.screenProps.terms[categories[k]['tid']].name;
+              }
+            }
+          }
+        }
+      }
+    }
+    let keywordsList = {};
+    if (typeof validFilters.field_tags !== 'undefined') {
+      // Set our label to state
+      this.setState({'field_tags_label': validFilters.field_tags});
+      for (let i in this.state.nodes) {
+        if (this.state.nodes[i].field_tags) {
+          const lang = Object.keys(this.state.nodes[i].field_tags)[0];
+          if (this.state.nodes[i].field_tags) {
+            const keywords = this.state.nodes[i].field_tags[lang];
+            if (keywords) {
+              for (var k = 0; k < keywords.length; k++) {
+                if (typeof keywords[k]['tid'] !== 'undefined' && this.props.screenProps.terms[keywords[k]['tid']]) {
+                  keywordsList[keywords[k]['tid']] = this.props.screenProps.terms[keywords[k]['tid']].name;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    let communityList = {};
+    if (typeof validFilters.field_community_ref !== 'undefined') {
+      this.setState({'field_community_ref_label': validFilters.field_community_ref});
+      for (let i in this.state.nodes) {
+        if (this.state.nodes[i].field_community_ref) {
+          const lang = Object.keys(this.state.nodes[i].field_community_ref)[0];
+          if (this.state.nodes[i].field_community_ref) {
+            const community = this.state.nodes[i].field_community_ref[lang];
+            if (community) {
+              for (var k = 0; k < community.length; k++) {
+                if (this.state.nodes[community[k].nid]) {
+                  communityList[community[k].nid] = this.state.nodes[community[k].nid].title;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    let collectionList = {};
+    if (typeof validFilters.field_collection !== 'undefined') {
+      this.setState({'field_collection_label': validFilters.field_collection});
+      for (let i in this.state.nodes) {
+        if (this.state.nodes[i].field_collection) {
+          const lang = Object.keys(this.state.nodes[i].field_collection)[0];
+          if (this.state.nodes[i].field_collection) {
+            const collections = this.state.nodes[i].field_collection[lang];
+            if (collections) {
+              for (var k = 0; k < collections.length; k++) {
+                if (this.state.nodes[collections[k].nid]) {
+                  collectionList[collections[k].nid] = this.state.nodes[collections[k].nid].title;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    this.setState({
+      categoriesList: categoriesList,
+      communityList: communityList,
+      collectionList: collectionList,
+      keywordsList: keywordsList
+    });
 
 
   }
@@ -363,7 +351,7 @@ export default class HomeScreen extends React.Component {
   getFilteredContentList = () => {
 
     // Convert filtered content list to array for filtering
-    let filteredContentList  = Object.keys(this.state.nodes).map((key) => {
+    let filteredContentList = Object.keys(this.state.nodes).map((key) => {
       return [Number(key), this.state.nodes[key]];
     });
 
@@ -393,10 +381,10 @@ export default class HomeScreen extends React.Component {
     if (text.length > 0) {
 
       let filteredNodes = {};
-      for(let key in this.state.nodes) {
+      for (let key in this.state.nodes) {
         // key: the name of the object key
         // index: the ordinal position of the key within the object
-        if(this.state.nodes[key].title.indexOf(text) !== -1) {
+        if (this.state.nodes[key].title.indexOf(text) !== -1) {
           filteredNodes[key] = this.state.nodes[key];
         }
       }
@@ -421,7 +409,6 @@ export default class HomeScreen extends React.Component {
 
     }
   }
-
 
 
   /**
@@ -511,12 +498,12 @@ export default class HomeScreen extends React.Component {
   render() {
 
 
-    if(Object.entries(this.state.nodes).length === 0 && this.state.nodes.constructor === Object) {
+    if (Object.entries(this.state.nodes).length === 0 && this.state.nodes.constructor === Object) {
       return (
         <ScrollView style={styles.container}>
           <View>
             <View style={styles.searchInputContainer}>
-              <Ionicons name="md-search" size={32} style={styles.searchIcon} />
+              <Ionicons name="md-search" size={32} style={styles.searchIcon}/>
               <TextInput
                 style={styles.searchInputInner}
                 placeholder="Search"
@@ -543,25 +530,25 @@ export default class HomeScreen extends React.Component {
       let options = [];
       for (let tid in this.state.categoriesList) {
         options.push({
-              label: this.state.categoriesList[tid],
-              value: tid
-            }
+            label: this.state.categoriesList[tid],
+            value: tid
+          }
         );
       }
       categoriesList.push(
-          <RNPickerSelect
-              placeholder={categoriesPlaceholder}
-              key={0}
-              items={options}
-              onValueChange={value => {
-                this.setState({categoriesSelected: value})
-              }}
-              style={pickerSelectStyles}
-              value={this.state.categoriesSelected}
-              Icon={() => {
-                return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
-              }}
-          />
+        <RNPickerSelect
+          placeholder={categoriesPlaceholder}
+          key={0}
+          items={options}
+          onValueChange={value => {
+            this.setState({categoriesSelected: value})
+          }}
+          style={pickerSelectStyles}
+          value={this.state.categoriesSelected}
+          Icon={() => {
+            return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
+          }}
+        />
       );
     }
 
@@ -575,25 +562,25 @@ export default class HomeScreen extends React.Component {
       let options = [];
       for (let tid in this.state.keywordsList) {
         options.push({
-              label: this.state.keywordsList[tid],
-              value: tid
-            }
+            label: this.state.keywordsList[tid],
+            value: tid
+          }
         );
       }
       keywordsList.push(
-          <RNPickerSelect
-              placeholder={keywordsPlaceholder}
-              key={0}
-              items={options}
-              onValueChange={value => {
-                this.setState({keywordsSelected: value})
-              }}
-              style={pickerSelectStyles}
-              value={this.state.keywordsSelected}
-              Icon={() => {
-                return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
-              }}
-          />
+        <RNPickerSelect
+          placeholder={keywordsPlaceholder}
+          key={0}
+          items={options}
+          onValueChange={value => {
+            this.setState({keywordsSelected: value})
+          }}
+          style={pickerSelectStyles}
+          value={this.state.keywordsSelected}
+          Icon={() => {
+            return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
+          }}
+        />
       );
     }
 
@@ -607,25 +594,25 @@ export default class HomeScreen extends React.Component {
       let options = [];
       for (let nid in this.state.communityList) {
         options.push({
-              label: this.state.communityList[nid],
-              value: nid
-            }
+            label: this.state.communityList[nid],
+            value: nid
+          }
         );
       }
       communityList.push(
-          <RNPickerSelect
-              placeholder={communityPlaceholder}
-              key={0}
-              items={options}
-              onValueChange={value => {
-                this.setState({communitySelected: value})
-              }}
-              style={pickerSelectStyles}
-              value={this.state.communitySelected}
-              Icon={() => {
-                return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
-              }}
-          />
+        <RNPickerSelect
+          placeholder={communityPlaceholder}
+          key={0}
+          items={options}
+          onValueChange={value => {
+            this.setState({communitySelected: value})
+          }}
+          style={pickerSelectStyles}
+          value={this.state.communitySelected}
+          Icon={() => {
+            return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
+          }}
+        />
       );
     }
 
@@ -639,90 +626,90 @@ export default class HomeScreen extends React.Component {
       let options = [];
       for (let nid in this.state.collectionList) {
         options.push({
-              label: this.state.collectionList[nid],
-              value: nid
-            }
+            label: this.state.collectionList[nid],
+            value: nid
+          }
         );
       }
       collectionList.push(
-          <RNPickerSelect
-              placeholder={collectionPlaceholder}
-              key={0}
-              items={options}
-              onValueChange={value => {
-                this.setState({collectionSelected: value})
-              }}
-              style={pickerSelectStyles}
-              value={this.state.collectionSelected}
-              Icon={() => {
-                return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
-              }}
-          />
+        <RNPickerSelect
+          placeholder={collectionPlaceholder}
+          key={0}
+          items={options}
+          onValueChange={value => {
+            this.setState({collectionSelected: value})
+          }}
+          style={pickerSelectStyles}
+          value={this.state.collectionSelected}
+          Icon={() => {
+            return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
+          }}
+        />
       );
     }
 
     const filteredContentList = this.getFilteredContentList();
 
     return (
-        <ScrollView style={styles.container}>
-          <View>
-            <View style={styles.searchInputContainer}>
-              <Ionicons name="md-search" size={32} style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInputInner}
-                placeholder="Search"
-                value={this.state.search}
-                onChangeText={(text) => this.setSearchText(text)}
-              />
-            </View>
-
-
-            {categoriesList}
-            {keywordsList}
-            {communityList}
-            {collectionList}
-            {
-              filteredContentList.map((node) => (
-                  <NodeTeaser
-                      key={i++}
-                      node={node[1]}
-                      viewableFields={this.state.viewableFields}
-                      token={this.props.screenProps.token}
-                      cookie={this.props.screenProps.cookie}
-                      url={this.props.screenProps.siteUrl}
-                      db={this.props.screenProps.db}
-                      terms={this.props.screenProps.terms}
-                      allNodes={this.props.screenProps.nodes}
-                      navigation={this.props.navigation}
-                  />
-              ))
-            }
+      <ScrollView style={styles.container}>
+        <View>
+          <View style={styles.searchInputContainer}>
+            <Ionicons name="md-search" size={32} style={styles.searchIcon}/>
+            <TextInput
+              style={styles.searchInputInner}
+              placeholder="Search"
+              value={this.state.search}
+              onChangeText={(text) => this.setSearchText(text)}
+            />
           </View>
 
-        </ScrollView>
+
+          {categoriesList}
+          {keywordsList}
+          {communityList}
+          {collectionList}
+          {
+            filteredContentList.map((node) => (
+              <NodeTeaser
+                key={i++}
+                node={node[1]}
+                viewableFields={this.state.viewableFields}
+                token={this.props.screenProps.token}
+                cookie={this.props.screenProps.cookie}
+                url={this.props.screenProps.siteUrl}
+                db={this.props.screenProps.db}
+                terms={this.props.screenProps.terms}
+                allNodes={this.props.screenProps.nodes}
+                navigation={this.props.navigation}
+              />
+            ))
+          }
+        </View>
+
+      </ScrollView>
     );
   }
 
 
-_maybeRenderDevelopmentModeWarning() {
+  _maybeRenderDevelopmentModeWarning() {
     if (__DEV__) {
       const learnMoreButton = (
-          <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
-            Learn more
-          </Text>
+        <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
+          Learn more
+        </Text>
       );
 
       return (
-          <Text style={styles.developmentModeText}>
-            Development mode is enabled, your app will be slower but you can use useful development
-            tools. {learnMoreButton}
-          </Text>
+        <Text style={styles.developmentModeText}>
+          Development mode is enabled, your app will be slower but you can use useful development
+          tools. {learnMoreButton}
+        </Text>
       );
     } else {
       return (
-          <Text style={styles.developmentModeText}>
-            You are not in development mode, your app will run at full speed.
-          </Text>
+        <Text style={styles.developmentModeText}>
+          You are not in development mode, your app will run at full speed.
+        </Text>
       );
     }
   }
@@ -733,7 +720,7 @@ _maybeRenderDevelopmentModeWarning() {
 
   _handleHelpPress = () => {
     WebBrowser.openBrowserAsync(
-        'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
+      'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
     );
   };
 }

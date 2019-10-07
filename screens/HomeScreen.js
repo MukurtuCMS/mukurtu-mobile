@@ -49,7 +49,8 @@ class HomeScreen extends React.Component {
 
   componentActive(){
     // Immediately check if first time, and rout to login screen
-    if (this.props.screenProps.firstTime) {
+    // We're assuming that there are content types if they've logged in before
+    if (!this.props.screenProps.contentTypes) {
       this.props.navigation.navigate('Login');
     }
 
@@ -59,91 +60,8 @@ class HomeScreen extends React.Component {
     this.setState({ isConnected });
   }
 
-  retrieveContentTypes(array) {
-    if (array[0] && array[0].blob !== undefined) {
-      this.setState({contentTypes: JSON.parse(array[0].blob)});
-    }
-  }
-
-  update() {
-
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'select * from auth limit 1;',
-        '',
-        (_, { rows: { _array } }) => this.getToken(_array)
-      );
-    });
-  }
-
-  getToken(array) {
-    if (array === undefined || array.length < 1) {
-      return false;
-    }
-    const token = array[0].token;
-    const cookie = array[0].cookie;
-
-
-    let data = {
-      method: 'POST',
-      headers: {
-        'Accept':       'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cookie': cookie
-      }
-    };
-
-    data.url = this.props.screenProps.siteUrl + '/app/system/connect';
-      axios(data)
-      .then((response) => {
-        return response.data;
-      })
-      .then((responseJson) => {
-        if (responseJson.user.uid === 0) {
-          return false;
-        }
-        data.method = 'GET';
-
-        data.url = this.props.screenProps.siteUrl + '/app/creatable-types/retrieve';
-        axios( data)
-          .then((response) => {
-            return response.data;
-          })
-          .then((responseJson) => {
-            this.setState({contentTypes: responseJson});
-          })
-          .catch((error) => {
-            // console.error(error);
-          });
-      })
-      .catch((error) => {
-        console.error(error);
-        // this.alertNotLoggedIn(); Need to replace this with a login prompt
-      });
-  }
-
-  alertNotLoggedIn() {
-    // This is done inline in some places,
-    // But setting it here as well as a catch to ensure state is updated.
-    this.setState({loggedIn: false});
-    Alert.alert(
-      'Connection Issue',
-      'We are having trouble reaching the servers.',
-      [
-        {
-          text: 'Continue Offline',
-          style: 'cancel',
-        },
-        {text: 'Log In', onPress: () => this.props.navigation.navigate('Login')},
-      ],
-      {cancelable: true}
-    )
-  }
-
   render() {
-    const { navigation } = this.props;
-    var bgColor = '#DCE3F4';
+
 
     let list = [];
     if(typeof this.props.screenProps.contentTypes !== 'object') {
