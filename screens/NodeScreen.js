@@ -407,9 +407,7 @@ const
       marginTop: 0,
       backgroundColor: '#fff'
     },
-    star: {
-      position: 'absolute',
-    }
+
 
   });
 
