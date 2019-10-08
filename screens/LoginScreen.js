@@ -148,7 +148,7 @@ class LoginScreen extends React.Component {
 
                   this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
                   // Pass the token from the user, not our initial token.
-                  this._handleLoginStatusUpdate(Token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
+                  this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
                   this.props.navigation.navigate('Home')
 
                   // This shouldn't happen, since we're already hitting logout before we get to this.

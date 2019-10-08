@@ -370,7 +370,6 @@ export default class App extends React.Component {
     );
 
 
-
     this.setState({siteUrl: url, databaseName: databaseName});
   };
 
