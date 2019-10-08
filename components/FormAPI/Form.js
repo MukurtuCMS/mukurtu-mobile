@@ -101,7 +101,7 @@ export default class FormComponent extends React.Component {
         'Cookie': cookie
       }
     };
-    fetch(this.props.url + '/index.php?q=taxonomy/autocomplete/field_creator', data)
+    fetch(this.props.screenProps.siteUrl + '/index.php?q=taxonomy/autocomplete/field_creator', data)
       .then((response) => response.json())
       .then((responseJson) => {
         let form = responseJson;

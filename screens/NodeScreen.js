@@ -18,7 +18,7 @@ import axios from "axios";
 
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-4');
+const globalDB = SQLite.openDatabase('global-5');
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => ({
@@ -165,7 +165,7 @@ class NodeScreen extends React.Component {
                     tid={tid}
                     token={this.props.screenProps.token}
                     cookie={this.props.screenProps.cookie}
-                    url={this.state.url}
+                    url={this.props.screenProps.url}
                     key={tid}
                     terms={this.props.screenProps.terms}
                   />;
@@ -227,7 +227,7 @@ class NodeScreen extends React.Component {
             <ScaldItem
               token={this.props.screenProps.token}
               cookie={this.props.screenProps.cookie}
-              url={this.state.url}
+              url={this.props.screenProps.siteUrl}
               sid={sid}
               db={this.props.screenProps.db}
               key={sid}
@@ -242,14 +242,15 @@ class NodeScreen extends React.Component {
           let pid = items[i].value;
           renderedNode.push(
             <ParagraphView
+              paragraphData={this.props.screenProps.paragraphData}
               token={this.props.screenProps.token}
               cookie={this.props.screenProps.cookie}
-              url={this.state.url}
+              url={this.props.screenProps.siteUrl}
               pid={pid}
-              viewableFields={this.state.displayModes}
+              viewableFields={this.props.screenProps.displayModes}
               fieldName={fieldName}
-              nodes={this.state.nodes}
-              terms={this.state.terms}
+              nodes={this.props.screenProps.nodes}
+              terms={this.props.screenProps.terms}
               key={i}
             />
           );
@@ -342,7 +343,7 @@ class NodeScreen extends React.Component {
         isConnected={this.props.screenProps.isConnected}
         token={this.props.screenProps.token}
         cookie={this.props.screenProps.cookie}
-        url={this.state.url}
+        url={this.props.screenProps.siteUrl}
       />
     }
 

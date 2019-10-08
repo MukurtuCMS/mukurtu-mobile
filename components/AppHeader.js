@@ -16,17 +16,17 @@ export default class AppHeader extends React.Component {
 
 
   componentDidMount() {
-    if (this.state.db) {
-      this.state.db.transaction(
-        tx => {
-          tx.executeSql('select * from site_info limit 1',
-            [],
-            (success, info) => this.setState({siteInfo: info.rows._array[0]}),
-            (success, error) => ''
-          );
-        }
-      );
-    }
+    // if (this.state.db) {
+    //   this.state.db.transaction(
+    //     tx => {
+    //       tx.executeSql('select * from site_info limit 1',
+    //         [],
+    //         (success, info) => this.setState({siteInfo: info.rows._array[0]}),
+    //         (success, error) => ''
+    //       );
+    //     }
+    //   );
+    // }
   }
 
   render() {

@@ -1,7 +1,7 @@
 import React from 'react';
 import {SQLite} from 'expo-sqlite';
 
-const globalDB = SQLite.openDatabase('global-4');
+const globalDB = SQLite.openDatabase('global-5');
 
 export const createUniqueTables = (db) => {
   createTokenTable(db);
@@ -17,6 +17,7 @@ export const createUniqueTables = (db) => {
   createSiteInfoTable(db);
   createListDisplayModes(db);
   createViewableTypesTable(db);
+  createParagraphsTable(db);
 };
 
 export const createGlobalTables = () => {
@@ -86,6 +87,14 @@ const createNodesSavedTable = (db) => {
   db.transaction(tx => {
     tx.executeSql(
       'create table if not exists nodes_saved (nid integer primary key, title text, entity text);'
+    );
+  });
+}
+
+const createParagraphsTable = (db) => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'create table if not exists paragraphs (pid integer primary key, blob text);'
     );
   });
 }

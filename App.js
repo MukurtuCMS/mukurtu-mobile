@@ -25,7 +25,7 @@ import * as FileSystem from "expo-file-system";
 const store = configureStore();
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-4');
+const globalDB = SQLite.openDatabase('global-5');
 
 // BackgroundFetch.setMinimumIntervalAsync(60);
 // const taskName = 'mukurtu-mobile-sync';
@@ -65,7 +65,8 @@ export default class App extends React.Component {
       listDisplayModes: {},
       viewableTypes: {},
       authorized: false,
-      initialized: false
+      initialized: false,
+      paragraphData: {}
     };
   }
 
@@ -135,7 +136,9 @@ export default class App extends React.Component {
       displayModes: this.state.displayModes,
       listDisplayModes: this.state.listDisplayModes,
       viewableTypes: this.state.viewableTypes,
-      authorized: this.state.authorized
+      authorized: this.state.authorized,
+      paragraphData: this.state.paragraphData,
+      db: this.state.db
     };
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
       screenProps.user = this.state.user;
@@ -158,26 +161,11 @@ export default class App extends React.Component {
     );
   }
 
-  _loadResourcesAsync = async () => {
-    return Promise.all([
-      Asset.loadAsync([
-        require('./assets/images/robot-dev.png'),
-        require('./assets/images/robot-prod.png'),
-      ]),
-      Font.loadAsync({
-        // This is the font that we are using for our tab bar
-        ...Icon.Ionicons.font,
-        // We include SpaceMono because we use it in HomeScreen.js. Feel free
-        // to remove this if you are not using it in your app
-        'space-mono': require('./assets/fonts/SpaceMono-Regular.ttf'),
-      }),
-    ]);
-  };
-
   _handleSiteUrlUpdate = (url, uid, sync = false) => {
+    let originalUrl = url;
     // create database and set database name state
     const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
-    const databaseName = siteUrl.replace(/\./g, '_') + '_' + uid + 'new2';
+    const databaseName = siteUrl.replace(/\./g, '_') + '_' + uid + 'new3';
 
     globalDB.transaction(
       tx => {
@@ -209,7 +197,7 @@ export default class App extends React.Component {
     );
 
 
-    this.setState({siteUrl: url, databaseName: databaseName});
+    this.setState({siteUrl: originalUrl, databaseName: databaseName});
   };
 
   /**
@@ -252,7 +240,7 @@ export default class App extends React.Component {
     // Then we need to create local database
     // Previously this was also done on opening the app, might still need to do that
      let dburl = url.replace(/(^\w+:|^)\/\//, '');
-    let databaseName = dburl.replace(/\./g, '_') + '_' + userObject.uid + 'new2';
+    let databaseName = dburl.replace(/\./g, '_') + '_' + userObject.uid + 'new3';
     let db = SQLite.openDatabase(databaseName);
 
     ManageTables.createUniqueTables(db);
@@ -271,6 +259,7 @@ export default class App extends React.Component {
       token: token,
       terms: {},
       nodes: {},
+      paragraphData: {},
       displayModes: {},
       listDisplayModes: {},
       viewableTypes: {},
@@ -310,6 +299,7 @@ export default class App extends React.Component {
         sync: false,
         terms: {},
         nodes: {},
+        paragraphData: {},
         displayModes: {},
         listDisplayModes: {},
         viewableTypes: {},
@@ -401,68 +391,133 @@ export default class App extends React.Component {
         currentNodes[node.nid] = node;
         this.setState({'nodes': currentNodes});
 
+        return node;
       })
+      .then((node) => {
+        // Now we need to save the paragraphs within each node
+        console.log('here');
+        for(let field in node) {
+          if(field == 'field_word_entry') {
+            console.log('break here');
+          }
+          if (field.indexOf('field') !== -1) {
+
+            if (node.hasOwnProperty(field)) {
+              if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
+                let pid = node[field].und[0].value;
+                this.saveParagraph(pid, field, node.type);
+
+
+              }
+            }
+          }
+        }
+      })
+
       .catch((error) => {
         console.error(error);
       });
   }
 
-  getCreatableTypes = async (state, data, complete) => {
-    data.url = state.siteUrl + '/app/creatable-types/retrieve';
+
+
+  saveParagraph(pid, fieldName, contentType) {
+    let data = this.buildFetchData('GET');
+
+    data.url = this.state.siteUrl + '/app/paragraph/retrieve/' + pid;
+
     axios(data)
       .then((response) => {
         return response.data;
       })
-      .then((responseJson) => {
-        if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
-          console.log('access denied');
-        }
-        if (typeof responseJson === 'object' && responseJson !== null) {
-          state.db.transaction(
-            tx => {
-              tx.executeSql('delete from content_types;',
-                [],
-                (success) => {
-                  // run this after things have been deleted
-                  state.db.transaction(
-                    tx => {
-                      tx.executeSql('replace into content_types (id, blob) values (?, ?)',
-                        [1, JSON.stringify(responseJson)],
-                        (success) => '',
-                        (success, error) => console.log(' ')
-                      );
-                    }
-                  );
-                },
-                (success, error) => console.log(error)
-              );
+      .then((responsejson) => {
+
+        let fields = responsejson;
+        let  paragraphaData = fields;
+        paragraphaData.pid = pid;
+
+
+        // // If there are referenced nodes, we need to retrieve them to get their titles
+        for (let [key, value] of Object.entries(this.state.displayModes[contentType][fieldName]['fields'])) {
+          if (fields[pid][key]) {
+            // Node reference
+            if (typeof fields[pid][key] !== 'undefined' &&
+              typeof fields[pid][key]['und'] !== 'undefined' &&
+              typeof fields[pid][key]['und']['0']['target_id'] !== 'undefined'
+            ) {
+              for (let i = 0; i < fields[pid][key]['und'].length; i++) {
+                let nid = fields[pid][key]['und'][i]['target_id'];
+
+
+                // These nids won't necessarily be in our synced nodes, so we have to fetch it and then get the title
+                data.url = this.state.siteUrl + '/app/node/' + nid + '.json';
+                paragraphdData.nodeTitles = {};
+                axios(data)
+                  .then((response) => response.data)
+                  .then((node) => {
+                    paragraphData.nodeTitles[nid] = node.title;
+                  })
+                  .catch((error) => {
+                    console.error(error);
+                  });
+              }
+
             }
-          );
+            // Get our taxonomy term titles
+            else if (typeof fields[pid][key] !== 'undefined' &&
+              typeof fields[pid][key]['und'] !== 'undefined' &&
+              typeof fields[pid][key]['und']['0']['tid'] !== 'undefined'
+            ) {
+              for (let i = 0; i < this.state.fields[pid][key]['und'].length; i++) {
+                let tid = this.state.fields[pid][key]['und'][i]['tid'];
+
+                data.url = this.state.siteUrl + '/app/tax-term/' + tid + '.json'
+               paragraphaData.termNames = {};
+                axios(data)
+                  .then((response) => response.data)
+                  .then((term) => {
+                    paragraphData.termNames[tid] = term.name;
+                  })
+                  .catch((error) => {
+                    console.error(error);
+                  });
 
 
-          // now let's sync all content type endpoints
-          let urls = [];
-          for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-            urls.push({url: state.siteUrl + '/app/node-form-fields/retrieve/' + machineName, machineName: machineName});
+              }
+            }
           }
-          Promise.all(urls.map(url =>
-            axios({method: data.method, url: url.url, headers: data.headers})
-              .then((response) => {
-                return response.data;
-              })
-              .then((response) => this.insertContentType(response, state, url.machineName))
-              .catch(error => console.log(error))
-          ))
-            .then(() => {
-              console.log('complete');
-            })
         }
+        return paragraphaData;
       })
+      .then((paragraphData) => {
+
+        let currentParagraphData = this.state.paragraphData;
+        currentParagraphData[paragraphData.pid] = paragraphData[paragraphData.pid];
+        this.setState({'paragraphData': currentParagraphData});
+
+        // Now we insert this into paragraph data
+        this.state.db.transaction(
+          tx => {
+            tx.executeSql('replace into paragraphs (pid, blob) values (?, ?)',
+              [paragraphData.pid, JSON.stringify(paragraphData[paragraphData.pid])],
+              (success) => () => {
+                console.log('success');
+                return 'success'
+              },
+              (success, error) => {
+                console.log(error);
+              }
+            );
+          }
+        );
+
+
+      })
+    ;
   }
 
-  parseJSON = (response) => {
-    return response.json();
-  }
+
+
 
   insertContentType = (response, machineName) => {
    this.state.db.transaction(
@@ -641,6 +696,27 @@ export default class App extends React.Component {
 
     this.state.db.transaction(
       tx => {
+        tx.executeSql('select * from content_type',
+          [],
+          (success, array) => {
+            console.log('content types retrieved');
+            let formFieldsState = {};
+            for(let i = 0; i < array.rows._array.length; i++) {
+              let machineName = array.rows._array[i]['machine_name'];
+              let formFields = JSON.parse(array.rows._array[i]['blob']);
+              formFieldsState[machineName] = formFields;
+            }
+            this.setState({'formFields': formFieldsState});
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+
+    this.state.db.transaction(
+      tx => {
         tx.executeSql('select * from taxonomy',
           [],
           (success, array) => {
@@ -720,6 +796,29 @@ export default class App extends React.Component {
       }
     );
 
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('select * from paragraphs',
+          [],
+          (success, array) => {
+            let paragraphState = {};
+            if(array.rows._array.length > 0) {
+              for(let i = 0; i < array.rows._array.length; i++ ) {
+                let pid = array.rows._array[i][pid];
+                let data = JSON.parse(array.rows._array[i]['blob']);
+                paragraphState[pid] = data;
+              }
+              this.setState({'paragraphData': paragraphState});
+            }
+
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+
 
 
 
@@ -757,7 +856,6 @@ export default class App extends React.Component {
             this.saveNode(key, data)
           ))
             .then((response) => {
-              // this.setState({'nodes': nodes});
               console.log('done syncing nodes');
             });
 
@@ -1084,21 +1182,30 @@ export default class App extends React.Component {
                                 token: token
                               }, () => {this.retrieveEverythingFromDb()}); // Should probably do a new sync
 
+                            } else {
+                              this.setState({
+                                loggedIn: false,
+                                authorized: false,
+                                syncing: false,
+                                initialized: true
+                              });
                             }
                           } catch (e) {
                             this.setState({
                               loggedIn: false,
-                              authorized: true,
-                              syncing: true
-                            }, () => this.retrieveEverythingFromDb());
+                              authorized: false,
+                              syncing: false,
+                              initialized: true
+                            });
                           }
                         })
                         .catch((error) => {
                           this.setState({
                             loggedIn: false,
-                            authorized: true,
-                            syncing: true
-                          }, () => this.retrieveEverythingFromDb());
+                            authorized: false,
+                            syncing: false,
+                            initialized: true
+                          });
                         });
 
 
