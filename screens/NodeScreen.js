@@ -345,7 +345,10 @@ class NodeScreen extends React.Component {
     if (showStar) {
       {/*Pass nodes to star so we can filter out personal collection*/
       }
-      star = <Star
+      star =
+        <View  style={styles.star}>
+        <Star
+
         starred={false}
         nid={node.nid}
         nodes={this.props.screenProps.nodes}
@@ -355,6 +358,7 @@ class NodeScreen extends React.Component {
         cookie={this.props.screenProps.cookie}
         url={this.props.screenProps.siteUrl}
       />
+        </View>
     }
 
 
@@ -394,7 +398,6 @@ const
     map: {
       width: Dimensions.get('window').width - 20,
       height: 300,
-      marginLeft: 10,
       marginBottom: 10
     },
     syncError: {
@@ -403,6 +406,9 @@ const
     htmlField: {
       marginTop: 0,
       backgroundColor: '#fff'
+    },
+    star: {
+      position: 'absolute',
     }
 
   });

@@ -5,6 +5,7 @@ import {Modal} from "react-native";
 import {TouchableHighlight} from "react-native";
 import {Text} from "react-native";
 import {Button} from "react-native-elements";
+import Colors from "../constants/Colors";
 
 
 export class Star extends React.Component {
@@ -227,9 +228,9 @@ export class Star extends React.Component {
               onPress={() => {
                 this.setModalVisible(!this.state.modalVisible);
               }}>
-              <Text>Close</Text>
+              <Text style={styles.buttonStyle}>X</Text>
             </TouchableHighlight>
-            <Text>Add to Personal Collection</Text>
+            <Text style={styles.label}>Add to Personal Collection</Text>
             {collectionList}
             <Button
               title="Submit"
@@ -247,6 +248,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     paddingRight: 20,
+  },
+  label: {
+    marginTop: 10,
+    marginBottom: 5,
+    color: '#000',
+    fontSize: 24,
+    textAlign: 'center'
+  },
+  buttonStyle: {
+    padding: 10,
+    backgroundColor: Colors.primary,
+    marginBottom: 10,
+    fontSize: 20,
+    textAlign: 'right',
+    color: '#fff'
   },
 
 });
