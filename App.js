@@ -353,7 +353,7 @@ export default class App extends React.Component {
       }
       if (!(currentlyStarred)) {
         var currentNid = currentNids[i].nid;
-        state.db.transaction(tx => {
+        this.state.db.transaction(tx => {
           tx.executeSql(
             'delete from nodes where nid = ?;',
             [currentNid],
@@ -394,20 +394,22 @@ export default class App extends React.Component {
         return node;
       })
       .then((node) => {
-        // Now we need to save the paragraphs within each node
-        console.log('here');
+        // Now we need to save the paragraphs, terms, and nodes referenced within each node
         for(let field in node) {
-          if(field == 'field_word_entry') {
-            console.log('break here');
-          }
+
           if (field.indexOf('field') !== -1) {
 
             if (node.hasOwnProperty(field)) {
+              // Save any paragraphs embedded in here
               if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
                 let pid = node[field].und[0].value;
                 this.saveParagraph(pid, field, node.type);
-
-
+              } else if(node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['tid'] !== 'undefined') {
+                data = this.buildFetchData('GET');
+                this.saveTaxonomy(node[field].und[0]['tid'], data);
+              } else if(node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['nid'] !== 'undefined') {
+                data = this.buildFetchData('GET');
+                this.saveNode(node[field].und[0]['nid'], data);
               }
             }
           }

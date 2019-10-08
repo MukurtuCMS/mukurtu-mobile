@@ -67,7 +67,7 @@ class NodeScreen extends React.Component {
     let filteredNodes = {};
     for(let nid in this.props.screenProps.nodes) {
       if(this.props.screenProps.nodes[nid].type === type) {
-        filteredNodes.nide =this.props.screenProps.nodes[nid];
+        filteredNodes[nid] = this.props.screenProps.nodes[nid];
       }
     }
     this.setState({'nodes': filteredNodes});
@@ -141,7 +141,7 @@ class NodeScreen extends React.Component {
           let fieldData = '';
           let errorMessage = '';
           let oneExists = false;
-          if (!this.state.terms) {
+          if (!this.props.screenProps.terms) {
             errorMessage =
               <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
                 item to Mukurtu Mobile.</Text>
@@ -157,19 +157,19 @@ class NodeScreen extends React.Component {
                 if (i > 0) {
                   fieldData += ', ';
                 }
-                if (this.state.terms[tid]) {
-                  fieldData += this.state.terms[tid].name;
+                if (typeof this.props.screenProps.terms[tid] !== 'undefined') {
+                  fieldData += this.props.screenProps.terms[tid].name;
                 } else {
                   // This is a catch in case the term isn't synced.
-                  let term = <Term
-                    tid={tid}
-                    token={this.props.screenProps.token}
-                    cookie={this.props.screenProps.cookie}
-                    url={this.props.screenProps.url}
-                    key={tid}
-                    terms={this.props.screenProps.terms}
-                  />;
-                  renderedNode.push(term);
+                  // let term = <Term
+                  //   tid={tid}
+                  //   token={this.props.screenProps.token}
+                  //   cookie={this.props.screenProps.cookie}
+                  //   url={this.props.screenProps.url}
+                  //   key={tid}
+                  //   terms={this.props.screenProps.terms}
+                  // />;
+                  // renderedNode.push(term);
                 }
               }
             }
@@ -184,14 +184,24 @@ class NodeScreen extends React.Component {
         }
       }
       if (fieldObject.view_mode_properties.type === 'text_default') {
+        let tagsStyles = { p: { marginTop: 0 }};
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML key={fieldName + i} html={node[fieldName][lang][i].safe_value}
+            renderedNode.push(<HTML tagsStyles={tagsStyles}  key={fieldName + i} html={node[fieldName][lang][i].safe_value}
                                     imagesMaxWidth={Dimensions.get('window').width}/>)
           }
         }
       }
+      if (fieldObject.view_mode_properties.type === 'license_formatter') {
+        const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
+        if (isObject) {
+          for (var i = 0; i < node[fieldName][lang].length; i++) {
+            renderedNode.push(<Text key={fieldName + i}>{node[fieldName][lang][0].value}</Text>)
+          }
+        }
+      }
+
       if (fieldObject.view_mode_properties.type === 'geofield_map_map') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
@@ -284,7 +294,7 @@ class NodeScreen extends React.Component {
           let fieldData = '';
           let errorMessage = '';
           let oneExists = false;
-          if (!this.state.nodes) {
+          if (!this.props.screenProps.nodes) {
             errorMessage =
               <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
                 item to Mukurtu Mobile.</Text>
@@ -301,11 +311,11 @@ class NodeScreen extends React.Component {
                     item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
-                if (i > 0 && this.state.nodes[nid]) {
+                if (i > 0 && this.props.screenProps.nodes[nid]) {
                   fieldData += ', ';
                 }
-                if (this.state.nodes[nid]) {
-                  fieldData += this.state.nodes[nid].title;
+                if (this.props.screenProps.nodes[nid]) {
+                  fieldData += this.props.screenProps.nodes[nid].title;
                 }
               }
             }
@@ -338,7 +348,7 @@ class NodeScreen extends React.Component {
       star = <Star
         starred={false}
         nid={node.nid}
-        nodes={this.state.nodes}
+        nodes={this.props.screenProps.nodes}
         db={this.props.screenProps.db}
         isConnected={this.props.screenProps.isConnected}
         token={this.props.screenProps.token}
@@ -371,6 +381,7 @@ const
       flexDirection: 'column'
     },
     label: {
+      marginTop: 10,
       marginBottom: 5,
       color: '#000',
       fontSize: 24
@@ -388,6 +399,10 @@ const
     },
     syncError: {
       fontSize: 12
+    },
+    htmlField: {
+      marginTop: 0,
+      backgroundColor: '#fff'
     }
 
   });
