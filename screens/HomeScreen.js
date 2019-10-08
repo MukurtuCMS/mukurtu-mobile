@@ -64,10 +64,10 @@ class HomeScreen extends React.Component {
 
 
     let list = [];
-    if(typeof this.props.screenProps.contentTypes !== 'object') {
+    if(typeof this.props.screenProps.contentTypes !== 'object' || Object.entries(this.props.screenProps.contentTypes).length === 0 ) {
       return (
       <View>
-        <Text>Logging In...</Text>
+        <Text>Please Log In to Sync Content</Text>
       </View>);
     }
     const contentTypes = this.props.screenProps.contentTypes;

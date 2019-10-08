@@ -38,48 +38,47 @@ class LogoutScreen extends React.Component {
 
 
     // we need to remove our global user
-    globalDB.transaction(
-      tx => {
-        tx.executeSql('delete from user;',
-        );
-      }
-    );
+    // globalDB.transaction(
+    //   tx => {
+    //     tx.executeSql('delete from user;',
+    //     );
+    //   }
+    // );
 
 
-    this._handleLogoutStatusUpdate(false);
-    this._handleSiteUrlUpdate('');
+    // this._handleLogoutStatusUpdate(false);
+    // this._handleSiteUrlUpdate('');
   }
 
 
-  handleLogoutClick(viewId) {
+  handleLogoutClick() {
 
-    this.props.screenProps.db.transaction(
-      tx => {
-        tx.executeSql('delete from auth;',
-        );
-      }
-    );
+    // this.props.screenProps.db.transaction(
+    //   tx => {
+    //     tx.executeSql('delete from auth;',
+    //     );
+    //   }
+    // );
+    //
+    // this.props.screenProps.db.transaction(
+    //     tx => {
+    //       tx.executeSql('delete from auth;',
+    //       );
+    //     }
+    // );
+    //
+    // // we need to remove our global user
+    // globalDB.transaction(
+    //     tx => {
+    //       tx.executeSql('delete from user;',
+    //       );
+    //     }
+    // );
 
-    this.props.screenProps.db.transaction(
-        tx => {
-          tx.executeSql('delete from auth;',
-          );
-        }
-    );
 
-    // we need to remove our global user
-    globalDB.transaction(
-        tx => {
-          tx.executeSql('delete from user;',
-          );
-        }
-    );
+    this._handleLogoutStatusUpdate();
 
-
-    this._handleLogoutStatusUpdate(false);
-    this._handleSiteUrlUpdate('');
-
-    this.getToken(viewId);
+    // this.getToken();
     //
   }
 
@@ -119,12 +118,12 @@ class LogoutScreen extends React.Component {
   render() {
 
 
-    if (this.props.screenProps.isLoggedIn) {
+    if (this.props.screenProps.loggedIn) {
       return (
           <View style={styles.container}>
-            <Text>You Are Logged in as {this.props.user.user.name}</Text>
+            <Text>You Are Logged in as {this.props.screenProps.user.user.name}</Text>
             <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
-                                onPress={() => this.handleLogoutClick('login')}>
+                                onPress={() => this.handleLogoutClick()}>
               <Text style={styles.loginText}>Log Out</Text>
             </TouchableHighlight>
           </View>

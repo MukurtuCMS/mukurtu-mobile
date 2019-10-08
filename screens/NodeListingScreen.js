@@ -221,6 +221,9 @@ export default class HomeScreen extends React.Component {
 
     let contentType = this.props.navigation.state.params.contentType;
 
+    if(typeof this.props.screenProps.viewableTypes[contentType] === 'undefined') {
+      return;
+    }
 
     let validFilters = this.props.screenProps.viewableTypes[contentType]['list view filters'];
     // If there aren't valid filters, just skip all this

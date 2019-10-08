@@ -27,12 +27,12 @@ const store = configureStore();
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global-4');
 
-BackgroundFetch.setMinimumIntervalAsync(60);
-const taskName = 'mukurtu-mobile-sync';
-TaskManager.defineTask(taskName, async () => {
-  console.log('background fetch running');
-  return BackgroundFetch.Result.NewData;
-});
+// BackgroundFetch.setMinimumIntervalAsync(60);
+// const taskName = 'mukurtu-mobile-sync';
+// TaskManager.defineTask(taskName, async () => {
+//   console.log('background fetch running');
+//   return BackgroundFetch.Result.NewData;
+// });
 
 export default class App extends React.Component {
   _isMounted = false;
@@ -43,7 +43,6 @@ export default class App extends React.Component {
     this._handleSiteUrlUpdate = this._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
     this._handleLogoutStatusUpdate = this._handleLogoutStatusUpdate.bind(this);
-    this.setDatabaseName = this.setDatabaseName.bind(this);
     // this.syncCompleted = this.syncCompleted.bind(this);
 
     this.state = {
@@ -71,66 +70,6 @@ export default class App extends React.Component {
   }
 
 
-  setDatabaseName() {
-    // let self = this;
-    // // This should always be run on app initialization. It check for the previous user object or set state to first time.
-    //
-    // globalDB.transaction(tx => {
-    //   tx.executeSql(
-    //     'select * from user limit 1;',
-    //     '',
-    //     function (tx, result) {
-    //       let user = null;
-    //       let databaseName = null;
-    //       let db = null;
-    //       const array = result.rows._array;
-    //       if (array.length > 0) {
-    //         if (array[0] && array[0].user.length > 0) {
-    //           const siteUrl = array[0].siteUrl;
-    //           if (array[0].user) {
-    //             const userBlob = JSON.parse(array[0].user);
-    //             if (typeof userBlob.user === 'object' && userBlob.user.uid > 0) {
-    //               user = userBlob;
-    //               databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
-    //               db = SQLite.openDatabase(databaseName);
-    //             }
-    //           }
-    //         }
-    //       }
-    //       let firstTime = false;
-    //       let loggedIn = null;
-    //       if (!user) {
-    //         firstTime = true;
-    //         databaseName = null;
-    //         loggedIn = false;
-    //       } else {
-    //         loggedIn = true;
-    //       }
-    //       self.setState({user: user, databaseName: databaseName, db: db, firstTime: firstTime, loggedIn: loggedIn});
-    //     }
-    //   );
-    //
-    //
-    // });
-  };
-
-
-  deleteAll = () => {
-    // SQLite.openDatabase('global');
-    const mainDB = SQLite.openDatabase('mukurtucms_kanopi_cloud_1');
-
-    globalDB.transaction(tx => {
-      tx.executeSql(
-        'delete from user; delete from database;'
-      );
-    });
-    mainDB.transaction(tx => {
-      tx.executeSql(
-        'delete from auth;'
-      );
-    });
-  }
-
   componentDidMount() {
 
 
@@ -141,90 +80,13 @@ export default class App extends React.Component {
     // console.disableYellowBox = true;
     //
     // var self = this;
-    // this._isMounted = true;
-
-    // setInterval(() => {
-    //   if (self.state.db !== null && self.state.loggedIn && self.state.isConnected) {
-    //     console.log('here');
-    //     this.updateEntities(this.state.db, this.state);
-    //     // Sync.syncContentTypes(this.state, this.syncCompleted);
-    //     // Sync.syncSiteInfo(this.state);
-    //   }
-    //   ;
-    // }, 15 * 60 * 1000);
-
-    // delete all data and start fresh
-    // this.deleteAll();
 
     // First, create global tables if they don't exist.
     ManageTables.createGlobalTables();
-
-    // Then we check for
-
-    // let's first check if this is a first time user, redirect to login
-    // this.firstTimeCheck();
-
-    // this.setDatabaseName();
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
 
+    // Check our login status
     this.checkLogin();
-  }
-
-  // syncCompleted(sync = false) {
-  //   if (sync) {
-  //     this.setState({sync: false});
-  //   } else {
-  //   }
-  // }
-
-  componentDidUpdate(prevProps, prevState) {
-    // if (!prevState.db && this.state.db && this.state.isConnected) {
-    //   // We cannot create any of our unique tables until we have our unique database created and stored in state
-    //   ManageTables.createUniqueTables(this.state.db);
-    //   // The getAuth function is causing problems, and ultimately doesn't seem like it's needed — we're authorizing via
-    //   // login
-    //   // this._getAuth();
-    // } else if (!prevState.db && this.state.db && !this.state.isConnected) {
-    //   // db and user exist, but cannot check auth
-    //   ManageTables.createUniqueTables(this.state.db);
-    // }
-    //
-    // // We are connected, AND token was just set (via getAuth)
-    // if (!prevState.token && this.state.token && this.state.isConnected && this.state.loggedIn && this.state.sync && !this.state.syncing && this.state.db) {
-    //   this.setState({'syncing': true});
-    //   this.updateEntities(this.state.db, this.state);
-    //   // Sync.syncContentTypes(this.state, this.syncCompleted);
-    //   // Sync.syncSiteInfo(this.state);
-    // } else if (this.state.sync && !this.state.syncing) {
-    //   console.log('sync');
-    //   if (this.state.isConnected) {
-    //     console.log('connected');
-    //     if (!this.state.user) {
-    //       console.log('inserting user');
-    //       this._insertUser();
-    //     } else {
-    //
-    //       if (!this.state.db) {
-    //         console.log('set the database');
-    //         this.setDatabaseName();
-    //       } else {
-    //         console.log('database is set');
-    //         ManageTables.createUniqueTables(this.state.db);
-    //         if (!this.state.loggedIn) {
-    //           console.log('lets login');
-    //           this._insertAuth();
-    //         } else {
-    //           this.setState({'syncing': true});
-    //           console.log('we are logged in');
-    //           this.updateEntities(this.state.db, this.state, this.syncCompleted());
-    //           // Sync.syncContentTypes(this.state, this.syncCompleted);
-    //           // Sync.syncSiteInfo(this.state);
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
   }
 
   handleConnectivityChange = isConnected => {
@@ -236,18 +98,6 @@ export default class App extends React.Component {
   componentWillUnmount() {
     NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
-
-  // registerBackgroundSync = async () => {
-  //   await BackgroundFetch.registerTaskAsync(taskName);
-  // };
-  //
-  // logRegisteredTasks = async () => {
-  //   const registeredTasks = await TaskManager.getRegisteredTasksAsync();
-  // };
-
-  // firstTimeCheck = () => {
-  //
-  // }
 
   render() {
 
@@ -281,7 +131,6 @@ export default class App extends React.Component {
       _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
-      deleteAllData: this.deleteAllData,
       nodes: this.state.nodes,
       displayModes: this.state.displayModes,
       listDisplayModes: this.state.listDisplayModes,
@@ -325,19 +174,9 @@ export default class App extends React.Component {
     ]);
   };
 
-  _handleLoadingError = error => {
-    // In this case, you might want to report the error to your error
-    // reporting service, for example Sentry
-    console.warn(error);
-  };
-
-  _handleFinishLoading = () => {
-    this.setState({isLoadingComplete: true});
-  };
-
   _handleSiteUrlUpdate = (url, uid, sync = false) => {
     // create database and set database name state
-     const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
+    const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
     const databaseName = siteUrl.replace(/\./g, '_') + '_' + uid + 'new2';
 
     globalDB.transaction(
@@ -382,8 +221,6 @@ export default class App extends React.Component {
    */
   _handleLoginStatusUpdate = (token, cookie, url, user) => {
     console.log('logging in');
-
-
 
     // First, we have to update our databases.
     // Insert user and database into global DB
@@ -444,81 +281,23 @@ export default class App extends React.Component {
   };
 
 
-  /**
-   * Deletes all data — temporary function
-   */
-  deleteAllData() {
+  _handleLogoutStatusUpdate = () => {
 
-
+    // Remove info from global db
     globalDB.transaction(
       tx => {
-        tx.executeSql('select * from database;',
-          '',
-          (success, array) => {
-            // There might be multiple databases, so we just get the first one
-            if(array.rows.length > 0) {
-              // First we go through and delete all the site databases
+        tx.executeSql('delete from database; delete from user;')
+      });
 
-              let DBs = array.rows._array;
-              for(let i = 0; i < DBs.length; i++) {
-                let dbName = DBs[i].databaseName;
-
-                let tempDB = SQLite.openDatabase(dbName);
-
-                tempDB.transaction(tx => {
-                  tx.executeSql(
-                    'delete from saved_offline; delete from auth; delete from nodes; delete from content_types; delete from content_type; delete from sync; delete from user;'
-                  );
-                });
-
-              }
-            }
-          }
-        );
-      }
-    );
-
-
-
-
-
-    globalDB.transaction(tx => {
-      tx.executeSql(
-        'delete from user; delete from database;'
-      );
-    });
-
-
+    // Remove auth from site database
     if (this.state.db) {
       this.state.db.transaction(tx => {
         tx.executeSql(
-          'delete from saved_offline; delete from auth; delete from nodes; delete from content_types; delete from content_type; delete from sync; delete from user;'
+          'delete from auth;',
         );
       });
     }
 
-    this.state = {
-      isLoadingComplete: false,
-      siteUrl: '',
-      isLoggedIn: false,
-      token: false,
-      cookie: false,
-      isConnected: false,
-      databaseName: false,
-      db: null,
-      loggedIn: null,
-      user: {},
-      firstTime: false,
-      sync: false,
-      syncing: false
-    };
-  }
-
-
-  _handleLogoutStatusUpdate = (status) => {
-    // Not positive if we want this — when we log out it nukes the database. Might be able to drop this if it causes
-    // problems, but right now it seems like a good safeguard.
-    // this.deleteAll();
     this.setState(
       {
         token: false,
@@ -534,86 +313,13 @@ export default class App extends React.Component {
         displayModes: {},
         listDisplayModes: {},
         viewableTypes: {},
+        contentTypes: {}
       }
     );
 
-    // Remove auth from site database
-    if (this.state.db) {
-      this.state.db.transaction(tx => {
-        tx.executeSql(
-          'delete from auth;'
-        );
-      });
-    }
+
   };
 
-
-  // This will check the database for an existing auth from the unique database
-  // _getAuth() {
-  //   this.state.db.transaction(tx => {
-  //     tx.executeSql(
-  //       'select * from auth limit 1;',
-  //       '',
-  //       (_, {rows: {_array}}) => this.connect(_array),
-  //       (tx, error) => {
-  //         this._handleAuthError(error)
-  //       }
-  //     );
-  //   });
-  // }
-
-  _insertUser() {
-    globalDB.transaction(
-      tx => {
-        tx.executeSql('select * from user;',
-          '',
-          (success, array) => {
-            console.log('logging user');
-            console.log(array);
-            if (array.rows._array.length > 0) {
-              this.setState({user: JSON.parse(array.rows._array[0].user)});
-            }
-          }
-        );
-      }
-    );
-  }
-
-  _insertAuth() {
-    if (this.state.user.token && this.state.user.session_name && this.state.user.sessid) {
-      this.state.db.transaction(
-        tx => {
-          tx.executeSql('delete from auth;',
-          );
-        }
-      );
-      this.state.db.transaction(
-        tx => {
-          tx.executeSql('insert into auth (token, cookie) values (?, ?)',
-            [this.state.user.token, this.state.user.session_name + '=' + this.state.user.sessid],
-            (success) => {
-              // Set site status to logged in
-              this.setState({
-                token: this.state.user.token,
-                cookie: this.state.user.session_name + '=' + this.state.user.sessid,
-                loggedIn: true,
-              });
-
-              console.log('three');
-              // this.updateEntities(this.state.db, this.state, true);
-
-            },
-
-            (success, error) => console.log(' ')
-          );
-        }
-      );
-    }
-  }
-
-  // _doneSyncing = () => {
-  //   this.setState({'sync': false})
-  // }
 
   buildFetchData = (method = 'GET') => {
     const token = this.state.token;
@@ -667,14 +373,6 @@ export default class App extends React.Component {
     }
   }
 
-  checkStatus = (response) => {
-    if (response.ok) {
-      return Promise.resolve(response);
-    } else {
-      return Promise.reject(new Error(response.statusText));
-    }
-  }
-
   saveNode = (nid, data, editable) => {
     let fetchurl = this.state.siteUrl + '/app/node/' + nid + '.json';
     fetch(fetchurl, this.buildFetchData('GET'))
@@ -682,35 +380,14 @@ export default class App extends React.Component {
         return response.json();
       })
       .then((node) => {
-        // this.state.db.transaction(tx => {
-        //   tx.executeSql(
-        //     'delete from nodes where nid = ?;',
-        //     [node.nid],
-        //     (success) => {
-        //       // unset our nodes state after they're deleted
-        //       if(typeof this.state.nodes[node.nid] !== undefined) {
-        //         delete this.state.nodes[node.nid];
-        //       }
-        //
-        //     },
-        //     (success, error) => {
-        //       console.log('node delete error');
-        //       console.log(error);
-        //     }
-        //   );
-        // });
-
 
         this.state.db.transaction(
           tx => {
             tx.executeSql('insert into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
               [node.nid, node.title, JSON.stringify(node), editable],
               (success) => {
-
-
               },
               (success, error) => {
-
                 console.log(error);
               }
             );
@@ -772,7 +449,6 @@ export default class App extends React.Component {
               .then((response) => {
                 return response.data;
               })
-              .then(this.checkStatus)
               .then((response) => this.insertContentType(response, state, url.machineName))
               .catch(error => console.log(error))
           ))
@@ -921,10 +597,6 @@ export default class App extends React.Component {
     );
   }
 
-
-  syncEntities(data) {
-
-  }
 
   // Retrieves and sets state from db
   retrieveEverythingFromDb() {
@@ -1316,18 +988,10 @@ export default class App extends React.Component {
   }
 
 
-  _handleAuthError = () => {
-    if (error) {
-      // There must not be auth
-    }
-  }
-
-
   // This checks to see if we're logged in on the site.
   // If we're offline, but we do have authorization token in the db, we'll set login state to false and authorized to true
   // If we have both, both are true.
   checkLogin() {
-
 
     // First, get our global db info
     globalDB.transaction(
