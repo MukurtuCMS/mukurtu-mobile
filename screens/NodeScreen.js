@@ -18,7 +18,7 @@ import axios from "axios";
 
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global');
+const globalDB = SQLite.openDatabase('global-4');
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => ({
@@ -34,35 +34,56 @@ class NodeScreen extends React.Component {
       url: siteUrl,
       db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
       displayModes: false,
-      terms: null,
+      terms: this.props.screenProps.terms,
       nodes: null
     }
-    this.checkValidPersonalCollection = this.checkValidPersonalCollection.bind(this);
   }
 
   componentDidMount() {
     const type = this.props.navigation.getParam('contentType');
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'select node_view from display_modes where machine_name = ?;',
-        [type],
-        (query, result) => this.setState({displayModes: JSON.parse(result.rows._array[0].node_view)})
-      );
-    });
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'select * from taxonomy;',
-        '',
-        (query, result) => this.setTaxonomy(result.rows._array)
-      );
-    });
-    this.state.db.transaction(tx => {
-      tx.executeSql(
-        'select * from nodes;',
-        '',
-        (query, result) => this.setNodes(result.rows._array)
-      );
-    });
+
+
+    this.setState({displayModes: this.props.screenProps.displayModes[type]});
+
+    // this.props.screenProps.db.transaction(tx => {
+    //   tx.executeSql(
+    //     'select node_view from display_modes where machine_name = ?;',
+    //     [type],
+    //     (query, result) => this.setState({displayModes: JSON.parse(result.rows._array[0].node_view)})
+    //   );
+    // });
+
+
+
+    //
+    // this.props.screenProps.db.transaction(tx => {
+    //   tx.executeSql(
+    //     'select * from taxonomy;',
+    //     '',
+    //     (query, result) => this.setTaxonomy(result.rows._array)
+    //   );
+    // });
+
+    let filteredNodes = {};
+    for(let nid in this.props.screenProps.nodes) {
+      if(this.props.screenProps.nodes[nid].type === type) {
+        filteredNodes.nide =this.props.screenProps.nodes[nid];
+      }
+    }
+    this.setState({'nodes': filteredNodes});
+
+    if(this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
+      this.setState({'personalCollectionValid': true});
+    }
+
+
+    // this.props.screenProps.db.transaction(tx => {
+    //   tx.executeSql(
+    //     'select * from nodes;',
+    //     '',
+    //     (query, result) => this.setNodes(result.rows._array)
+    //   );
+    // });
   }
 
   setTaxonomy = (array) => {
@@ -82,41 +103,7 @@ class NodeScreen extends React.Component {
     this.setState({nodes: nodeList});
   }
 
-  checkValidPersonalCollection(currentContentType) {
-    const data = {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': this.props.screenProps.token,
-        'Cookie': this.props.screenProps.cookie,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': 0
-      }
-    };
 
-    data.url = this.state.url + '/app/viewable-types/retrieve';
-    axios(data)
-      .then((response) => {
-        return response.data;
-      })
-      .then((responseJson) => {
-        if (typeof responseJson === 'object' && responseJson !== null) {
-
-          if (responseJson[currentContentType]['valid type for personal collection'] == 1) {
-            this.setState({'personalCollectionValid': true});
-            return true;
-          }
-
-        }
-      })
-      .catch((error) => {
-        return false;
-      });
-
-    return false;
-  }
 
   render() {
 
@@ -130,7 +117,7 @@ class NodeScreen extends React.Component {
     if (this.state.personalCollectionValid === true) {
       showStar = true;
     } else {
-      showStar = this.checkValidPersonalCollection(node.type);
+      showStar = false;
     }
 
 
@@ -180,6 +167,7 @@ class NodeScreen extends React.Component {
                     cookie={this.props.screenProps.cookie}
                     url={this.state.url}
                     key={tid}
+                    terms={this.props.screenProps.terms}
                   />;
                   renderedNode.push(term);
                 }
@@ -241,7 +229,7 @@ class NodeScreen extends React.Component {
               cookie={this.props.screenProps.cookie}
               url={this.state.url}
               sid={sid}
-              db={this.state.db}
+              db={this.props.screenProps.db}
               key={sid}
             />
           );
@@ -272,7 +260,7 @@ class NodeScreen extends React.Component {
               const nodeArray = node[fieldName][lang];
               for (var i = 0; i < nodeArray.length; i++) {
                 const sid = nodeArray[i].sid;
-                this.state.db.transaction(
+                this.props.screenProps.db.transaction(
                   tx => {
                     tx.executeSql('select * from atom where sid = ?',
                       [sid],
@@ -350,7 +338,7 @@ class NodeScreen extends React.Component {
         starred={false}
         nid={node.nid}
         nodes={this.state.nodes}
-        db={this.state.db}
+        db={this.props.screenProps.db}
         isConnected={this.props.screenProps.isConnected}
         token={this.props.screenProps.token}
         cookie={this.props.screenProps.cookie}

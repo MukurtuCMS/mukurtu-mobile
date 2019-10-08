@@ -19,7 +19,7 @@ import {SQLite} from 'expo-sqlite';
 import Axios from "axios";
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global');
+const globalDB = SQLite.openDatabase('global-4');
 
 class LogoutScreen extends React.Component {
 
@@ -35,12 +35,7 @@ class LogoutScreen extends React.Component {
   }
 
   componentDidMount() {
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('delete from auth;',
-        );
-      }
-    );
+
 
     // we need to remove our global user
     globalDB.transaction(
@@ -57,7 +52,15 @@ class LogoutScreen extends React.Component {
 
 
   handleLogoutClick(viewId) {
-    this.state.db.transaction(
+
+    this.props.screenProps.db.transaction(
+      tx => {
+        tx.executeSql('delete from auth;',
+        );
+      }
+    );
+
+    this.props.screenProps.db.transaction(
         tx => {
           tx.executeSql('delete from auth;',
           );

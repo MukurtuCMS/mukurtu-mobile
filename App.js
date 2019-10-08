@@ -21,10 +21,11 @@ import {Feather} from "@expo/vector-icons";
 import AppHeader from "./components/AppHeader";
 import * as FileSystem from "expo-file-system";
 
+
 const store = configureStore();
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global');
+const globalDB = SQLite.openDatabase('global-4');
 
 BackgroundFetch.setMinimumIntervalAsync(60);
 const taskName = 'mukurtu-mobile-sync';
@@ -63,17 +64,10 @@ export default class App extends React.Component {
       nodes: {},
       displayModes: {},
       listDisplayModes: {},
-      viewableTypes: {}
+      viewableTypes: {},
+      authorized: false,
+      initialized: false
     };
-  }
-
-  getSiteDb() {
-
-
-    let databaseName = siteUrl.replace(/\./g, '_') + '_' + userBlob.user.uid;
-    let db = SQLite.openDatabase(databaseName);
-    return db;
-
   }
 
 
@@ -172,6 +166,8 @@ export default class App extends React.Component {
 
     // this.setDatabaseName();
     NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+
+    this.checkLogin();
   }
 
   // syncCompleted(sync = false) {
@@ -232,9 +228,9 @@ export default class App extends React.Component {
   }
 
   handleConnectivityChange = isConnected => {
-    // if (this._isMounted) {
-    //   this.setState({isConnected});
-    // }
+    if (this._isMounted) {
+      this.setState({isConnected});
+    }
   }
 
   componentWillUnmount() {
@@ -259,9 +255,9 @@ export default class App extends React.Component {
     // We need to make sure our component is not rendering until we have checked offline/online and whether user is
     // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
     // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
-    // if (this.state.databaseName === false) {
-    //   return (<InitializingApp/>);
-    // }
+    if (this.state.initialized === false) {
+      return (<InitializingApp/>);
+    }
 
     // If we're syncing, run the ajax spinner
     if (this.state.syncing) {
@@ -289,7 +285,8 @@ export default class App extends React.Component {
       nodes: this.state.nodes,
       displayModes: this.state.displayModes,
       listDisplayModes: this.state.listDisplayModes,
-      viewableTypes: this.state.viewableTypes
+      viewableTypes: this.state.viewableTypes,
+      authorized: this.state.authorized
     };
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
       screenProps.user = this.state.user;
@@ -297,18 +294,7 @@ export default class App extends React.Component {
       screenProps.user.user = this.state.user;
     }
 
-    // @todo: replace this with InitializingApp, keep now for debugging
-    // if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
-    //   return (
-    //     <Provider store={store}>
-    //       <AppLoading
-    //         startAsync={this._loadResourcesAsync}
-    //         onError={this._handleLoadingError}
-    //         onFinish={this._handleFinishLoading}
-    //       />
-    //     </Provider>
-    //   );
-    // } else {
+
     return (
       <Provider store={store}>
         <View style={styles.container}>
@@ -351,18 +337,30 @@ export default class App extends React.Component {
 
   _handleSiteUrlUpdate = (url, uid, sync = false) => {
     // create database and set database name state
-    const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
-    const databaseName = siteUrl.replace(/\./g, '_') + '_' + uid;
+     const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
+    const databaseName = siteUrl.replace(/\./g, '_') + '_' + uid + 'new2';
 
-    // we need to update our global databasename
     globalDB.transaction(
       tx => {
-        tx.executeSql('replace into database (siteUrl, databaseName) values (?, ?)',
-          [siteUrl, databaseName],
+        tx.executeSql('delete from database',
+          [],
           (success) => {
-            if (sync) {
-              this.setState({sync: true})
-            }
+            // we need to update our global databasename
+            globalDB.transaction(
+              tx => {
+                tx.executeSql('insert into database (siteUrl, databaseName) values (?, ?)',
+                  [siteUrl, databaseName],
+                  (success) => {
+                    if (sync) {
+                      this.setState({sync: true})
+                    }
+                  },
+                  (success, error) => {
+                    console.log(error);
+                  }
+                );
+              }
+            );
           },
           (success, error) => {
             console.log(error);
@@ -370,6 +368,8 @@ export default class App extends React.Component {
         );
       }
     );
+
+
 
     this.setState({siteUrl: url, databaseName: databaseName});
   };
@@ -383,6 +383,8 @@ export default class App extends React.Component {
    */
   _handleLoginStatusUpdate = (token, cookie, url, user) => {
     console.log('logging in');
+
+
 
     // First, we have to update our databases.
     // Insert user and database into global DB
@@ -409,10 +411,15 @@ export default class App extends React.Component {
         });
     });
 
+    let userObject = JSON.parse(user).user;
+
     // Then we need to create local database
     // Previously this was also done on opening the app, might still need to do that
-    let databaseName = url.replace(/\./g, '_') + '_' + user.uid;
+     let dburl = url.replace(/(^\w+:|^)\/\//, '');
+    let databaseName = dburl.replace(/\./g, '_') + '_' + userObject.uid + 'new2';
     let db = SQLite.openDatabase(databaseName);
+
+    ManageTables.createUniqueTables(db);
 
 
     // Then we need to update our state to match the databases
@@ -423,9 +430,14 @@ export default class App extends React.Component {
       loggedIn: true,
       syncing: true,
       isConnected: true,
-      user: user,
+      user: userObject,
       cookie: cookie,
-      token: token
+      token: token,
+      terms: {},
+      nodes: {},
+      displayModes: {},
+      listDisplayModes: {},
+      viewableTypes: {},
     }, () => {
       this.newSyncEverything();
     });
@@ -437,6 +449,55 @@ export default class App extends React.Component {
    * Deletes all data — temporary function
    */
   deleteAllData() {
+
+
+    globalDB.transaction(
+      tx => {
+        tx.executeSql('select * from database;',
+          '',
+          (success, array) => {
+            // There might be multiple databases, so we just get the first one
+            if(array.rows.length > 0) {
+              // First we go through and delete all the site databases
+
+              let DBs = array.rows._array;
+              for(let i = 0; i < DBs.length; i++) {
+                let dbName = DBs[i].databaseName;
+
+                let tempDB = SQLite.openDatabase(dbName);
+
+                tempDB.transaction(tx => {
+                  tx.executeSql(
+                    'delete from saved_offline; delete from auth; delete from nodes; delete from content_types; delete from content_type; delete from sync; delete from user;'
+                  );
+                });
+
+              }
+            }
+          }
+        );
+      }
+    );
+
+
+
+
+
+    globalDB.transaction(tx => {
+      tx.executeSql(
+        'delete from user; delete from database;'
+      );
+    });
+
+
+    if (this.state.db) {
+      this.state.db.transaction(tx => {
+        tx.executeSql(
+          'delete from saved_offline; delete from auth; delete from nodes; delete from content_types; delete from content_type; delete from sync; delete from user;'
+        );
+      });
+    }
+
     this.state = {
       isLoadingComplete: false,
       siteUrl: '',
@@ -452,20 +513,6 @@ export default class App extends React.Component {
       sync: false,
       syncing: false
     };
-
-    globalDB.transaction(tx => {
-      tx.executeSql(
-        'delete from user; delete from database;'
-      );
-    });
-
-    if (this.state.db) {
-      this.state.db.transaction(tx => {
-        tx.executeSql(
-          'delete from saved_offline; delete from auth; delete from nodes; delete from content_types; delete from content_type; delete from sync; delete from user;'
-        );
-      });
-    }
   }
 
 
@@ -482,7 +529,12 @@ export default class App extends React.Component {
         db: null,
         loggedIn: false,
         user: {},
-        sync: false
+        sync: false,
+        terms: {},
+        nodes: {},
+        displayModes: {},
+        listDisplayModes: {},
+        viewableTypes: {},
       }
     );
 
@@ -755,6 +807,24 @@ export default class App extends React.Component {
 
   }
 
+
+  insertViewableType = (response) => {
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('insert into viewable_types (blob) values (?)',
+          [JSON.stringify(response)],
+          (success) => () => {
+            console.log('success');
+            return 'success'
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+  }
+
   saveAtom = (sid, data) => {
     let state = this.state;
     data.url = state.siteUrl + '/app/scald/retrieve/' + sid + '.json'
@@ -857,7 +927,139 @@ export default class App extends React.Component {
 
   }
 
+  // Retrieves and sets state from db
+  retrieveEverythingFromDb() {
+
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('select * from nodes',
+          [],
+          (success, array) => {
+            console.log('nodes retreieved');
+            let nodesState = {};
+            for(let i = 0; i < array.rows._array.length; i ++) {
+              let nid = array.rows._array[i].nid;
+              let node = JSON.parse(array.rows._array[i].entity);
+              nodesState[nid] = node;
+            }
+            this.setState({'nodes': nodesState});
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('select * from content_types',
+          [],
+          (success, array) => {
+            console.log('content types retrieved');
+            let contentTypesState = JSON.parse(array.rows._array[0].blob);
+            this.setState({'contentTypes': contentTypesState});
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('select * from taxonomy',
+          [],
+          (success, array) => {
+            let termsState = {};
+            for(let i = 0; i < array.rows._array.length; i ++) {
+              let tid = array.rows._array[i].tid;
+              let term = JSON.parse(array.rows._array[i].entity);
+             termsState[tid] = term;
+            }
+            this.setState({'terms': termsState});
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('select * from display_modes',
+          [],
+          (success, array) => {
+          console.log('display modes retreived');
+            let displayState = {};
+            for(let i = 0; i < array.rows._array.length; i ++) {
+              let machine_name = array.rows._array[i].machine_name;
+              let node_view= JSON.parse(array.rows._array[i].node_view);
+              displayState[machine_name] = node_view;
+            }
+            this.setState({'displayModes': displayState});
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('select * from list_display_modes',
+          [],
+          (success, array) => {
+            console.log('list_display modes retreived');
+            let displayState = {};
+            for(let i = 0; i < array.rows._array.length; i ++) {
+              let machine_name = array.rows._array[i].machine_name;
+              let node_view = JSON.parse(array.rows._array[i].node_view);
+              displayState[machine_name] = node_view;
+            }
+           this.setState({'listDisplayModes': displayState});
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+
+
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('select * from viewable_types',
+          [],
+          (success, array) => {
+
+            if(array.rows._array.length > 0) {
+             this.setState({'viewableTypes': JSON.parse(array.rows._array[0].blob)});
+            }
+
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+
+
+
+
+    this.setState({
+      'initialized': true,
+      'syncing': false
+    });
+  }
+
+
   newSyncEverything() {
+    this.setState({'initialized': true}); // just in case
     let data = this.buildFetchData('GET');
     data.url = this.state.siteUrl + '/app/synced-entities/retrieve';
 
@@ -883,7 +1085,7 @@ export default class App extends React.Component {
             this.saveNode(key, data)
           ))
             .then((response) => {
-              this.setState({'nodes': nodes});
+              // this.setState({'nodes': nodes});
               console.log('done syncing nodes');
             });
 
@@ -995,7 +1197,13 @@ export default class App extends React.Component {
       })
       .then((responseJson) => {
         if (typeof responseJson === 'object' && responseJson !== null) {
+
+
+
           this.setState({'viewableTypes': responseJson});
+          this.insertViewableType(responseJson);
+
+
 
           // now let's sync all content type display endpoints
           let retrieveFieldsFetch = [];
@@ -1028,7 +1236,7 @@ export default class App extends React.Component {
               })
           );
             // Now do the list view fields display
-            data.url = this.props.screenProps.siteUrl + '/app/list-view-fields/retrieve/' + machineName;
+            data.url = this.state.siteUrl + '/app/list-view-fields/retrieve/' + machineName;
             retrieveListFieldsFetch.push(axios(data)
               .then((response) => {
                 return response.data;
@@ -1041,7 +1249,7 @@ export default class App extends React.Component {
 
                 this.state.db.transaction(
                   tx => {
-                    tx.executeSql('replace into list_display_modes (machine_name, node_view) values (?, ?)',
+                    tx.executeSql('insert into list_display_modes (machine_name, node_view) values (?, ?)',
                       [machineName, JSON.stringify(responseJson)],
                       (success) => '',
                       (success, error) => ''
@@ -1116,73 +1324,205 @@ export default class App extends React.Component {
   }
 
 
-// This will try and check if the current user is logged in. This will fail if the server or client is offline.
-// If failed, we will set the loggedIn to false so we know the connection has been attempted.
-//   connect(array) {
-//
-//     // There's something going wrong with retrieving the auth data, but sometimes this is already set in state
-//     if (!this.state.cookie && !this.state.token) {
-//       if (array === undefined || array.length < 1) {
-//         this.setState({
-//           cookie: null,
-//           token: null,
-//           loggedIn: false
-//         });
-//
-//         return false;
-//       }
-//     }
-//
-//     let token = this.state.token;
-//     let cookie = this.state.cookie;
-//
-//     if (!this.state.cookie && !this.state.token) {
-//       token = array[0].token;
-//       cookie = array[0].cookie;
-//     }
-//
-//
-//     // Save cookie and token so we can use them to check login status
-//     this.setState({
-//       cookie: cookie,
-//       token: token
-//     });
-//
-//     let data = {
-//       method: 'POST',
-//       headers: {
-//         'Accept': 'application/json',
-//         'Content-Type': 'application/json',
-//         'X-CSRF-Token': token,
-//         'Cookie': cookie,
-//         'Cache-Control': 'no-cache, no-store, must-revalidate',
-//         'Pragma': 'no-cache',
-//         'Expires': 0
-//       }
-//     };
-//
-//     data.url = this.state.siteUrl + '/app/system/connect';
-//     axios(data)
-//       .then((response) => {
-//         return response.data;
-//       })
-//       .then((responseJson) => {
-//         // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
-//         try {
-//           // If this uid is not 0, the user is currently authenticated
-//           if (responseJson.user.uid !== 0) {
-//             this.setState({loggedIn: true, isLoggedIn: true});
-//             return;
-//           }
-//         } catch (e) {
-//           this.setState({loggedIn: false});
-//         }
-//       })
-//       .catch((error) => {
-//         this.setState({loggedIn: false});
-//       });
-//
-//   }
+  // This checks to see if we're logged in on the site.
+  // If we're offline, but we do have authorization token in the db, we'll set login state to false and authorized to true
+  // If we have both, both are true.
+  checkLogin() {
+
+
+    // First, get our global db info
+    globalDB.transaction(
+      tx => {
+        tx.executeSql('select * from database;',
+          '',
+          (success, array) => {
+            console.log('database selected');
+            // There might be multiple databases, so we get the last one, assuming it's most recent
+            if(array.rows.length > 0) {
+              let index = array.rows.length - 1;
+              let dbName = array.rows._array[index].databaseName;
+              let db = SQLite.openDatabase(dbName);
+
+              let siteUrl = array.rows._array[index].siteUrl;
+              // Set our site URL state
+              this.setState({'siteUrl': siteUrl});
+              this.setState({'db': db});
+
+            } else {
+              // If there's no rows, just return
+              this.setState({
+                loggedIn: false,
+                authorized: false,
+                initialized: true,
+              });
+              return;
+            }
+
+
+
+            globalDB.transaction(
+              tx => {
+                tx.executeSql('select * from user;',
+                  '',
+                  (success, array) => {
+
+                    // There might be multiple databases, so we just get the first one
+                    if(array.rows.length > 0) {
+                      // Now, if we're not connected but do have user info, we set our status to authorized so that content can be created/viewed
+                      // if(!this.state.connected) {
+                      //   this.setState({'authorized': true});
+                      //   return;
+                      // }
+                      let index = array.rows.length - 1;
+
+                      // If we are connected, check to see if we're authorized
+                      let user = JSON.parse(array.rows._array[index].user);
+
+                      // Now we need to get our cookie
+                      let cookie = user.session_name + '=' + user.sessid;
+                      let token = user.token;
+
+                      // let databaseName = this.state.siteUrl.replace(/\./g, '_') + '_' + user.uid;
+                      // let db = SQLite.openDatabase(dbname);
+
+                      // Now we check our connection
+                      let data = {
+                        method: 'POST',
+                        headers: {
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json',
+                          'X-CSRF-Token': token,
+                          'Cookie': cookie,
+                          'Cache-Control': 'no-cache, no-store, must-revalidate',
+                          'Pragma': 'no-cache',
+                          'Expires': 0
+                        }
+                      };
+
+                      // Append http to this. Might need to save original protocol to db
+                      // data.url = 'http://' + this.state.siteUrl + '/app/system/connect';
+                      fetch('http://' + this.state.siteUrl + '/app/system/connect', data)
+                        .then((response) => {
+                          return response.json()
+                        })
+                        .then((responseJson) => {
+                          // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
+                          try {
+                            // If this uid is not 0, the user is currently authenticated
+                            if (responseJson.user.uid !== 0) {
+                              this.setState({
+                                loggedIn: true,
+                                syncing: true,
+                                isConnected: true,
+                                authorized: true,
+                                user: user,
+                                cookie: cookie,
+                                token: token
+                              }, () => {this.retrieveEverythingFromDb()}); // Should probably do a new sync
+
+                            }
+                          } catch (e) {
+                            this.setState({
+                              loggedIn: false,
+                              authorized: true,
+                              syncing: true
+                            }, () => this.retrieveEverythingFromDb());
+                          }
+                        })
+                        .catch((error) => {
+                          this.setState({
+                            loggedIn: false,
+                            authorized: true,
+                            syncing: true
+                          }, () => this.retrieveEverythingFromDb());
+                        });
+
+
+
+                    } else {
+                      this.setState({'initialized': true});
+                    }
+                  },
+                  (success, error) => {
+                    this.setState({'initialized': true});
+                  }
+                );
+              }
+            );
+
+
+          }
+
+
+
+        );
+      }
+    );
+
+  }
+
+
+
+
+  checkLoginOld() {
+
+    // First, get our global db info
+    // tx.executeSql('replace into database (siteUrl, databaseName) values (?, ?)',
+
+
+    globalDB.transaction(
+      tx => {
+        tx.executeSql('select * from database;',
+          '',
+          (success, array) => {
+          console.log('database selected');
+
+          }
+        );
+      }
+    );
+
+    // Save cookie and token so we can use them to check login status
+    this.setState({
+      cookie: cookie,
+      token: token
+    });
+
+    let data = {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': token,
+        'Cookie': cookie,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': 0
+      }
+    };
+
+    data.url = this.state.siteUrl + '/app/system/connect';
+    axios(data)
+      .then((response) => {
+        return response.data;
+      })
+      .then((responseJson) => {
+        // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
+        try {
+          // If this uid is not 0, the user is currently authenticated
+          if (responseJson.user.uid !== 0) {
+            this.setState({loggedIn: true, isLoggedIn: true});
+            return;
+          }
+        } catch (e) {
+          this.setState({loggedIn: false});
+        }
+      })
+      .catch((error) => {
+        this.setState({loggedIn: false});
+      });
+
+  }
 
 
 }

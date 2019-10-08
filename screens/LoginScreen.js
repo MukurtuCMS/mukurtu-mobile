@@ -22,7 +22,7 @@ import axios from "axios";
 
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global');
+const globalDB = SQLite.openDatabase('global-4');
 
 const db = SQLite.openDatabase('db.db');
 
@@ -147,6 +147,7 @@ class LoginScreen extends React.Component {
                 .then((responseJson) => {
 
                   this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                  // Pass the token from the user, not our initial token.
                   this._handleLoginStatusUpdate(Token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
                   this.props.navigation.navigate('Home')
 

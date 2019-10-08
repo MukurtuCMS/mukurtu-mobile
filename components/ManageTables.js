@@ -1,7 +1,7 @@
 import React from 'react';
 import {SQLite} from 'expo-sqlite';
 
-const globalDB = SQLite.openDatabase('global');
+const globalDB = SQLite.openDatabase('global-4');
 
 export const createUniqueTables = (db) => {
   createTokenTable(db);
@@ -15,6 +15,8 @@ export const createUniqueTables = (db) => {
   createDisplayModesTable(db);
   createSavedOfflineTable(db);
   createSiteInfoTable(db);
+  createListDisplayModes(db);
+  createViewableTypesTable(db);
 };
 
 export const createGlobalTables = () => {
@@ -64,6 +66,14 @@ const createTaxonomyTable = (db) => {
   });
 }
 
+const createListDisplayModes = (db) => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'create table if not exists list_display_modes (blob);'
+    );
+  });
+}
+
 const createAtomTable = (db) => {
   db.transaction(tx => {
     tx.executeSql(
@@ -108,6 +118,14 @@ const createSiteInfoTable = (db) => {
   db.transaction(tx => {
     tx.executeSql(
       'create table if not exists site_info (site_name text primary key, mobile_enabled boolean, logo text);'
+    );
+  });
+}
+
+const createViewableTypesTable = (db) => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'create table if not exists viewable_types (machine_name text primary key, blob text);'
     );
   });
 }

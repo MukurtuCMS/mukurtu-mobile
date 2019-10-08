@@ -50,9 +50,9 @@ class HomeScreen extends React.Component {
   componentActive(){
     // Immediately check if first time, and rout to login screen
     // We're assuming that there are content types if they've logged in before
-    if (!this.props.screenProps.contentTypes) {
-      this.props.navigation.navigate('Login');
-    }
+    // if (!this.props.screenProps.authorized) {
+    //   this.props.navigation.navigate('Login');
+    // }
 
   }
 
