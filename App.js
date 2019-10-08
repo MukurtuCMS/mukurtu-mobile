@@ -148,8 +148,8 @@ export default class App extends React.Component {
       <Provider store={store}>
         <View style={styles.container}>
           <AppHeader
-            loggedIn={screenProps.loggedIn}
-            url={screenProps.siteUrl}
+            loggedIn={this.state.loggedIn}
+            url={this.state.siteUrl}
             screenProps={screenProps}
           />
           <AppNavigator screenProps={screenProps}/>
@@ -187,7 +187,7 @@ export default class App extends React.Component {
             // we need to update our global databasename
             globalDB.transaction(
               tx => {
-                tx.executeSql('insert into database (siteUrl, databaseName) values (?, ?)',
+                tx.executeSql('replace into database (siteUrl, databaseName) values (?, ?)',
                   [siteUrl, databaseName],
                   (success) => {
                     if (sync) {
@@ -231,7 +231,7 @@ export default class App extends React.Component {
         (success) => {
           globalDB.transaction(
             tx => {
-              tx.executeSql('insert into user (siteUrl, user) values (?, ?)',
+              tx.executeSql('replace into user (siteUrl, user) values (?, ?)',
                 [url, user],
                 (success) => {
                 },
@@ -313,7 +313,8 @@ export default class App extends React.Component {
         displayModes: {},
         listDisplayModes: {},
         viewableTypes: {},
-        contentTypes: {}
+        contentTypes: {},
+        siteUrl: ''
       }
     );
 
@@ -383,7 +384,7 @@ export default class App extends React.Component {
 
         this.state.db.transaction(
           tx => {
-            tx.executeSql('insert into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
+            tx.executeSql('replace into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
               [node.nid, node.title, JSON.stringify(node), editable],
               (success) => {
               },
@@ -425,7 +426,7 @@ export default class App extends React.Component {
                   // run this after things have been deleted
                   state.db.transaction(
                     tx => {
-                      tx.executeSql('insert into content_types (id, blob) values (?, ?)',
+                      tx.executeSql('replace into content_types (id, blob) values (?, ?)',
                         [1, JSON.stringify(responseJson)],
                         (success) => '',
                         (success, error) => console.log(' ')
@@ -466,7 +467,7 @@ export default class App extends React.Component {
   insertContentType = (response, machineName) => {
    this.state.db.transaction(
       tx => {
-        tx.executeSql('insert into content_type (machine_name, blob) values (?, ?)',
+        tx.executeSql('replace into content_type (machine_name, blob) values (?, ?)',
           [machineName, JSON.stringify(response)],
           (success) => () => {
             console.log('success');
@@ -486,7 +487,7 @@ export default class App extends React.Component {
   insertViewableType = (response) => {
     this.state.db.transaction(
       tx => {
-        tx.executeSql('insert into viewable_types (blob) values (?)',
+        tx.executeSql('replace into viewable_types (blob) values (?)',
           [JSON.stringify(response)],
           (success) => () => {
             console.log('success');
@@ -588,7 +589,7 @@ export default class App extends React.Component {
     );
     this.state.db.transaction(
       tx => {
-        tx.executeSql('insert into sync (id, last) values (?, ?)',
+        tx.executeSql('replace into sync (id, last) values (?, ?)',
           [1, time],
           (success) => success,
           (success, error) => ''
@@ -813,7 +814,7 @@ export default class App extends React.Component {
                   // run this after things have been deleted
                   this.state.db.transaction(
                     tx => {
-                      tx.executeSql('insert into content_types (id, blob) values (?, ?)',
+                      tx.executeSql('replace into content_types (id, blob) values (?, ?)',
                         [1, JSON.stringify(responseJson)],
                         (success) => {
 
@@ -920,7 +921,7 @@ export default class App extends React.Component {
 
                 this.state.db.transaction(
                   tx => {
-                    tx.executeSql('insert into list_display_modes (machine_name, node_view) values (?, ?)',
+                    tx.executeSql('replace into list_display_modes (machine_name, node_view) values (?, ?)',
                       [machineName, JSON.stringify(responseJson)],
                       (success) => '',
                       (success, error) => ''
