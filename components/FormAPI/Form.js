@@ -585,15 +585,14 @@ export default class FormComponent extends React.Component {
 
   postData(url = '', data = {}, method = 'POST') {
 
-
     this.setState({'submitting': true});
 
     fetch(url, {
       method: method,
 
-      // mode: 'cors',
+      mode: 'cors',
       cache: 'no-cache',
-      // credentials: 'include',
+      // credentials: 'same-origin',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -604,10 +603,7 @@ export default class FormComponent extends React.Component {
       referrer: 'no-referrer',
       body: JSON.stringify(data),
     })
-      .then((response) => {
-        console.log(response);
-        return response.json();
-      })
+      .then((response) => response.json())
       .then((responseJson) => {
         if (responseJson.form_errors) {
           this.setState({formErrors: responseJson.form_errors, submitting: false})
