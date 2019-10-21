@@ -1015,11 +1015,16 @@ export default class FormComponent extends React.Component {
       formDisplay = <View>
 
         {buttonGroup}
+        <View
+          style={styles.view}
+        >
         {form[this.state.selectedIndex]}
+        </View>
         {activityIndicator}
         <Button
           title="Save"
           onPress={this.saveNode}
+          style={styles.button}
         />
       </View>;
     }
@@ -1031,6 +1036,12 @@ export default class FormComponent extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  button: {
+    zIndex: -1
+  },
+  view: {
+    zIndex: 100
   },
   buttonContainer: {
     flexWrap: 'wrap',

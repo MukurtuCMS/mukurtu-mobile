@@ -29,6 +29,7 @@ export default class Select2 extends React.Component {
     return options.filter(option => option.text.search(regex) >= 0);
   }
 
+
   /**
    * Ensures that the correct autocomplete field is open/closed at right time
    * @param index
@@ -121,9 +122,10 @@ export default class Select2 extends React.Component {
           key={i}
           autoCapitalize="none"
           autoCorrect={false}
-          containerStyle={styles.autocompleteContainer}
+          // containerStyle={styles.autocompleteContainers}
           data={sortedOptions}
           defaultValue={defaultValue}
+          // style={styles.autocompleteContainers}
           onChangeText={(text) => {
             this.props.setFormValue(this.props.fieldName, text, valueKey, key, options, lang);
             this.setState({
@@ -190,11 +192,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     top: 0,
-    zIndex: 1
   },
   itemText: {
     fontSize: 15,
-    margin: 2
+    margin: 2,
+    backgroundColor: '#fff',
+    zIndex: 100
   },
   descriptionContainer: {
     // `backgroundColor` needs to be set otherwise the
