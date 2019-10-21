@@ -1,5 +1,15 @@
 import React from 'react';
-import {Platform, StatusBar, StyleSheet, View, Text, NetInfo, YellowBox} from 'react-native';
+import {
+  Platform,
+  StatusBar,
+  StyleSheet,
+  View,
+  Text,
+  NetInfo,
+  YellowBox,
+  ScrollView,
+  RefreshControl
+} from 'react-native';
 import {AppLoading} from 'expo';
 import {SQLite} from 'expo-sqlite';
 import {Asset} from 'expo-asset';
@@ -42,6 +52,7 @@ export default class App extends React.Component {
     super(props);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
     this._handleLogoutStatusUpdate = this._handleLogoutStatusUpdate.bind(this);
+    this._onRefresh = this._onRefresh.bind(this);
     // this.syncCompleted = this.syncCompleted.bind(this);
 
     this.state = {
@@ -148,14 +159,30 @@ export default class App extends React.Component {
 
     return (
       <Provider store={store}>
+
         <View style={styles.container}>
-          <AppHeader
-            loggedIn={this.state.loggedIn}
-            url={this.state.siteUrl}
-            screenProps={screenProps}
-          />
-          <AppNavigator screenProps={screenProps}/>
-        </View>
+          <ScrollView style={styles.container} contentContainerStyle={{ flex: 1 }}>
+            <RefreshControl
+              refreshing={this.state.syncing}
+              onRefresh={this._onRefresh}
+            />
+
+
+            <AppHeader
+              loggedIn={this.state.loggedIn}
+              url={this.state.siteUrl}
+              screenProps={screenProps}
+              styles={styles.header}
+            />
+
+            <AppNavigator
+              screenProps={screenProps}
+              style={styles.appnavigator}
+            />
+
+          </ScrollView>
+      </View>
+
       </Provider>
     );
   }
@@ -204,8 +231,6 @@ export default class App extends React.Component {
     );
 
 
-
-
     // First, we have to update our databases.
     // Insert user and database into global DB
     globalDB.transaction(tx => {
@@ -230,7 +255,6 @@ export default class App extends React.Component {
           console.log('error');
         });
     });
-
 
 
     // Then we need to create local database
@@ -825,6 +849,13 @@ export default class App extends React.Component {
     });
   }
 
+  _onRefresh() {
+    this.setState({'syncing': true},
+      () => {
+        this.newSyncEverything()
+      });
+  }
+
 
   newSyncEverything() {
     this.setState({'initialized': true}); // just in case
@@ -1296,4 +1327,18 @@ const
       flex: 1,
       backgroundColor: '#fff',
     },
+    scrollview: {
+      flex: 1,
+      backgroundColor: '#000',
+    },
+    appnavigator: {
+      height: '500',
+      flex: 1,
+      backgroundColor: 'blue',
+    },
+    header: {
+      flex: 1,
+      backgroundColor: 'green',
+    },
+
   });
