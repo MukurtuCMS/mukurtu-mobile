@@ -25,7 +25,7 @@ import * as FileSystem from "expo-file-system";
 const store = configureStore();
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-5');
+const globalDB = SQLite.openDatabase('global-6');
 
 // BackgroundFetch.setMinimumIntervalAsync(60);
 // const taskName = 'mukurtu-mobile-sync';
@@ -40,7 +40,6 @@ export default class App extends React.Component {
 
   constructor(props) {
     super(props);
-    this._handleSiteUrlUpdate = this._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
     this._handleLogoutStatusUpdate = this._handleLogoutStatusUpdate.bind(this);
     // this.syncCompleted = this.syncCompleted.bind(this);
@@ -129,7 +128,7 @@ export default class App extends React.Component {
       contentTypes: this.state.contentTypes,
       terms: this.state.terms,
       formFields: this.state.formFields,
-      _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
+      // _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
       nodes: this.state.nodes,
@@ -161,12 +160,22 @@ export default class App extends React.Component {
     );
   }
 
-  _handleSiteUrlUpdate = (url, uid, sync = false) => {
-    let originalUrl = url;
-    // create database and set database name state
-    const siteUrl = url.replace(/(^\w+:|^)\/\//, '');
-    const databaseName = siteUrl.replace(/\./g, '_') + '_' + uid + 'new3';
 
+  /**
+   *
+   * @param status
+   * @param cookie
+   * @param token
+   * @private
+   */
+  _handleLoginStatusUpdate = (token, cookie, url, user) => {
+    console.log('logging in');
+
+    let userObject = JSON.parse(user).user;
+
+    let databaseName = url.replace(/(^\w+:|^)\/\//, '').replace(/\./g, '_') + '_' + userObject.uid + 'new3';
+
+    // First update the url and database name in the global db
     globalDB.transaction(
       tx => {
         tx.executeSql('delete from database',
@@ -176,11 +185,9 @@ export default class App extends React.Component {
             globalDB.transaction(
               tx => {
                 tx.executeSql('replace into database (siteUrl, databaseName) values (?, ?)',
-                  [siteUrl, databaseName],
+                  [url, databaseName],
                   (success) => {
-                    if (sync) {
-                      this.setState({sync: true})
-                    }
+                    // this.setState({siteUrl: url, databaseName: databaseName});
                   },
                   (success, error) => {
                     console.log(error);
@@ -197,18 +204,7 @@ export default class App extends React.Component {
     );
 
 
-    this.setState({siteUrl: originalUrl, databaseName: databaseName});
-  };
 
-  /**
-   *
-   * @param status
-   * @param cookie
-   * @param token
-   * @private
-   */
-  _handleLoginStatusUpdate = (token, cookie, url, user) => {
-    console.log('logging in');
 
     // First, we have to update our databases.
     // Insert user and database into global DB
@@ -235,21 +231,21 @@ export default class App extends React.Component {
         });
     });
 
-    let userObject = JSON.parse(user).user;
+
 
     // Then we need to create local database
     // Previously this was also done on opening the app, might still need to do that
-     let dburl = url.replace(/(^\w+:|^)\/\//, '');
-    let databaseName = dburl.replace(/\./g, '_') + '_' + userObject.uid + 'new3';
+    //  let dburl = url.replace(/(^\w+:|^)\/\//, '');
+
     let db = SQLite.openDatabase(databaseName);
-
     ManageTables.createUniqueTables(db);
-
 
     // Then we need to update our state to match the databases
     // If we've logged in or re-logged in, we need to update our state, and then resync everything.
     this.setState({
-      url: url,
+      url: url, // don't think this is needed
+      siteUrl: url,
+      databaseName: databaseName,
       db: db,
       loggedIn: true,
       syncing: true,
@@ -395,7 +391,7 @@ export default class App extends React.Component {
       })
       .then((node) => {
         // Now we need to save the paragraphs, terms, and nodes referenced within each node
-        for(let field in node) {
+        for (let field in node) {
 
           if (field.indexOf('field') !== -1) {
 
@@ -404,10 +400,10 @@ export default class App extends React.Component {
               if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
                 let pid = node[field].und[0].value;
                 this.saveParagraph(pid, field, node.type);
-              } else if(node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['tid'] !== 'undefined') {
+              } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['tid'] !== 'undefined') {
                 data = this.buildFetchData('GET');
                 this.saveTaxonomy(node[field].und[0]['tid'], data);
-              } else if(node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['nid'] !== 'undefined') {
+              } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['nid'] !== 'undefined') {
                 data = this.buildFetchData('GET');
                 this.saveNode(node[field].und[0]['nid'], data);
               }
@@ -422,7 +418,6 @@ export default class App extends React.Component {
   }
 
 
-
   saveParagraph(pid, fieldName, contentType) {
     let data = this.buildFetchData('GET');
 
@@ -435,7 +430,7 @@ export default class App extends React.Component {
       .then((responsejson) => {
 
         let fields = responsejson;
-        let  paragraphaData = fields;
+        let paragraphaData = fields;
         paragraphaData.pid = pid;
 
 
@@ -474,7 +469,7 @@ export default class App extends React.Component {
                 let tid = this.state.fields[pid][key]['und'][i]['tid'];
 
                 data.url = this.state.siteUrl + '/app/tax-term/' + tid + '.json'
-               paragraphaData.termNames = {};
+                paragraphaData.termNames = {};
                 axios(data)
                   .then((response) => response.data)
                   .then((term) => {
@@ -519,10 +514,8 @@ export default class App extends React.Component {
   }
 
 
-
-
   insertContentType = (response, machineName) => {
-   this.state.db.transaction(
+    this.state.db.transaction(
       tx => {
         tx.executeSql('replace into content_type (machine_name, blob) values (?, ?)',
           [machineName, JSON.stringify(response)],
@@ -666,7 +659,7 @@ export default class App extends React.Component {
           (success, array) => {
             console.log('nodes retreieved');
             let nodesState = {};
-            for(let i = 0; i < array.rows._array.length; i ++) {
+            for (let i = 0; i < array.rows._array.length; i++) {
               let nid = array.rows._array[i].nid;
               let node = JSON.parse(array.rows._array[i].entity);
               nodesState[nid] = node;
@@ -703,7 +696,7 @@ export default class App extends React.Component {
           (success, array) => {
             console.log('content types retrieved');
             let formFieldsState = {};
-            for(let i = 0; i < array.rows._array.length; i++) {
+            for (let i = 0; i < array.rows._array.length; i++) {
               let machineName = array.rows._array[i]['machine_name'];
               let formFields = JSON.parse(array.rows._array[i]['blob']);
               formFieldsState[machineName] = formFields;
@@ -723,10 +716,10 @@ export default class App extends React.Component {
           [],
           (success, array) => {
             let termsState = {};
-            for(let i = 0; i < array.rows._array.length; i ++) {
+            for (let i = 0; i < array.rows._array.length; i++) {
               let tid = array.rows._array[i].tid;
               let term = JSON.parse(array.rows._array[i].entity);
-             termsState[tid] = term;
+              termsState[tid] = term;
             }
             this.setState({'terms': termsState});
           },
@@ -742,11 +735,11 @@ export default class App extends React.Component {
         tx.executeSql('select * from display_modes',
           [],
           (success, array) => {
-          console.log('display modes retreived');
+            console.log('display modes retreived');
             let displayState = {};
-            for(let i = 0; i < array.rows._array.length; i ++) {
+            for (let i = 0; i < array.rows._array.length; i++) {
               let machine_name = array.rows._array[i].machine_name;
-              let node_view= JSON.parse(array.rows._array[i].node_view);
+              let node_view = JSON.parse(array.rows._array[i].node_view);
               displayState[machine_name] = node_view;
             }
             this.setState({'displayModes': displayState});
@@ -765,12 +758,12 @@ export default class App extends React.Component {
           (success, array) => {
             console.log('list_display modes retreived');
             let displayState = {};
-            for(let i = 0; i < array.rows._array.length; i ++) {
+            for (let i = 0; i < array.rows._array.length; i++) {
               let machine_name = array.rows._array[i].machine_name;
               let node_view = JSON.parse(array.rows._array[i].node_view);
               displayState[machine_name] = node_view;
             }
-           this.setState({'listDisplayModes': displayState});
+            this.setState({'listDisplayModes': displayState});
           },
           (success, error) => {
             console.log(error);
@@ -785,9 +778,10 @@ export default class App extends React.Component {
         tx.executeSql('select * from viewable_types',
           [],
           (success, array) => {
+            console.log('viewable types retrieved');
 
-            if(array.rows._array.length > 0) {
-             this.setState({'viewableTypes': JSON.parse(array.rows._array[0].blob)});
+            if (array.rows._array.length > 0) {
+              this.setState({'viewableTypes': JSON.parse(array.rows._array[0].blob)});
             }
 
           },
@@ -803,9 +797,10 @@ export default class App extends React.Component {
         tx.executeSql('select * from paragraphs',
           [],
           (success, array) => {
+            console.log('paragraphs retreived');
             let paragraphState = {};
-            if(array.rows._array.length > 0) {
-              for(let i = 0; i < array.rows._array.length; i++ ) {
+            if (array.rows._array.length > 0) {
+              for (let i = 0; i < array.rows._array.length; i++) {
                 let pid = array.rows._array[i][pid];
                 let data = JSON.parse(array.rows._array[i]['blob']);
                 paragraphState[pid] = data;
@@ -821,7 +816,7 @@ export default class App extends React.Component {
       }
     );
 
-
+    console.log('everything retrieved');
 
 
     this.setState({
@@ -883,7 +878,7 @@ export default class App extends React.Component {
               .then((response) => {
                 this.setState({'atoms': responseJson.atoms});
                 console.log('done syncing atoms');
-            });
+              });
           }
 
           this.updateSync();
@@ -959,7 +954,7 @@ export default class App extends React.Component {
       })
       .then((response) => {
         console.log('done syncing creatable types');
-    });
+      });
 
     // Set up request for viewable types
     data.url = this.state.siteUrl + '/app/viewable-types/retrieve';
@@ -971,10 +966,8 @@ export default class App extends React.Component {
         if (typeof responseJson === 'object' && responseJson !== null) {
 
 
-
           this.setState({'viewableTypes': responseJson});
           this.insertViewableType(responseJson);
-
 
 
           // now let's sync all content type display endpoints
@@ -982,7 +975,7 @@ export default class App extends React.Component {
           let retrieveListFieldsFetch = []
           for (const [machineName, TypeObject] of Object.entries(responseJson)) {
             data.url = this.state.siteUrl + '/app/node-view-fields/retrieve/' + machineName;
-           retrieveFieldsFetch.push(axios(data)
+            retrieveFieldsFetch.push(axios(data)
               .then((response) => {
                 return response.data;
               })
@@ -1006,7 +999,7 @@ export default class App extends React.Component {
                 console.log('error 1');
                 console.log(error);
               })
-          );
+            );
             // Now do the list view fields display
             data.url = this.state.siteUrl + '/app/list-view-fields/retrieve/' + machineName;
             retrieveListFieldsFetch.push(axios(data)
@@ -1035,7 +1028,7 @@ export default class App extends React.Component {
           let retrieveAllFieldsFetch = retrieveFieldsFetch.concat(retrieveListFieldsFetch);
 
           return Promise.all(retrieveAllFieldsFetch)
-            .then(()=> {
+            .then(() => {
               console.log('done syncing viewable types')
             });
 
@@ -1073,8 +1066,6 @@ export default class App extends React.Component {
       });
 
 
-
-
     // Run all the requests
     Promise.all([noderequest, creatableTypes, viewableTypes, siteInfo])
       .then((values) => {
@@ -1102,7 +1093,7 @@ export default class App extends React.Component {
           (success, array) => {
             console.log('database selected');
             // There might be multiple databases, so we get the last one, assuming it's most recent
-            if(array.rows.length > 0) {
+            if (array.rows.length > 0) {
               let index = array.rows.length - 1;
               let dbName = array.rows._array[index].databaseName;
               let db = SQLite.openDatabase(dbName);
@@ -1123,7 +1114,6 @@ export default class App extends React.Component {
             }
 
 
-
             globalDB.transaction(
               tx => {
                 tx.executeSql('select * from user;',
@@ -1131,7 +1121,7 @@ export default class App extends React.Component {
                   (success, array) => {
 
                     // There might be multiple databases, so we just get the first one
-                    if(array.rows.length > 0) {
+                    if (array.rows.length > 0) {
                       // Now, if we're not connected but do have user info, we set our status to authorized so that content can be created/viewed
                       // if(!this.state.connected) {
                       //   this.setState({'authorized': true});
@@ -1165,15 +1155,19 @@ export default class App extends React.Component {
 
                       // Append http to this. Might need to save original protocol to db
                       // data.url = 'http://' + this.state.siteUrl + '/app/system/connect';
-                      fetch('http://' + this.state.siteUrl + '/app/system/connect', data)
+                      console.log('checking connect');
+                      console.log(this.state.siteUrl);
+                      fetch(this.state.siteUrl + '/app/system/connect', data)
                         .then((response) => {
                           return response.json()
                         })
                         .then((responseJson) => {
                           // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
+                          console.log('test');
                           try {
                             // If this uid is not 0, the user is currently authenticated
                             if (responseJson.user.uid !== 0) {
+                              console.log('authenticate');
                               this.setState({
                                 loggedIn: true,
                                 syncing: true,
@@ -1182,7 +1176,9 @@ export default class App extends React.Component {
                                 user: user,
                                 cookie: cookie,
                                 token: token
-                              }, () => {this.retrieveEverythingFromDb()}); // Should probably do a new sync
+                              }, () => {
+                                this.retrieveEverythingFromDb()
+                              }); // Should probably do a new sync
 
                             } else {
                               this.setState({
@@ -1211,7 +1207,6 @@ export default class App extends React.Component {
                         });
 
 
-
                     } else {
                       this.setState({'initialized': true});
                     }
@@ -1225,16 +1220,11 @@ export default class App extends React.Component {
 
 
           }
-
-
-
         );
       }
     );
 
   }
-
-
 
 
   checkLoginOld() {
@@ -1248,7 +1238,7 @@ export default class App extends React.Component {
         tx.executeSql('select * from database;',
           '',
           (success, array) => {
-          console.log('database selected');
+            console.log('database selected');
 
           }
         );

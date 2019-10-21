@@ -18,7 +18,7 @@ import axios from "axios";
 
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-5');
+const globalDB = SQLite.openDatabase('global-6');
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => ({

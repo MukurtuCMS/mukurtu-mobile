@@ -19,7 +19,7 @@ import {SQLite} from 'expo-sqlite';
 import Axios from "axios";
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-5');
+const globalDB = SQLite.openDatabase('global-6');
 
 class LogoutScreen extends React.Component {
 
@@ -29,7 +29,7 @@ class LogoutScreen extends React.Component {
     this.state = {db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
     this.handleLoginClick = this.handleLoginClick.bind(this);
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
-    this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
+    // this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
     this._handleLogoutStatusUpdate = screenProps._handleLogoutStatusUpdate.bind(this);
   }

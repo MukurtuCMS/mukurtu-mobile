@@ -560,7 +560,7 @@ export default class FormComponent extends React.Component {
         fetch(this.props.screenProps.siteUrl + '/app/node/' + this.state.formValues.nid + '.json', data)
           .then((response) => response.json())
           .then((responseJson) => {
-            if (responseJson.form_errors) {
+            if (typeof responseJson.form_errors === 'object') {
               this.setState({formErrors: responseJson.form_errors})
               this.setState({'submitting': false});
             }
@@ -605,7 +605,7 @@ export default class FormComponent extends React.Component {
     })
       .then((response) => response.json())
       .then((responseJson) => {
-        if (responseJson.form_errors) {
+        if (typeof responseJson.form_errors === 'object') {
           this.setState({formErrors: responseJson.form_errors, submitting: false})
         } else {
           this.setState({
@@ -651,11 +651,7 @@ export default class FormComponent extends React.Component {
 
       })
       .then((responseJson) => {
-        if (responseJson.form_errors) {
 
-        } else {
-
-        }
       });
 
   }
@@ -1052,7 +1048,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     marginBottom: 10,
     // color: '#FFF',
-    fontSize: 16,
+    // fontSize: 16,
   },
   selectedButtonStyle: {
     backgroundColor: Colors.gold,

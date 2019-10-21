@@ -14,9 +14,11 @@ export default class DatePick extends React.Component {
 
   componentDidMount() {
     // Set initial date in case it's not changed
-    this.props.setFormValue(this.props.fieldName, this.state.date, this.props.fieldType);
     let today = this.getTodayFormatted();
-    this.setState({'date': today})
+    this.setState({'date': today}, () => {
+      // Ensure we're setting this to form state in case the value isn't changed
+      this.props.setFormValue(this.props.fieldName, this.state.date, this.props.fieldType);
+    })
   }
 
   getTodayFormatted() {

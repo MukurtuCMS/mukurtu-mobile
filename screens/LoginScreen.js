@@ -37,7 +37,7 @@ class LoginScreen extends React.Component {
     // Pass props down from App.js, since we're not using Redux
     const {navigation, screenProps} = this.props;
     const siteUrl = screenProps.siteUrl;
-    this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
+    // this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
     this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
     this.state = {
       url: siteUrl,
@@ -118,7 +118,7 @@ class LoginScreen extends React.Component {
                 .then((response) => response.json())
                 .then((responseJson) => {
 
-                  this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+                  // this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
                   // Pass the token from the user, not our initial token.
                   this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
                   this.props.navigation.navigate('Home')
