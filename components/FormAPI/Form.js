@@ -713,6 +713,7 @@ export default class FormComponent extends React.Component {
           var fieldName = childrenFields[k]['machine_name'];
 
 
+
           var fieldArray = childrenFields[k];
 
           if (fieldName === undefined && fieldArray['#name'] !== undefined) {
@@ -733,11 +734,21 @@ export default class FormComponent extends React.Component {
           }
 
 
+          if(fieldName === 'field_mukurtu_terms') {
+            console.log('terms');
+          }
+
           if (fieldArray['#type'] !== undefined) {
 
             // If field type is container, we need to drill down and find the form to render
             if (fieldArray['#type'] === 'container') {
               fieldArray = field['und'];
+
+              if(typeof fieldArray['mukurtu_record'] === 'object') {
+                fieldArray = fieldArray['mukurtu_record']['terms_all'];
+              }
+
+
 
               if (fieldArray['#type'] === undefined && fieldArray[0] !== undefined) {
 
@@ -801,8 +812,9 @@ export default class FormComponent extends React.Component {
 
             if (typeof fieldArray === 'object' && fieldArray['#type']) {
 
+
               // first determine if field is scald library because in FAPI that is a textfield
-              if (fieldArray['#preview_context'] && fieldArray['#preview_context'] === 'mukurtu_scald_media_assets_edit_') {
+              if (fieldArray['#preview_context'] && ['sdl_editor_representation', 'mukurtu_scald_media_assets_edit_'].includes(fieldArray['#preview_context'])) {
                 let chosenImage = null;
                 if (this.state[fieldName]) {
                   chosenImage = this.state[fieldName];
