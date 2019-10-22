@@ -31,11 +31,9 @@ export default class AppHeader extends React.Component {
 
   render() {
     let loginBubbleStyle = styles.loginBubble;
-    let profileLink = 'Login';
 
-    if (this.props.loggedIn === true && this.props.url.length > 0) {
+    if (this.props.screenProps.isConnected) {
       loginBubbleStyle = styles.loginBubbleLoggedIn;
-      profileLink = 'Logout';
     }
 
     let siteLogo = <Image

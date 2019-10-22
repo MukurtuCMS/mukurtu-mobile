@@ -105,9 +105,8 @@ export default class App extends React.Component {
   handleConnectivityChange = isConnected => {
     console.log('connection change');
     console.log(isConnected);
-    if (this._isMounted) {
-      this.setState({isConnected});
-    }
+
+    this.setState({'isConnected': isConnected});
   }
 
   componentWillUnmount() {
@@ -316,7 +315,7 @@ export default class App extends React.Component {
       {
         token: false,
         cookie: false,
-        isConnected: false,
+        isConnected: true,
         databaseName: false,
         db: null,
         loggedIn: false,
