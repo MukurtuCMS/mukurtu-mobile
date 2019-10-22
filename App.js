@@ -10,24 +10,14 @@ import {
   ScrollView,
   RefreshControl
 } from 'react-native';
-import {AppLoading} from 'expo';
 import {SQLite} from 'expo-sqlite';
-import {Asset} from 'expo-asset';
-import * as BackgroundFetch from 'expo-background-fetch'
-import Constants from 'expo-constants'
-import * as Font from 'expo-font'
-import * as Icon from '@expo/vector-icons'
-import * as TaskManager from 'expo-task-manager'
 import AppNavigator from './navigation/AppNavigator';
 import {Provider} from 'react-redux';
-import {LoginText} from "./components/LoginText";
 import InitializingApp from "./components/InitializingApp"
 import AjaxSpinner from "./components/AjaxSpinner"
-import * as Sync from "./components/MukurtuSync"
 import * as ManageTables from "./components/ManageTables"
 import configureStore from './store';
 import axios from "axios";
-import {Feather} from "@expo/vector-icons";
 import AppHeader from "./components/AppHeader";
 import * as FileSystem from "expo-file-system";
 
@@ -39,7 +29,6 @@ const globalDB = SQLite.openDatabase('global-7');
 
 
 export default class App extends React.Component {
-  _isMounted = false;
 
   constructor(props) {
     super(props);
@@ -72,6 +61,7 @@ export default class App extends React.Component {
       initialized: false,
       paragraphData: {},
       nodeSyncMessages: {},
+      refreshing: false
     };
   }
 
@@ -108,7 +98,6 @@ export default class App extends React.Component {
 
   render() {
 
-
     // We need to make sure our component is not rendering until we have checked offline/online and whether user is
     // logged in or not. This is because it does not want to re-render on a state change unless not rendered at all.
     // databaseName should on bu null or a WebSQLDatabase class. If false, the checks have not run yet.
@@ -117,7 +106,8 @@ export default class App extends React.Component {
     }
 
     // If we're syncing, run the ajax spinner
-    if (this.state.syncing) {
+    // But don't run the spinner if we're refreshing — just let the refresh graphic run
+    if (this.state.syncing && !this.state.refreshing) {
       return (<AjaxSpinner/>);
     }
 
@@ -135,7 +125,6 @@ export default class App extends React.Component {
       contentTypes: this.state.contentTypes,
       terms: this.state.terms,
       formFields: this.state.formFields,
-      // _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
       saveNode: this.saveNode,
@@ -148,6 +137,7 @@ export default class App extends React.Component {
       nodeSyncMessages: this.state.nodeSyncMessages,
       db: this.state.db
     };
+    // Not sure if this is necessary any longer, but leaving it just in case.
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
       screenProps.user = this.state.user;
     } else if (typeof this.state.user === 'object') {
@@ -159,13 +149,11 @@ export default class App extends React.Component {
       <Provider store={store}>
 
         <View style={styles.container}>
-          <ScrollView style={styles.container} contentContainerStyle={{ flex: 1 }}>
+          <ScrollView style={styles.container} contentContainerStyle={{flex: 1}}>
             <RefreshControl
-              refreshing={this.state.syncing}
+              refreshing={this.state.refreshing}
               onRefresh={this._onRefresh}
             />
-
-
             <AppHeader
               loggedIn={this.state.loggedIn}
               url={this.state.siteUrl}
@@ -179,7 +167,7 @@ export default class App extends React.Component {
             />
 
           </ScrollView>
-      </View>
+        </View>
 
       </Provider>
     );
@@ -255,17 +243,15 @@ export default class App extends React.Component {
     });
 
 
+    //  let dburl = url.replace(/(^\w+:|^)\/\//, '');
     // Then we need to create local database
     // Previously this was also done on opening the app, might still need to do that
-    //  let dburl = url.replace(/(^\w+:|^)\/\//, '');
-
     let db = SQLite.openDatabase(databaseName);
     ManageTables.createUniqueTables(db);
 
     // Then we need to update our state to match the databases
     // If we've logged in or re-logged in, we need to update our state, and then resync everything.
     this.setState({
-      url: url, // don't think this is needed
       siteUrl: url,
       databaseName: databaseName,
       db: db,
@@ -849,15 +835,15 @@ export default class App extends React.Component {
 
   _onRefresh() {
     this.setState({
-        'syncing': true,
+        'refreshing': true,
         'nodeSyncMessages': {}
       },
       () => {
         // Push any nodes we've saved offline
         this.pushSavedOffline()
-          .then(( )=> {
+          .then(() => {
             this.newSyncEverything()
-        })
+          })
 
       });
   }
@@ -893,7 +879,7 @@ export default class App extends React.Component {
 
     return new Promise((resolve, reject) => {
       // If we're connected, just immediately resolve
-      if(this.state.isConnected) {
+      if (this.state.isConnected) {
         resolve();
       }
 
@@ -910,7 +896,7 @@ export default class App extends React.Component {
                 let currentId = array.rows._array[i].id;
 
                 // Largely copied from Form.js method for updating existing nodes, but our state setting is different here
-                if(formValues.nid) {
+                if (formValues.nid) {
                   const token = this.state.token;
                   const cookie = this.state.cookie;
                   const data = {
@@ -935,7 +921,7 @@ export default class App extends React.Component {
 
                       if (typeof responseJson.form_errors === 'object') {
                         let error = '';
-                        for(let key in responseJson.form_errors) {
+                        for (let key in responseJson.form_errors) {
                           error = error + responseJson.form_errors[key] + ' ';
                         }
                         this.setNodeSyncMessage('error', currentId, error)
@@ -966,10 +952,10 @@ export default class App extends React.Component {
                     .then((response) => {
 
                       // Just skip the rest if we get a bad response
-                     if(response.ok === false) {
-                       this.setNodeSyncMessage('error', currentId, 'Node submission failed. Please try again.')
-                     }
-                    return  response.json();
+                      if (response.ok === false) {
+                        this.setNodeSyncMessage('error', currentId, 'Node submission failed. Please try again.')
+                      }
+                      return response.json();
                     })
                     .then((responseJson) => {
 
@@ -983,7 +969,7 @@ export default class App extends React.Component {
                       if (typeof responseJson.form_errors === 'object') {
 
                         let error = '';
-                        for(let key in responseJson.form_errors) {
+                        for (let key in responseJson.form_errors) {
                           error = error + responseJson.form_errors[key] + ' ';
                         }
                         this.setNodeSyncMessage('error', currentId, error)
@@ -1013,11 +999,7 @@ export default class App extends React.Component {
       );
 
 
-
-
-
     });
-
 
 
   }
@@ -1345,11 +1327,17 @@ export default class App extends React.Component {
     Promise.all([noderequest, creatableTypes, viewableTypes, siteInfo])
       .then((values) => {
         console.log('done syncing everything');
-        this.setState({'syncing': false})
+        this.setState({
+          'syncing': false,
+          'refreshing': false
+        })
       })
       .catch((error) => {
         console.log('error syncing');
-        this.setState({'syncing': false})
+        this.setState({
+          'syncing': false,
+          'refreshing': false
+        })
         console.log(error);
       });
   }
