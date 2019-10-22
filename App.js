@@ -37,24 +37,17 @@ const store = configureStore();
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global-7');
 
-// BackgroundFetch.setMinimumIntervalAsync(60);
-// const taskName = 'mukurtu-mobile-sync';
-// TaskManager.defineTask(taskName, async () => {
-//   console.log('background fetch running');
-//   return BackgroundFetch.Result.NewData;
-// });
 
 export default class App extends React.Component {
   _isMounted = false;
-
 
   constructor(props) {
     super(props);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
     this._handleLogoutStatusUpdate = this._handleLogoutStatusUpdate.bind(this);
+    this.saveNode = this.saveNode.bind(this);
     this.setNodeSyncMessage = this.setNodeSyncMessage.bind(this);
     this._onRefresh = this._onRefresh.bind(this);
-    // this.syncCompleted = this.syncCompleted.bind(this);
 
     this.state = {
       isLoadingComplete: false,
@@ -145,6 +138,7 @@ export default class App extends React.Component {
       // _handleSiteUrlUpdate: this._handleSiteUrlUpdate,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
+      saveNode: this.saveNode,
       nodes: this.state.nodes,
       displayModes: this.state.displayModes,
       listDisplayModes: this.state.listDisplayModes,
@@ -1105,8 +1099,6 @@ export default class App extends React.Component {
       });
 
   }
-
-
 
 
   newSyncEverything() {

@@ -584,6 +584,8 @@ export default class FormComponent extends React.Component {
             if (typeof responseJson.form_errors === 'object') {
               this.setState({formErrors: responseJson.form_errors})
               this.setState({'submitting': false});
+            } else {
+              this.props.screenProps.saveNode(this.state.formValues.nid);
             }
           })
           .catch((error) => {
@@ -634,9 +636,9 @@ export default class FormComponent extends React.Component {
             submitting: false
           });
           // Submit this nid to synced entities
-
           if (responseJson.hasOwnProperty('nid')) {
             this.updateSyncedNids(responseJson.nid);
+            this.props.screenProps.saveNode(responseJson.nid);
           }
 
         }
