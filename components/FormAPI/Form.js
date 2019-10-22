@@ -524,12 +524,28 @@ export default class FormComponent extends React.Component {
   saveNode() {
     if (!this.props.screenProps.isConnected) {
 
+      // Generate a random ID for this, so that we can keep track of it until it's submitted and has a node ID
+      let id = Math.floor(Math.random() * 1000000000);
+      if (this.state.formValues.nid) {
+        id = this.state.formValues.nid;
+      } else if(this.props.did) {
+        id = this.props.did;
+      }
       this.props.screenProps.db.transaction(
         tx => {
-          tx.executeSql('insert into saved_offline (blob, saved) values (?, 0)',
-            [JSON.stringify(this.state.formValues)],
-            (success) => this.setState({formSubmitted: true}),
-            (success, error) => console.log(error)
+          tx.executeSql('replace into saved_offline (blob, id, saved) values (?, ?, 0)',
+
+            [JSON.stringify(this.state.formValues), id],
+            (success) => {
+              this.setState({
+                formSubmitted: true,
+                submitting: false
+              })
+            },
+            (success, error) => {
+              console.log('error');
+              console.log(error);
+            }
           );
         }
       );
@@ -629,6 +645,7 @@ export default class FormComponent extends React.Component {
     ;
   }
 
+  // Need to replace with screenprops method from app.js
   updateSyncedNids(nid) {
 
     fetch(this.props.screenProps.siteUrl + '/app/synced-entities/create', {

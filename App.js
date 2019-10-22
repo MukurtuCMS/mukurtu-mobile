@@ -52,6 +52,7 @@ export default class App extends React.Component {
     super(props);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
     this._handleLogoutStatusUpdate = this._handleLogoutStatusUpdate.bind(this);
+    this.setNodeSyncMessage = this.setNodeSyncMessage.bind(this);
     this._onRefresh = this._onRefresh.bind(this);
     // this.syncCompleted = this.syncCompleted.bind(this);
 
@@ -76,7 +77,8 @@ export default class App extends React.Component {
       viewableTypes: {},
       authorized: false,
       initialized: false,
-      paragraphData: {}
+      paragraphData: {},
+      nodeSyncMessages: {},
     };
   }
 
@@ -101,6 +103,8 @@ export default class App extends React.Component {
   }
 
   handleConnectivityChange = isConnected => {
+    console.log('connection change');
+    console.log(isConnected);
     if (this._isMounted) {
       this.setState({isConnected});
     }
@@ -148,6 +152,7 @@ export default class App extends React.Component {
       viewableTypes: this.state.viewableTypes,
       authorized: this.state.authorized,
       paragraphData: this.state.paragraphData,
+      nodeSyncMessages: this.state.nodeSyncMessages,
       db: this.state.db
     };
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
@@ -850,11 +855,256 @@ export default class App extends React.Component {
   }
 
   _onRefresh() {
-    this.setState({'syncing': true},
+    this.setState({
+        'syncing': true,
+        'nodeSyncMessages': {}
+      },
       () => {
-        this.newSyncEverything()
+        // Push any nodes we've saved offline
+        this.pushSavedOffline()
+          .then(( )=> {
+            this.newSyncEverything()
+        })
+
       });
   }
+
+
+  deleteFromQueue(id) {
+    this.state.db.transaction(
+      tx => {
+        tx.executeSql('delete from saved_offline where id = ?;',
+          [id],
+          (success, array) => {
+            console.log(success);
+          },
+          (error) => {
+            console.log(error);
+          });
+      });
+  }
+
+
+  setNodeSyncMessage(type, id, message) {
+    let nodeSyncMessages = this.state.nodeSyncMessages;
+    nodeSyncMessages[id] = {
+      'type': type,
+      'message': message
+    }
+
+    this.setState({'nodeSynceMessages': nodeSyncMessages});
+  }
+
+  // Still to do here:
+  // Handle form submission errors
+  // Clear out data from saved_offline
+  pushSavedOffline() {
+    // Need to catch this for offline status once I'm done testing
+    return new Promise((resolve, reject) => {
+      this.state.db.transaction(
+        tx => {
+          tx.executeSql('select * from saved_offline',
+            [],
+            (success, array) => {
+              console.log('pushing saved nodes');
+              for (let i = 0; i < array.rows._array.length; i++) {
+                let formValuesString = array.rows._array[i].blob;
+                let formValues = JSON.parse(array.rows._array[i].blob);
+
+                let currentId = array.rows._array[i].id;
+
+                // Largely copied from Form.js method for updating existing nodes, but our state setting is different here
+                if(formValues.nid) {
+                  const token = this.state.token;
+                  const cookie = this.state.cookie;
+                  const data = {
+                    method: 'PUT',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: {
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json',
+                      'X-CSRF-Token': token,
+                      'Cookie': cookie
+                    },
+                    redirect: 'follow',
+                    referrer: 'no-referrer',
+                    body: formValuesString
+                  };
+
+                  fetch(this.state.siteUrl + '/app/node/' + formValues.nid + '.json', data)
+                    .then((response) => response.json())
+                    .then((responseJson) => {
+
+
+                      if (typeof responseJson.form_errors === 'object') {
+                        let error = '';
+                        for(let key in responseJson.form_errors) {
+                          error = error + responseJson.form_errors[key] + ' ';
+                        }
+                        this.setNodeSyncMessage('error', currentId, error)
+                      } else {
+                        this.deleteFromQueue(currentId);
+                      }
+                      resolve();
+                    })
+                    .catch((error) => {
+
+                    });
+                } else {
+                  fetch(this.state.siteUrl + '/app/node.json', {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    // credentials: 'same-origin',
+                    headers: {
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json',
+                      'X-CSRF-Token': this.state.token,
+                      'Cookie': this.state.cookie
+                    },
+                    redirect: 'follow',
+                    referrer: 'no-referrer',
+                    body: formValuesString,
+                  })
+                    .then((response) => {
+
+                      // Just skip the rest if we get a bad response
+                     if(response.ok === false) {
+                       this.setNodeSyncMessage('error', currentId, 'Node submission failed. Please try again.')
+                     }
+                    return  response.json();
+                    })
+                    .then((responseJson) => {
+
+                      if (responseJson.hasOwnProperty('nid')) {
+                        this.updateSyncedNids(responseJson.nid);
+                        // If we have a nid, we remove this from the queued nodes
+                        this.deleteFromQueue(currentId);
+
+                      }
+
+                      if (typeof responseJson.form_errors === 'object') {
+
+                        let error = '';
+                        for(let key in responseJson.form_errors) {
+                          error = error + responseJson.form_errors[key] + ' ';
+                        }
+                        this.setNodeSyncMessage('error', currentId, error)
+
+                      } else {
+
+                      }
+
+                      resolve();
+
+                    })
+                    .catch((error) => {
+                      console.log(error);
+                      resolve();
+                    });
+                }
+
+              }
+
+            },
+            (success, error) => {
+              console.log(error);
+
+            }
+          );
+        }
+      );
+
+
+
+
+
+    });
+
+
+
+  }
+
+
+  /**
+   * Largely copied from Form.js postData method, but how we handle state is a bit different so we're going to live
+   * with the duplication for now.
+   * @param url
+   * @param data
+   * @param method
+   */
+  postData(url = '', data = {}, method = 'POST') {
+    fetch(url, {
+      method: method,
+      mode: 'cors',
+      cache: 'no-cache',
+      // credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': this.state.token,
+        'Cookie': this.state.cookie
+      },
+      redirect: 'follow',
+      referrer: 'no-referrer',
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((responseJson) => {
+
+        if (responseJson.hasOwnProperty('nid')) {
+          this.updateSyncedNids(responseJson.nid);
+        }
+
+        if (typeof responseJson.form_errors === 'object') {
+          // this.setState({formErrors: responseJson.form_errors, submitting: false})
+        } else {
+          // this.setState({
+          //   formSubmitted: true,
+          //   submitting: false
+          // });
+          // // Submit this nid to synced entities
+          //
+          // if (responseJson.hasOwnProperty('nid')) {
+          //   this.updateSyncedNids(responseJson.nid);
+          // }
+
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  updateSyncedNids(nid) {
+
+    fetch(this.state.siteUrl + '/app/synced-entities/create', {
+      method: 'post',
+
+      mode: 'cors',
+      cache: 'no-cache',
+      // credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': this.state.token,
+        'Cookie': this.state.cookie
+      },
+      redirect: 'follow',
+      referrer: 'no-referrer',
+      body: nid,
+    })
+      .then((response) => {
+
+      })
+      .then((responseJson) => {
+
+      });
+
+  }
+
+
 
 
   newSyncEverything() {
