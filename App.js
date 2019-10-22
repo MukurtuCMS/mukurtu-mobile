@@ -894,12 +894,15 @@ export default class App extends React.Component {
     this.setState({'nodeSynceMessages': nodeSyncMessages});
   }
 
-  // Still to do here:
-  // Handle form submission errors
-  // Clear out data from saved_offline
+
   pushSavedOffline() {
-    // Need to catch this for offline status once I'm done testing
+
     return new Promise((resolve, reject) => {
+      // If we're connected, just immediately resolve
+      if(this.state.isConnected) {
+        resolve();
+      }
+
       this.state.db.transaction(
         tx => {
           tx.executeSql('select * from saved_offline',
