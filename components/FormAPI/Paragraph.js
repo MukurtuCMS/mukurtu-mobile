@@ -45,9 +45,8 @@ export default class Paragraph extends React.Component {
   }
 
   // this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, i)}
-  setParagraphValue(fieldName, value, valueName, lang, formErrorString, index = 0, subindex = 0) {
+  setParagraphValue(fieldName, value, valueName, lang, options = [], index = 0, subindex = 0) {
     if (this.state.subformValues) {
-      // Will need to get this dynamically
       let paragraphFieldName = this.props.fieldName;
       let subformValues = this.state.subformValues;
 
@@ -103,10 +102,9 @@ export default class Paragraph extends React.Component {
       //   }
 
 
-
       let subformvalue = {};
       // If this field already has a value, just overwrite this subindex
-      if(typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined' &&
+      if (typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined' &&
         typeof subformValues[paragraphFieldName][this.props.lang][index][fieldName] !== 'undefined'
       ) {
         let currentSubIndexForm = subformValues[paragraphFieldName][this.props.lang][index][fieldName][this.props.lang];
@@ -124,6 +122,8 @@ export default class Paragraph extends React.Component {
         };
 
       } else {
+
+
         subformvalue = {
           [fieldName]: {
             [this.props.lang]: {
@@ -133,11 +133,12 @@ export default class Paragraph extends React.Component {
             }
           }
         };
+
       }
 
 
       let currentIndexSubForm = {};
-      if(typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined') {
+      if (typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined') {
         currentIndexSubForm = subformValues[paragraphFieldName][this.props.lang][index];
       }
       Object.assign(currentIndexSubForm, subformvalue);
@@ -151,6 +152,30 @@ export default class Paragraph extends React.Component {
 
     }
   }
+
+  setParagraphValueSelect2(fieldName, value, valueName, lang, options = [], index = 0, subindex = 0) {
+    if (this.state.subformValues) {
+      let paragraphFieldName = this.props.fieldName;
+      let subformValues = this.state.subformValues;
+
+      // Filter if we have options
+      if (options !== null && (typeof options === 'array' || typeof options === 'object') && options.length > 0) {
+        let selectedOption = options.filter(function (option) {
+          return option.text === value;
+        });
+        let nid = value;
+        if (selectedOption !== undefined && selectedOption.length !== 0) {
+          nid = selectedOption[0].id;
+        }
+        value = nid;
+      }
+
+      this.setParagraphValue(fieldName, value, valueName, lang, options, index, subindex)
+    }
+
+
+  }
+
 
   createParagraphForm(index) {
     let paragraphForm = [];
@@ -218,7 +243,7 @@ export default class Paragraph extends React.Component {
       // If there are parent form values, we need to get subform values from there.
       // Otherwise subform values won't be saved if you tab between secstions
       let currentFormValues = this.state.subformValues;
-      if(typeof this.props.formValues['paragraphs'] !== 'undefined') {
+      if (typeof this.props.formValues['paragraphs'] !== 'undefined') {
         currentFormValues = this.props.formValues['paragraphs'];
       }
 
@@ -226,28 +251,29 @@ export default class Paragraph extends React.Component {
       if (subfield !== undefined && subfield['#columns'] !== undefined) {
         if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
           paragraphForm.push(<Select2
-              formValues={currentFormValues}
-              fieldName={fieldName}
-              field={subfield}
-              key={fieldName}
-              setFormValue={this.setParagraphValue.bind(this)}
-              cardinality={cardinality}
-              description={description}
+            index={index}
+            formValues={currentFormValues}
+            fieldName={fieldName}
+            field={subfield}
+            key={fieldName}
+            setFormValue={this.setParagraphValueSelect2.bind(this)}
+            cardinality={cardinality}
+            description={description}
           />);
         } else {
 
           paragraphForm.push(<Textfield
-              index={index}
-              formValues={currentFormValues}
-              fieldName={fieldName}
-              field={subfield}
-              parentField={parentField}
-              key={fieldName}
-              setFormValue={this.setParagraphValue.bind(this)}
-              title={fieldTitle}
-              cardinality={cardinality}
-              addMoreText={addMoreText}
-              description={description}
+            index={index}
+            formValues={currentFormValues}
+            fieldName={fieldName}
+            field={subfield}
+            parentField={parentField}
+            key={fieldName}
+            setFormValue={this.setParagraphValue.bind(this)}
+            title={fieldTitle}
+            cardinality={cardinality}
+            addMoreText={addMoreText}
+            description={description}
           />);
         }
       }
@@ -257,9 +283,9 @@ export default class Paragraph extends React.Component {
     // Add remove button if this isn't the first one
     if (index > 0) {
       let removeButton = <Button
-          index={index}
-          title="Remove"
-          onPress={this.removeParagraph.bind(this)}
+        index={index}
+        title="Remove"
+        onPress={this.removeParagraph.bind(this)}
       />;
       paragraphForm.push(removeButton);
     }
@@ -284,8 +310,8 @@ export default class Paragraph extends React.Component {
     let paragraphFormButton;
     if (this.props.field['actions'] !== undefined) {
       paragraphFormButton = <Button
-          title={this.props.addMoreText}
-          onPress={this.addParagraph.bind(this)}
+        title={this.props.addMoreText}
+        onPress={this.addParagraph.bind(this)}
       />
     }
 

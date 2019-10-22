@@ -425,7 +425,7 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueSelect2(newFieldName, newValue, valueKey, key, options, lang = 'und') {
+  setFormValueSelect2(newFieldName, newValue, valueKey, lang = 'und', options, key = '0') {
 
     if (this.state.formValues) {
       let formValues = this.state.formValues;

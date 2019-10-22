@@ -11,7 +11,7 @@ export default class Select2 extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      query: '',
+      query: {},
       count: 1,
       // Allows us to close autocomplete suggestions for each autocomplete field on selection
       autocompleteSelected: {
@@ -118,6 +118,7 @@ export default class Select2 extends React.Component {
       const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
       const placeholder = 'Enter ' + field['#title'];
 
+      let index = this.props.index;
       autocompleteFields.push(<Autocomplete
           key={i}
           autoCapitalize="none"
@@ -127,11 +128,11 @@ export default class Select2 extends React.Component {
           defaultValue={defaultValue}
           // style={styles.autocompleteContainers}
           onChangeText={(text) => {
-            this.props.setFormValue(this.props.fieldName, text, valueKey, key, options, lang);
+            this.props.setFormValue(this.props.fieldName, text, valueKey, lang, options, index, i);
+            let currentQuery = this.state.query;
+            currentQuery[i] = text;
             this.setState({
-              'query': {
-                [i]: text
-              }
+              'query': currentQuery
             })
           }}
           placeholder={placeholder}
@@ -140,7 +141,7 @@ export default class Select2 extends React.Component {
               <TouchableOpacity
                   onPress={
                     () => {
-                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, key, options, lang, formErrorString)
+                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, index, i)
                       this.updateAutocomplete(key, true)
                     }
 
