@@ -35,7 +35,7 @@ import * as FileSystem from "expo-file-system";
 const store = configureStore();
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-6');
+const globalDB = SQLite.openDatabase('global-7');
 
 // BackgroundFetch.setMinimumIntervalAsync(60);
 // const taskName = 'mukurtu-mobile-sync';

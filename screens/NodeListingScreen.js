@@ -25,7 +25,7 @@ import * as Colors from "../constants/Colors"
 import {Ionicons} from '@expo/vector-icons';
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-6');
+const globalDB = SQLite.openDatabase('global-7');
 
 export default class HomeScreen extends React.Component {
   constructor(props) {

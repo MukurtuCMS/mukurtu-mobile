@@ -543,8 +543,13 @@ export default class FormComponent extends React.Component {
               })
             },
             (success, error) => {
+              this.setState({
+                formSubmitted: true,
+                submitting: false
+              })
               console.log('error');
               console.log(error);
+
             }
           );
         }
