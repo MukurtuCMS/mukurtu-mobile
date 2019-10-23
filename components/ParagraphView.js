@@ -13,8 +13,8 @@ export class ParagraphView extends React.Component {
 
     let renderedItem = [];
     // First check for text value
-    if (this.props.paragraphData && this.props.paragraphData[this.props.pid] && this.props.viewableFields && typeof this.props.viewableFields[this.props.fieldName] !== 'undefined') {
-      for (let [key, value] of Object.entries(this.props.viewableFields[this.props.fieldName]['fields'])) {
+    if (this.props.paragraphData && this.props.paragraphData[this.props.pid] && this.props.viewableFields && typeof this.props.viewableFields[this.props.contentType][this.props.fieldName] !== 'undefined') {
+      for (let [key, value] of Object.entries(this.props.viewableFields[this.props.contentType][this.props.fieldName]['fields'])) {
         if (this.props.paragraphData[this.props.pid][key]) {
           if (typeof this.props.paragraphData[this.props.pid][key] !== 'undefined' &&
               typeof this.props.paragraphData[this.props.pid][key]['und'] !== 'undefined' &&
@@ -35,8 +35,8 @@ export class ParagraphView extends React.Component {
             for (let i = 0; i < this.props.paragraphData[this.props.pid][key]['und'].length; i++) {
 
               let tid = this.props.paragraphData[this.props.pid][key]['und'][i]['tid'];
-              if (this.this.props.paragraphData.termNames[tid]) {
-                let termTitle = this.this.props.paragraphData.termNames[tid];
+              if (this.props.terms[tid]) {
+                let termTitle = this.props.terms[tid].name;
                 renderedItem.push(
                     <View key={i}>
                       <Text style={styles.titleTextStyle}>{value.label}</Text>
@@ -54,7 +54,7 @@ export class ParagraphView extends React.Component {
           ) {
             for (let i = 0; i < this.props.paragraphData[this.props.pid][key]['und'].length; i++) {
               let nid = this.props.paragraphData[this.props.pid][key]['und'][i]['target_id'];
-              if(this.this.props.paragraphData.nodeTitles[nid]) {
+              if(this.props.paragraphData.nodeTitles[nid]) {
                 let nodeTitle = this.props.paragraphData.nodeTitles[nid];
                 renderedItem.push(
                     <View key={i}>

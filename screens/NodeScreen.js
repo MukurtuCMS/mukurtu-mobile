@@ -262,6 +262,7 @@ class NodeScreen extends React.Component {
               nodes={this.props.screenProps.nodes}
               terms={this.props.screenProps.terms}
               key={i}
+              contentType={this.props.navigation.getParam('contentType')}
             />
           );
         }

@@ -370,7 +370,7 @@ export default class App extends React.Component {
 
   saveNode = (nid, data, editable) => {
     let fetchurl = this.state.siteUrl + '/app/node/' + nid + '.json';
-    fetch(fetchurl, this.buildFetchData('GET'))
+    return fetch(fetchurl, this.buildFetchData('GET'))
       .then((response) => {
         return response.json();
       })
@@ -399,6 +399,7 @@ export default class App extends React.Component {
       })
       .then((node) => {
         // Now we need to save the paragraphs, terms, and nodes referenced within each node
+        let promises = [];
         for (let field in node) {
 
           if (field.indexOf('field') !== -1) {
@@ -407,17 +408,20 @@ export default class App extends React.Component {
               // Save any paragraphs embedded in here
               if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
                 let pid = node[field].und[0].value;
-                this.saveParagraph(pid, field, node.type);
+                promises.push(this.saveParagraph(pid, field, node.type));
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['tid'] !== 'undefined') {
                 data = this.buildFetchData('GET');
-                this.saveTaxonomy(node[field].und[0]['tid'], data);
+                promises.push(this.saveTaxonomy(node[field].und[0]['tid'], data));
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['nid'] !== 'undefined') {
                 data = this.buildFetchData('GET');
-                this.saveNode(node[field].und[0]['nid'], data);
+                promises.push(this.saveNode(node[field].und[0]['nid'], data));
               }
             }
           }
         }
+
+       return Promise.all(promises);
+
       })
 
       .catch((error) => {
@@ -431,15 +435,15 @@ export default class App extends React.Component {
 
     data.url = this.state.siteUrl + '/app/paragraph/retrieve/' + pid;
 
-    axios(data)
+    return axios(data)
       .then((response) => {
         return response.data;
       })
       .then((responsejson) => {
 
         let fields = responsejson;
-        let paragraphaData = fields;
-        paragraphaData.pid = pid;
+        let paragraphData = fields;
+        paragraphData.pid = pid;
 
 
         // // If there are referenced nodes, we need to retrieve them to get their titles
@@ -456,7 +460,7 @@ export default class App extends React.Component {
 
                 // These nids won't necessarily be in our synced nodes, so we have to fetch it and then get the title
                 data.url = this.state.siteUrl + '/app/node/' + nid + '.json';
-                paragraphdData.nodeTitles = {};
+                paragraphData.nodeTitles = {};
                 axios(data)
                   .then((response) => response.data)
                   .then((node) => {
@@ -473,11 +477,11 @@ export default class App extends React.Component {
               typeof fields[pid][key]['und'] !== 'undefined' &&
               typeof fields[pid][key]['und']['0']['tid'] !== 'undefined'
             ) {
-              for (let i = 0; i < this.state.fields[pid][key]['und'].length; i++) {
-                let tid = this.state.fields[pid][key]['und'][i]['tid'];
+              for (let i = 0; i < fields[pid][key]['und'].length; i++) {
+                let tid = fields[pid][key]['und'][i]['tid'];
 
                 data.url = this.state.siteUrl + '/app/tax-term/' + tid + '.json'
-                paragraphaData.termNames = {};
+                paragraphData.termNames = {};
                 axios(data)
                   .then((response) => response.data)
                   .then((term) => {
@@ -492,7 +496,7 @@ export default class App extends React.Component {
             }
           }
         }
-        return paragraphaData;
+        return paragraphData;
       })
       .then((paragraphData) => {
 
@@ -518,7 +522,7 @@ export default class App extends React.Component {
 
 
       })
-    ;
+      ;
   }
 
 
@@ -611,7 +615,7 @@ export default class App extends React.Component {
   saveTaxonomy = (tid, data) => {
     let state = this.state;
     data.url = state.siteUrl + '/app/tax-term/' + tid + '.json';
-    axios(data)
+    return axios(data)
       .then((response) => {
         return response.data;
       })
@@ -673,148 +677,156 @@ export default class App extends React.Component {
               nodesState[nid] = node;
             }
             this.setState({'nodes': nodesState});
-          },
-          (success, error) => {
-            console.log(error);
-          }
-        );
-      }
-    );
 
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('select * from content_types',
-          [],
-          (success, array) => {
-            console.log('content types retrieved');
-            let contentTypesState = JSON.parse(array.rows._array[0].blob);
-            this.setState({'contentTypes': contentTypesState});
-          },
-          (success, error) => {
-            console.log(error);
-          }
-        );
-      }
-    );
-
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('select * from content_type',
-          [],
-          (success, array) => {
-            console.log('content types retrieved');
-            let formFieldsState = {};
-            for (let i = 0; i < array.rows._array.length; i++) {
-              let machineName = array.rows._array[i]['machine_name'];
-              let formFields = JSON.parse(array.rows._array[i]['blob']);
-              formFieldsState[machineName] = formFields;
-            }
-            this.setState({'formFields': formFieldsState});
-          },
-          (success, error) => {
-            console.log(error);
-          }
-        );
-      }
-    );
-
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('select * from taxonomy',
-          [],
-          (success, array) => {
-            let termsState = {};
-            for (let i = 0; i < array.rows._array.length; i++) {
-              let tid = array.rows._array[i].tid;
-              let term = JSON.parse(array.rows._array[i].entity);
-              termsState[tid] = term;
-            }
-            this.setState({'terms': termsState});
-          },
-          (success, error) => {
-            console.log(error);
-          }
-        );
-      }
-    );
-
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('select * from display_modes',
-          [],
-          (success, array) => {
-            console.log('display modes retreived');
-            let displayState = {};
-            for (let i = 0; i < array.rows._array.length; i++) {
-              let machine_name = array.rows._array[i].machine_name;
-              let node_view = JSON.parse(array.rows._array[i].node_view);
-              displayState[machine_name] = node_view;
-            }
-            this.setState({'displayModes': displayState});
-          },
-          (success, error) => {
-            console.log(error);
-          }
-        );
-      }
-    );
-
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('select * from list_display_modes',
-          [],
-          (success, array) => {
-            console.log('list_display modes retreived');
-            let displayState = {};
-            for (let i = 0; i < array.rows._array.length; i++) {
-              let machine_name = array.rows._array[i].machine_name;
-              let node_view = JSON.parse(array.rows._array[i].node_view);
-              displayState[machine_name] = node_view;
-            }
-            this.setState({'listDisplayModes': displayState});
-          },
-          (success, error) => {
-            console.log(error);
-          }
-        );
-      }
-    );
+            this.state.db.transaction(
+              tx => {
+                tx.executeSql('select * from content_types',
+                  [],
+                  (success, array) => {
+                    console.log('content types retrieved');
+                    let contentTypesState = JSON.parse(array.rows._array[0].blob);
+                    this.setState({'contentTypes': contentTypesState});
 
 
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('select * from viewable_types',
-          [],
-          (success, array) => {
-            console.log('viewable types retrieved');
+                    this.state.db.transaction(
+                      tx => {
+                        tx.executeSql('select * from content_types',
+                          [],
+                          (success, array) => {
+                            console.log('content types retrieved');
+                            let contentTypesState = JSON.parse(array.rows._array[0].blob);
+                            this.setState({'contentTypes': contentTypesState});
 
-            if (array.rows._array.length > 0) {
-              this.setState({'viewableTypes': JSON.parse(array.rows._array[0].blob)});
-            }
+                            this.state.db.transaction(
+                              tx => {
+                                tx.executeSql('select * from taxonomy',
+                                  [],
+                                  (success, array) => {
+                                    let termsState = {};
+                                    for (let i = 0; i < array.rows._array.length; i++) {
+                                      let tid = array.rows._array[i].tid;
+                                      let term = JSON.parse(array.rows._array[i].entity);
+                                      termsState[tid] = term;
+                                    }
+                                    this.setState({'terms': termsState});
+                                    this.state.db.transaction(
+                                      tx => {
+                                        tx.executeSql('select * from display_modes',
+                                          [],
+                                          (success, array) => {
+                                            console.log('display modes retreived');
+                                            let displayState = {};
+                                            for (let i = 0; i < array.rows._array.length; i++) {
+                                              let machine_name = array.rows._array[i].machine_name;
+                                              let node_view = JSON.parse(array.rows._array[i].node_view);
+                                              displayState[machine_name] = node_view;
+                                            }
+                                            this.setState({'displayModes': displayState});
 
-          },
-          (success, error) => {
-            console.log(error);
-          }
-        );
-      }
-    );
+                                            this.state.db.transaction(
+                                              tx => {
+                                                tx.executeSql('select * from list_display_modes',
+                                                  [],
+                                                  (success, array) => {
+                                                    console.log('list_display modes retreived');
+                                                    let displayState = {};
+                                                    for (let i = 0; i < array.rows._array.length; i++) {
+                                                      let machine_name = array.rows._array[i].machine_name;
+                                                      let node_view = JSON.parse(array.rows._array[i].node_view);
+                                                      displayState[machine_name] = node_view;
+                                                    }
+                                                    this.setState({'listDisplayModes': displayState});
 
-    this.state.db.transaction(
-      tx => {
-        tx.executeSql('select * from paragraphs',
-          [],
-          (success, array) => {
-            console.log('paragraphs retreived');
-            let paragraphState = {};
-            if (array.rows._array.length > 0) {
-              for (let i = 0; i < array.rows._array.length; i++) {
-                let pid = array.rows._array[i][pid];
-                let data = JSON.parse(array.rows._array[i]['blob']);
-                paragraphState[pid] = data;
+
+                                                    this.state.db.transaction(
+                                                      tx => {
+                                                        tx.executeSql('select * from viewable_types',
+                                                          [],
+                                                          (success, array) => {
+                                                            console.log('viewable types retrieved');
+
+                                                            if (array.rows._array.length > 0) {
+                                                              this.setState({'viewableTypes': JSON.parse(array.rows._array[0].blob)});
+                                                            }
+
+
+                                                            this.state.db.transaction(
+                                                              tx => {
+                                                                tx.executeSql('select * from paragraphs',
+                                                                  [],
+                                                                  (success, array) => {
+                                                                    console.log('paragraphs retreived');
+                                                                    let paragraphState = {};
+                                                                    if (array.rows._array.length > 0) {
+                                                                      for (let i = 0; i < array.rows._array.length; i++) {
+                                                                        let pid = array.rows._array[i].pid;
+                                                                        let data = JSON.parse(array.rows._array[i]['blob']);
+                                                                        paragraphState[pid] = data;
+                                                                      }
+                                                                      this.setState({'paragraphData': paragraphState});
+
+                                                                      console.log('everything retrieved');
+                                                                    }
+
+                                                                  },
+                                                                  (success, error) => {
+                                                                    console.log(error);
+                                                                  }
+                                                                );
+                                                              }
+                                                            );
+
+                                                          },
+                                                          (success, error) => {
+                                                            console.log(error);
+                                                          }
+                                                        );
+                                                      }
+                                                    );
+
+                                                  },
+                                                  (success, error) => {
+                                                    console.log(error);
+                                                  }
+                                                );
+                                              }
+                                            );
+
+
+                                          },
+                                          (success, error) => {
+                                            console.log(error);
+                                          }
+                                        );
+                                      }
+                                    );
+
+
+                                  },
+                                  (success, error) => {
+                                    console.log(error);
+                                  }
+                                );
+                              }
+                            );
+
+                          },
+                          (success, error) => {
+                            console.log(error);
+                          }
+                        );
+                      }
+                    );
+
+
+                  },
+                  (success, error) => {
+                    console.log(error);
+                  }
+                );
               }
-              this.setState({'paragraphData': paragraphState});
-            }
+            );
+
 
           },
           (success, error) => {
@@ -824,7 +836,6 @@ export default class App extends React.Component {
       }
     );
 
-    console.log('everything retrieved');
 
 
     this.setState({
