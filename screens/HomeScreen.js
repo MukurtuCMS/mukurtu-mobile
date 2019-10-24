@@ -75,19 +75,21 @@ class HomeScreen extends React.Component {
     // check that content types is not empty
     if (!(Object.entries(contentTypes).length === 0) && contentTypes.constructor === Object) {
       for (const [machineName, TypeObject] of Object.entries(contentTypes)) {
-        list.push(
-          <SettingsList.Item
-            key={machineName}
-            title={this.props.screenProps.contentTypes[machineName].label}
-            titleInfoStyle={styles.titleInfoStyle}
-            onPress={() =>
-              this.props.navigation.navigate('NodeListing', {
-                contentType: machineName,
-                contentTypeLabel: TypeObject.label
-              })
-            }
-          />
-        )
+        if(this.props.screenProps.viewableTypes[machineName] !== undefined) {
+          list.push(
+            <SettingsList.Item
+              key={machineName}
+              title={this.props.screenProps.contentTypes[machineName].label}
+              titleInfoStyle={styles.titleInfoStyle}
+              onPress={() =>
+                this.props.navigation.navigate('NodeListing', {
+                  contentType: machineName,
+                  contentTypeLabel: TypeObject.label
+                })
+              }
+            />
+          )
+        }
       }
     }
     return (

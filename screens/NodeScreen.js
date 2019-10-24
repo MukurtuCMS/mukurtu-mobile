@@ -72,7 +72,7 @@ class NodeScreen extends React.Component {
     }
     this.setState({'nodes': filteredNodes});
 
-    if(this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
+    if(typeof this.props.screenProps.viewableTypes[type] !== 'undefined' && this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
       this.setState({'personalCollectionValid': true});
     }
 
