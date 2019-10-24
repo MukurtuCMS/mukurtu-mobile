@@ -420,7 +420,7 @@ export default class App extends React.Component {
           }
         }
 
-       return Promise.all(promises);
+        return Promise.all(promises);
 
       })
 
@@ -690,91 +690,97 @@ export default class App extends React.Component {
 
                     this.state.db.transaction(
                       tx => {
-                        tx.executeSql('select * from content_types',
+                        tx.executeSql('select * from content_type',
                           [],
                           (success, array) => {
-                            console.log('content types retrieved');
-                            let contentTypesState = JSON.parse(array.rows._array[0].blob);
-                            this.setState({'contentTypes': contentTypesState});
+                            console.log('content TYPE retrieved');
+                            let formFieldsState = {};
+                            for (let i = 0; i < array.rows._array.length; i++) {
+                              let machineName = array.rows._array[i]['machine_name'];
+                              let formFields = JSON.parse(array.rows._array[i]['blob']);
+                              formFieldsState[machineName] = formFields;
+                            }
+                            this.setState({'formFields': formFieldsState});
+                          },
+                          (success, error) => {
+                            console.log(error);
+                          }
+                        );
+                      }
+                    );
 
+
+
+                    this.state.db.transaction(
+                      tx => {
+                        tx.executeSql('select * from taxonomy',
+                          [],
+                          (success, array) => {
+                            let termsState = {};
+                            for (let i = 0; i < array.rows._array.length; i++) {
+                              let tid = array.rows._array[i].tid;
+                              let term = JSON.parse(array.rows._array[i].entity);
+                              termsState[tid] = term;
+                            }
+                            this.setState({'terms': termsState});
                             this.state.db.transaction(
                               tx => {
-                                tx.executeSql('select * from taxonomy',
+                                tx.executeSql('select * from display_modes',
                                   [],
                                   (success, array) => {
-                                    let termsState = {};
+                                    console.log('display modes retreived');
+                                    let displayState = {};
                                     for (let i = 0; i < array.rows._array.length; i++) {
-                                      let tid = array.rows._array[i].tid;
-                                      let term = JSON.parse(array.rows._array[i].entity);
-                                      termsState[tid] = term;
+                                      let machine_name = array.rows._array[i].machine_name;
+                                      let node_view = JSON.parse(array.rows._array[i].node_view);
+                                      displayState[machine_name] = node_view;
                                     }
-                                    this.setState({'terms': termsState});
+                                    this.setState({'displayModes': displayState});
+
                                     this.state.db.transaction(
                                       tx => {
-                                        tx.executeSql('select * from display_modes',
+                                        tx.executeSql('select * from list_display_modes',
                                           [],
                                           (success, array) => {
-                                            console.log('display modes retreived');
+                                            console.log('list_display modes retreived');
                                             let displayState = {};
                                             for (let i = 0; i < array.rows._array.length; i++) {
                                               let machine_name = array.rows._array[i].machine_name;
                                               let node_view = JSON.parse(array.rows._array[i].node_view);
                                               displayState[machine_name] = node_view;
                                             }
-                                            this.setState({'displayModes': displayState});
+                                            this.setState({'listDisplayModes': displayState});
+
 
                                             this.state.db.transaction(
                                               tx => {
-                                                tx.executeSql('select * from list_display_modes',
+                                                tx.executeSql('select * from viewable_types',
                                                   [],
                                                   (success, array) => {
-                                                    console.log('list_display modes retreived');
-                                                    let displayState = {};
-                                                    for (let i = 0; i < array.rows._array.length; i++) {
-                                                      let machine_name = array.rows._array[i].machine_name;
-                                                      let node_view = JSON.parse(array.rows._array[i].node_view);
-                                                      displayState[machine_name] = node_view;
+                                                    console.log('viewable types retrieved');
+
+                                                    if (array.rows._array.length > 0) {
+                                                      this.setState({'viewableTypes': JSON.parse(array.rows._array[0].blob)});
                                                     }
-                                                    this.setState({'listDisplayModes': displayState});
 
 
                                                     this.state.db.transaction(
                                                       tx => {
-                                                        tx.executeSql('select * from viewable_types',
+                                                        tx.executeSql('select * from paragraphs',
                                                           [],
                                                           (success, array) => {
-                                                            console.log('viewable types retrieved');
-
+                                                            console.log('paragraphs retreived');
+                                                            let paragraphState = {};
                                                             if (array.rows._array.length > 0) {
-                                                              this.setState({'viewableTypes': JSON.parse(array.rows._array[0].blob)});
-                                                            }
-
-
-                                                            this.state.db.transaction(
-                                                              tx => {
-                                                                tx.executeSql('select * from paragraphs',
-                                                                  [],
-                                                                  (success, array) => {
-                                                                    console.log('paragraphs retreived');
-                                                                    let paragraphState = {};
-                                                                    if (array.rows._array.length > 0) {
-                                                                      for (let i = 0; i < array.rows._array.length; i++) {
-                                                                        let pid = array.rows._array[i].pid;
-                                                                        let data = JSON.parse(array.rows._array[i]['blob']);
-                                                                        paragraphState[pid] = data;
-                                                                      }
-                                                                      this.setState({'paragraphData': paragraphState});
-
-                                                                      console.log('everything retrieved');
-                                                                    }
-
-                                                                  },
-                                                                  (success, error) => {
-                                                                    console.log(error);
-                                                                  }
-                                                                );
+                                                              for (let i = 0; i < array.rows._array.length; i++) {
+                                                                let pid = array.rows._array[i].pid;
+                                                                let data = JSON.parse(array.rows._array[i]['blob']);
+                                                                paragraphState[pid] = data;
                                                               }
-                                                            );
+                                                              this.setState({'paragraphData': paragraphState});
+
+                                                              console.log('everything retrieved');
+                                                            }
 
                                                           },
                                                           (success, error) => {
@@ -792,7 +798,6 @@ export default class App extends React.Component {
                                               }
                                             );
 
-
                                           },
                                           (success, error) => {
                                             console.log(error);
@@ -809,6 +814,7 @@ export default class App extends React.Component {
                                 );
                               }
                             );
+
 
                           },
                           (success, error) => {
@@ -835,7 +841,6 @@ export default class App extends React.Component {
         );
       }
     );
-
 
 
     this.setState({
