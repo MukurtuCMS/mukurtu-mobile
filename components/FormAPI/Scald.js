@@ -1,6 +1,7 @@
 import React from 'react';
 import {Image, Picker, View, Text, StyleSheet, Button, WebView} from 'react-native';
-import {DocumentPicker, ImagePicker, Permissions} from 'expo';
+import {DocumentPicker,  Permissions} from 'expo';
+import * as ImagePicker from 'expo-image-picker'
 import Constants from 'expo-constants'
 import Required from "./Required";
 import * as FileSystem from "expo-file-system";
@@ -146,7 +147,7 @@ export default class Scald extends React.Component {
     }
     let image = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: false,
-      mediaTypeS: 'All'
+      mediaTypes: 'All'
       // aspect: [4, 3],
       // exif: true,
     })
