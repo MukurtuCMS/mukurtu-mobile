@@ -146,8 +146,9 @@ export default class Scald extends React.Component {
     }
     let image = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: false,
-      aspect: [4, 3],
-      exif: true,
+      mediaType: 'All'
+      // aspect: [4, 3],
+      // exif: true,
     })
       if(!image.cancelled) {
           this.setState({
