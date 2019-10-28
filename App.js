@@ -850,6 +850,9 @@ export default class App extends React.Component {
   }
 
   _onRefresh() {
+    if(!this.state.isConnected) {
+      return;
+    }
     this.setState({
         'refreshing': true,
         'nodeSyncMessages': {}
