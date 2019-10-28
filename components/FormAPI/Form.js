@@ -33,13 +33,16 @@ export default class FormComponent extends React.Component {
       token: null,
       formSubmitted: false,
       formErrors: null,
-      submitting: false
+      submitting: false,
+      enabled: true
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.setFormValueSelect = this.setFormValueSelect.bind(this);
     this.updateIndex = this.updateIndex.bind(this);
     this.saveNode = this.saveNode.bind(this);
     this.resetForm = this.resetForm.bind(this);
+    this.enableSubmit = this.enableSubmit.bind(this);
+    this.disableSubmit = this.disableSubmit.bind(this);
   }
 
   componentDidMount() {
@@ -113,6 +116,14 @@ export default class FormComponent extends React.Component {
         // console.error(error);
       });
 
+  }
+
+  disableSubmit() {
+    this.setState({'enabled': false});
+  }
+
+  enableSubmit() {
+    this.setState({'enabled': true});
   }
 
 
@@ -840,6 +851,8 @@ export default class FormComponent extends React.Component {
                   token={this.props.screenProps.token}
                   url={this.props.screenProps.siteUrl}
                   cardinality={cardinality}
+                  enableSubmit={this.enableSubmit}
+                  disableSubmit={this.disableSubmit}
                 />);
               } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
@@ -1061,6 +1074,7 @@ export default class FormComponent extends React.Component {
           title="Save"
           onPress={this.saveNode}
           style={styles.button}
+          disabled={!this.state.enabled}
         />
       </View>;
     }
