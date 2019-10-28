@@ -726,6 +726,11 @@ export default class FormComponent extends React.Component {
           var fieldName = childrenFields[k]['machine_name'];
 
 
+          // For now we're omitting the additional media field on the dictionary word content type,
+          // until we figure out how we want to address media-in-text fields
+          if(fieldName === 'field_additional_media') {
+            continue;
+          }
 
           var fieldArray = childrenFields[k];
 
