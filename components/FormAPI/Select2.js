@@ -13,6 +13,7 @@ export default class Select2 extends React.Component {
     this.state = {
       query: {},
       count: 1,
+      heightReset: false,
       // Allows us to close autocomplete suggestions for each autocomplete field on selection
       autocompleteSelected: {
         0: false
@@ -79,6 +80,7 @@ export default class Select2 extends React.Component {
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
 
     let autocompleteFields = [];
+    let height = 40 * this.state.count;
     for (let i = 0; i < this.state.count; i++) {
       const key = i;
       let query = '';
@@ -118,6 +120,11 @@ export default class Select2 extends React.Component {
       const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
       const placeholder = 'Enter ' + field['#title'];
 
+      height = (sortedOptions.length * 22) + (40 * this.state.count);
+      if(this.state.heightReset === true) {
+        height = 40 * this.state.count;
+      }
+
       let index = this.props.index;
       autocompleteFields.push(<Autocomplete
           key={i}
@@ -143,6 +150,7 @@ export default class Select2 extends React.Component {
                     () => {
                       this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, index, i)
                       this.updateAutocomplete(key, true)
+                      this.setState({'heightReset': true})
                     }
 
                   }>
@@ -165,7 +173,9 @@ export default class Select2 extends React.Component {
           {errorMarkup}
           <FieldDescription description={(field['#description']) ? field['#description'] : null} />
           <Required required={this.props.required}/>
+          <View style={{'height': height}}>
           {autocompleteFields}
+          </View>
           <Button title={'Add another'} onPress={() => {
             this.updateAutocomplete(this.state.count, false);
             this.setState({count: this.state.count + 1,});
