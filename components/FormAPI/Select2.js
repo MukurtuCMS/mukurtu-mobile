@@ -135,11 +135,12 @@ export default class Select2 extends React.Component {
           defaultValue={defaultValue}
           // style={styles.autocompleteContainers}
           onChangeText={(text) => {
-            this.props.setFormValue(this.props.fieldName, text, valueKey, lang, options, index, i);
+            this.props.setFormValue(this.props.fieldName, text, valueKey, lang, options, i);
             let currentQuery = this.state.query;
             currentQuery[i] = text;
             this.setState({
-              'query': currentQuery
+              'query': currentQuery,
+              'heightReset': false
             })
           }}
           placeholder={placeholder}
@@ -148,7 +149,7 @@ export default class Select2 extends React.Component {
               <TouchableOpacity
                   onPress={
                     () => {
-                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, index, i)
+                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, key)
                       this.updateAutocomplete(key, true)
                       this.setState({'heightReset': true})
                     }
