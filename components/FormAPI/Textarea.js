@@ -63,7 +63,7 @@ export default class Textarea extends React.Component {
                 value={value}
                 defaultValue={field['#default_value']}
                 maxLength={field['#maxlength']}
-                multiline
+                multiline={true}
                 numberOfLines={field['#rows']}
             />
         </View>;
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     textareaStyle: {
-        height: 'auto',
+        height: 200,
         borderColor: 'gray',
         borderWidth: 1
     },

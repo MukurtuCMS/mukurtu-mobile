@@ -48,64 +48,12 @@ class CreateContentFormScreen extends React.Component {
   componentDidMount() {
     this.props.navigation.addListener('willFocus', this.componentActive)
 
-
-    const contentType = this.props.navigation.getParam('contentType');
-
-
-    // let data = {
-    //   method: 'GET',
-    //   headers: {
-    //     'Accept': 'application/json',
-    //     'Content-Type': 'application/json',
-    //     'X-CSRF-Token': this.props.screenProps.token,
-    //     'Cookie': this.props.screenProps.cookie
-    //   }
-    // };
-    // fetch(this.props.screenProps.siteUrl + '/app/node-form-fields/retrieve/' + contentType, data)
-    //   .then((response) => response.json())
-    //   .then((responseJson) => {
-    //     this.setState({form: responseJson, oldForm: responseJson});
-    //   })
-    //   .catch((error) => {
-    //     // console.error(error);
-    //   });
-
   }
 
-  retrieveContentType(array) {
-    if (array.length > 0 && array[0].blob !== undefined) {
-      this.setState({form: JSON.parse(array[0].blob), oldForm: JSON.parse(array[0].blob)});
-    }
-  }
 
   componentActive = () => {
-    // first set content types from db, then try connecting
-    // if (!this.state.db) {
-    //   this.alertNotLoggedIn();
-    // } else {
-    //   this.state.db.transaction(tx => {
-    //     tx.executeSql(
-    //       'select blob from content_type where machine_name = ?;',
-    //       [this.props.navigation.getParam('contentType')],
-    //       (_, {rows: {_array}}) => this.retrieveContentType(_array)
-    //     );
-    //   });
-    //
-    //   if (this.state.isConnected) {
-    //     this.state.db.transaction(tx => {
-    //       tx.executeSql(
-    //         'select * from auth limit 1;',
-    //         '',
-    //         (_, {rows: {_array}}) => this.getType(_array)
-    //       );
-    //     });
-    //   }
-    // }
   }
 
-  getType(array) {
-
-  }
 
   onPress = async () => {
     var value = this.refs.form.getValue();

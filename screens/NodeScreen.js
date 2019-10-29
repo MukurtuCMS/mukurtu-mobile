@@ -15,6 +15,7 @@ import {ScaldItem} from "../components/ScaldItem";
 import {ParagraphView} from "../components/ParagraphView";
 import {Term} from "../components/Term";
 import axios from "axios";
+import * as Colors from "../constants/Colors";
 
 
 // create a global db for database list and last known user
@@ -23,6 +24,11 @@ const globalDB = SQLite.openDatabase('global-7');
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => ({
     title: `${navigation.getParam('node').title}`,
+    headerStyle: {
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
+    },
+    headerTintColor: '#000',
   });
 
   constructor(props) {
