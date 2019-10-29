@@ -593,9 +593,15 @@ export default class FormComponent extends React.Component {
           .then((response) => response.json())
           .then((responseJson) => {
             if (typeof responseJson.form_errors === 'object') {
-              this.setState({formErrors: responseJson.form_errors})
+              this.setState({formErrors: responseJson.form_errors});
               this.setState({'submitting': false});
-            } else {
+            } else if(typeof responseJson[0] === 'string' && responseJson[0].indexOf('denied') !== -1) {
+              this.setState({formErrors: {
+                  'general': responseJson[0]
+                }});
+              this.setState({'submitting': false});
+            }
+            else {
               this.props.screenProps.saveNode(this.state.formValues.nid);
             }
           })
@@ -641,7 +647,13 @@ export default class FormComponent extends React.Component {
       .then((responseJson) => {
         if (typeof responseJson.form_errors === 'object') {
           this.setState({formErrors: responseJson.form_errors, submitting: false})
-        } else {
+        } else if(typeof responseJson[0] === 'string' && responseJson[0].indexOf('denied') !== -1) {
+          this.setState({formErrors: {
+              'general': responseJson[0]
+            }});
+          this.setState({'submitting': false});
+        }
+        else {
           this.setState({
             formSubmitted: true,
             submitting: false
@@ -1066,6 +1078,10 @@ export default class FormComponent extends React.Component {
       }
 
     } else {
+      let generalFormError;
+      if(this.state.formErrors !== null && typeof this.state.formErrors === 'object' && this.state.formErrors.general) {
+        generalFormError = <Text>{this.state.formErrors.general}</Text>;
+      }
       formDisplay = <View>
 
         {buttonGroup}
@@ -1075,6 +1091,7 @@ export default class FormComponent extends React.Component {
         {form[this.state.selectedIndex]}
         </View>
         {activityIndicator}
+        {generalFormError}
         <Button
           title="Save"
           onPress={this.saveNode}
