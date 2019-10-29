@@ -120,6 +120,12 @@ class LoginScreen extends React.Component {
 
                   // this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
                   // Pass the token from the user, not our initial token.
+
+                  // If we don't have a user ID in the response, treat it as an error
+                  if(typeof responseJson.user !== 'object' || typeof responseJson.user.uid !== 'string') {
+                    this.handleLoginError('Error logging in.');
+                  }
+
                   this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
                   this.props.navigation.navigate('Home')
                 })
