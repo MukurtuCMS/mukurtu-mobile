@@ -50,6 +50,8 @@ class LoginScreen extends React.Component {
       urlInvalid: false,
       loginError: false,
       loginErrorMessage: '',
+      passwordEmpty: false,
+      nameEmpty: false
     }
   }
 
@@ -66,14 +68,19 @@ class LoginScreen extends React.Component {
 
     if (this.state.name !== false) {
       var name = this.state.name.toLowerCase().trim();
+    } else {
+      this.setState({'nameEmpty': true});
     }
     if (this.state.password !== false) {
       var pass = this.state.password.toLowerCase().trim();
+    } else {
+      this.setState({'passwordEmpty': true});
     }
+
+
     if (this.state.url === false || !Validator.isURL(this.state.url)) {
       this.setState({'urlInvalid': true});
       return;
-
     }
 
     var url = this.state.url.toLowerCase().trim();
@@ -172,6 +179,16 @@ class LoginScreen extends React.Component {
       urlInvalid = 'Please Enter a Valid URL';
     }
 
+    let nameEmpty = '';
+    if (this.state.nameEmpty) {
+      nameEmpty = 'Please Enter a Valid Username';
+    }
+
+    let passwordEmpty = '';
+    if (this.state.passwordEmpty) {
+      passwordEmpty = 'Please Enter Your Password';
+    }
+
 
     let loginError = '';
     if (this.state.loginError) {
@@ -180,6 +197,10 @@ class LoginScreen extends React.Component {
 
     return (
       <View style={styles.container}>
+
+        <View>
+          <Text>{nameEmpty}</Text>
+        </View>
         <View style={styles.inputContainer}>
           {showError}
           <TextInput style={styles.inputs}
@@ -189,8 +210,9 @@ class LoginScreen extends React.Component {
                      onChangeText={(name) => this.setState({name})}/>
         </View>
 
+
         <View>
-          <Text></Text>
+          <Text>{passwordEmpty}</Text>
         </View>
 
         <View style={styles.inputContainer}>
