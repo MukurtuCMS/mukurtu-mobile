@@ -21,11 +21,10 @@ import ImageFactory from 'react-native-image-picker-form';
 import DigitalHeritageForm from '../endpoints/DigitalHeritage';
 import {FileSystem} from 'expo';
 import {SQLite} from 'expo-sqlite';
-import FormComponent from '../components/FormAPI/Form'
-import axios from "axios";
+import FormComponent from '../components/FormAPI/Form';
 import weightSort from 'weight-sort';
-import JSONTree from "react-native-json-tree";
 import * as Colors from "../constants/Colors";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 class CreateContentFormScreen extends React.Component {
   static navigationOptions = ({navigation}) => ({
@@ -162,9 +161,9 @@ class CreateContentFormScreen extends React.Component {
 
     return (
       <View style={{backgroundColor:'#FFFFFF',flex:1, padding: '5%'}}>
-        <ScrollView style={{backgroundColor:'#FFFFFF',flex:1}}>
+        <KeyboardAwareScrollView style={{backgroundColor:'#FFFFFF',flex:1}}>
           { nodeForm }
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
     );
   }

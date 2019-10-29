@@ -5950,6 +5950,11 @@ react-native-image-picker-form@^0.2.5:
     react-native-js-bottom-sheet "^1.0.0"
     react-native-vector-icons "^4.5.0"
 
+react-native-iphone-x-helper@^1.0.3:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.2.1.tgz#645e2ffbbb49e80844bb4cbbe34a126fda1e6772"
+  integrity sha512-/VbpIEp8tSNNHIvstuA3Swx610whci1Zpc9mqNkqn14DkMbw+ORviln2u0XyHG1kPvvwTNGZY6QpeFwxYaSdbQ==
+
 react-native-js-bottom-sheet@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/react-native-js-bottom-sheet/-/react-native-js-bottom-sheet-1.1.0.tgz#d7d41aa311effb05c3eb12351bf3c4b2d6b5f09f"
@@ -5967,6 +5972,14 @@ react-native-json-tree@^1.2.0:
   dependencies:
     prop-types "^15.6.0"
     react-base16-styling "github:dean177/react-base16-styling#fbc6593"
+
+react-native-keyboard-aware-scroll-view@^0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/react-native-keyboard-aware-scroll-view/-/react-native-keyboard-aware-scroll-view-0.9.1.tgz#9e54b565a5f19b30bed12221d48921781f7630af"
+  integrity sha512-tBZ8rmjELN0F6t5UBp5CW3NYmZXgVnJSzVCssv/OqG2t6kiB+OUTqxNvUP24K+HARX4H+XaW0aEJSFQkQCv6KA==
+  dependencies:
+    prop-types "^15.6.2"
+    react-native-iphone-x-helper "^1.0.3"
 
 "react-native-map-picker@github:kanopi/react-native-map-picker":
   version "0.0.2"

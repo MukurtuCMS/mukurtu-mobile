@@ -33,6 +33,7 @@
     "react-native-image-crop-picker": "^0.21.3",
     "react-native-image-picker-form": "^0.2.5",
     "react-native-json-tree": "^1.2.0",
+    "react-native-keyboard-aware-scroll-view": "^0.9.1",
     "react-native-map-picker": "github:kanopi/react-native-map-picker",
     "react-native-maps": "^0.24.2",
     "react-native-modalbox": "^1.7.1",
