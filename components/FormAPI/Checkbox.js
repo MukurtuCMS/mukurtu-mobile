@@ -4,6 +4,7 @@ import {CheckBox} from "react-native-elements";
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
+import ErrorMessage from "./ErrorMessage";
 
 export default class Checkbox extends React.Component {
 
@@ -43,10 +44,7 @@ export default class Checkbox extends React.Component {
     const field = this.props.field;
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
 
-    let errorMarkup = [];
-    if (error) {
-      errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
-    }
+    let errorMarkup = <ErrorMessage error={error} />
 
     return <View style={styles.viewStyle}>
       {errorMarkup}
@@ -90,7 +88,7 @@ const styles = StyleSheet.create({
   },
   errorTextStyleError: {
     color: Colors.default.errorBackground,
-    fonSize: 18,
+    fontSize: 18,
     marginBottom: 10
   },
   checkboxStyle: {

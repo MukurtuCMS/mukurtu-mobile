@@ -4,6 +4,7 @@ import {StyleSheet, Text, View} from "react-native";
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
+import ErrorMessage from "./ErrorMessage";
 
 export default class DatePick extends React.Component {
   constructor(props) {
@@ -66,10 +67,7 @@ export default class DatePick extends React.Component {
       errorTextStyle = styles.errorTextStyleError;
     }
 
-    let errorMarkup = [];
-    if (error) {
-      errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
-    }
+    let errorMarkup = <ErrorMessage error={error} />
 
     return (
       <View style={styles.viewStyle}>

@@ -3,6 +3,7 @@ import {TextInput, View, Text, StyleSheet} from 'react-native';
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
+import ErrorMessage from "./ErrorMessage";
 
 export default class Textarea extends React.Component {
 
@@ -47,10 +48,8 @@ export default class Textarea extends React.Component {
             }
         }
 
-        let errorMarkup = [];
-        if (error) {
-            errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
-        }
+
+      let errorMarkup = <ErrorMessage error={error} />
 
         return <View style={styles.viewStyle}>
             <Text style={titleTextStyle}>{field['#title']}</Text>

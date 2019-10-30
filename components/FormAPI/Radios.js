@@ -4,6 +4,7 @@ import { CheckBox} from "react-native-elements";
 import * as Colors from "../../constants/Colors"
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
+import ErrorMessage from "./ErrorMessage";
 
 export default class Radios extends React.Component {
 
@@ -69,10 +70,7 @@ export default class Radios extends React.Component {
             );
         }
 
-        let errorMarkup = [];
-        if (error) {
-            errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
-        }
+      let errorMarkup = <ErrorMessage error={error} />
         return <View style={styles.viewStyle}>
             <Text style={titleTextStyle}>{field['#title']}</Text>
             {errorMarkup}

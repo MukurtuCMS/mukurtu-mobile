@@ -4,6 +4,7 @@ import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import {Button} from "react-native-elements";
+import ErrorMessage from "./ErrorMessage";
 
 export default class Textfield extends React.Component {
   constructor(props) {
@@ -75,10 +76,7 @@ export default class Textfield extends React.Component {
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
 
 
-    let errorMarkup = [];
-    if (error) {
-      errorMarkup = <Text style={errorTextStyle}>{error}</Text>;
-    }
+    let errorMarkup = <ErrorMessage error={error} />
 
 
     let numbers = [];
