@@ -77,6 +77,7 @@ export default class CreateContentScreen extends React.Component {
                 onPress={() =>
                     this.props.navigation.navigate('CreateContentForm', {
                       contentType: key,
+                      editWord: 'Create',
                       contentTypeLabel: this.props.screenProps.contentTypes[key].label
                     })
                 }

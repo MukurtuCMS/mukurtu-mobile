@@ -27,8 +27,9 @@ import * as Colors from "../constants/Colors";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 class CreateContentFormScreen extends React.Component {
-  static navigationOptions = ({navigation}) => ({
-    title: 'Create ' + `${navigation.getParam('contentTypeLabel')}`,
+  static navigationOptions = ({navigation}) => (
+    {
+    title: `${navigation.getParam('editWord')}` + ' ' + `${navigation.getParam('contentTypeLabel')}`,
     headerStyle: {
       backgroundColor: Colors.default.gold,
       marginTop: -20,

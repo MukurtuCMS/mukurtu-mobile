@@ -10,7 +10,8 @@ export default class NodeTeaser extends React.Component {
     this.props.navigation.navigate('CreateContentForm', {
       contentType: this.props.node.type,
       contentTypeLabel: this.props.node.title,
-      node: this.props.node
+      node: this.props.node,
+      editWord: 'Edit'
     })
   }
 

@@ -76,7 +76,8 @@ export default class OfflineScreen extends React.Component {
       contentType: node.type,
       contentTypeLabel: node.title,
       formState: node,
-      did: did
+      did: did,
+      editWord: 'Create'
     })
   }
 
