@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   },
   titleTextStyleError: {
     color: Colors.default.errorBackground,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold'
   },
   errorTextStyle: {
@@ -251,7 +251,8 @@ const styles = StyleSheet.create({
   },
   errorTextStyleError: {
     color: Colors.default.errorBackground,
-    marginBottom: 10
+    marginBottom: 10,
+    fontSize: 18
   },
   textfieldStyle: {
     height: 60,
@@ -267,6 +268,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderWidth: 1,
     borderRadius: 1,
-    borderColor: Colors.default.errorBackground
+    borderColor: Colors.default.errorBackground,
+    fontSize: 18
   }
 });

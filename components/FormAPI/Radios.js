@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     },
     titleTextStyleError: {
         color: Colors.default.errorBackground,
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: 'bold'
     },
     errorTextStyle: {
@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
     },
     errorTextStyleError: {
         color: Colors.default.errorBackground,
+      fontSize: 18,
         marginBottom: 10
     },
     checkboxStyle: {
