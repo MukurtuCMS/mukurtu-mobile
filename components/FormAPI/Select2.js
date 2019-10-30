@@ -58,8 +58,9 @@ export default class Select2 extends React.Component {
     const fieldName = this.props.fieldName;
     if (this.props.formErrors) {
       if (fieldName) {
-        if (this.props.formErrors[fieldName]) {
-          error = this.props.formErrors[fieldName];
+        formErrorString = fieldName + '][' + lang;
+        if (this.props.formErrors[formErrorString]) {
+          error = this.props.formErrors[formErrorString]
         }
       }
     }

@@ -22,7 +22,7 @@ export default class Checkbox extends React.Component {
 
     const fieldName = this.props.fieldName;
     if (this.props.formErrors) {
-      const fieldLang = Object.keys(this.props.formValues[this.props.fieldName])[0];
+      let fieldLang = 'und';
       if (fieldName && fieldLang) {
         formErrorString = fieldName + '][' + fieldLang;
         if (this.props.formErrors[formErrorString]) {
@@ -44,7 +44,7 @@ export default class Checkbox extends React.Component {
     const field = this.props.field;
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
 
-    let errorMarkup = <ErrorMessage error={error} />
+    let errorMarkup = <ErrorMessage error={error} />;
 
     return <View style={styles.viewStyle}>
       {errorMarkup}

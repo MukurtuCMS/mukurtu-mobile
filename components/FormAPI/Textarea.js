@@ -12,10 +12,15 @@ export default class Textarea extends React.Component {
         let formErrorString = null;
 
         const fieldName = this.props.fieldName;
+
+      let lang = 'und';
+      if (this.props.formValues[this.props.fieldName] && typeof Object.keys(this.props.formValues[this.props.fieldName]) !== 'undefined') {
+        lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
+      }
+
         if (this.props.formErrors) {
-            const fieldLang = Object.keys(this.props.formValues[this.props.fieldName])[0];
-            if (fieldName && fieldLang) {
-                formErrorString = fieldName + '][' + fieldLang + '][0][value';
+            if (fieldName) {
+                formErrorString = fieldName + '][' + lang;
                 if (this.props.formErrors[formErrorString]) {
                     error = this.props.formErrors[formErrorString]
                 }
@@ -31,10 +36,7 @@ export default class Textarea extends React.Component {
             errorTextStyle = styles.errorTextStyleError;
         }
 
-        let lang = 'und';
-        if (this.props.formValues[this.props.fieldName] && typeof Object.keys(this.props.formValues[this.props.fieldName]) !== 'undefined') {
-            lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
-        }
+
 
         const field = this.props.field;
         const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
@@ -49,11 +51,11 @@ export default class Textarea extends React.Component {
         }
 
 
-      let errorMarkup = <ErrorMessage error={error} />
+      // let errorMarkup = <ErrorMessage error={error} />
 
         return <View style={styles.viewStyle}>
             <Text style={titleTextStyle}>{field['#title']}</Text>
-            {errorMarkup}
+            {/*{errorMarkup}*/}
             <FieldDescription description={(this.props.description) ? this.props.description : null} />
             <Required required={this.props.required}/>
             <TextInput
