@@ -31,6 +31,11 @@ export const createGlobalTables = () => {
       'create table if not exists database (siteUrl primary key, databaseName text);'
     );
   });
+  globalDB.transaction(tx => {
+    tx.executeSql(
+      'create table if not exists savedinfo (url primary key, username text);'
+    );
+  });
 }
 
 // Below are functions not being exported

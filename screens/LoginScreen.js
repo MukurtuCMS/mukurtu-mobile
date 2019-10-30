@@ -34,7 +34,6 @@ class LoginScreen extends React.Component {
 
   constructor(props) {
     super(props);
-    // Pass props down from App.js, since we're not using Redux
     const {navigation, screenProps} = this.props;
     const siteUrl = screenProps.siteUrl;
     // this._handleSiteUrlUpdate = screenProps._handleSiteUrlUpdate.bind(this);
@@ -53,6 +52,29 @@ class LoginScreen extends React.Component {
       passwordEmpty: false,
       nameEmpty: false
     }
+  }
+
+  componentDidMount() {
+    // Get saved info for username and URL
+    const globalDB = SQLite.openDatabase('global-7');
+    globalDB.transaction(
+      tx => {
+        tx.executeSql('select * from savedinfo;',
+          '',
+          (success, array) => {
+            if(array.rows.length > 0) {
+              let url = array.rows._array[0].url;
+              let username = array.rows._array[0].username;
+              this.setState({'url': url});
+              this.setState({'name': username});
+            }
+
+          },
+          (error) => {
+          console.log(error);
+          })
+      });
+
   }
 
 
@@ -207,6 +229,7 @@ class LoginScreen extends React.Component {
                      placeholder="Username"
                      underlineColorAndroid='transparent'
                      placeholderTextColor="#464646"
+                     value={this.state.name}
                      onChangeText={(name) => this.setState({name})}/>
         </View>
 
@@ -235,6 +258,7 @@ class LoginScreen extends React.Component {
                      placeholder="Url"
                      underlineColorAndroid='transparent'
                      placeholderTextColor="#464646"
+                     value={this.state.url}
                      onChangeText={
                        (url) => {
                          this.setState({url});

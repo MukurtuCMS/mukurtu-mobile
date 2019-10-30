@@ -188,7 +188,38 @@ export default class App extends React.Component {
 
     let databaseName = url.replace(/(^\w+:|^)\/\//, '').replace(/\./g, '_') + '_' + userObject.uid + 'new3';
 
-    // First update the url and database name in the global db
+    // First update the username and url in the saved data so it can persist if user logs out
+    globalDB.transaction(
+      tx => {
+        tx.executeSql('delete from savedinfo',
+          [],
+          (success) => {
+            globalDB.transaction(
+              tx => {
+                tx.executeSql('replace into savedinfo (url, username) values (?, ?)',
+                  [url, userObject.name],
+                  (success) => {
+
+                  },
+                  (success, error) => {
+                    console.log(error);
+                  }
+                );
+              }
+            );
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+
+
+
+
+
+    // Then update the url and database name in the global db
     globalDB.transaction(
       tx => {
         tx.executeSql('delete from database',
