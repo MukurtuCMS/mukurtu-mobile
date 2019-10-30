@@ -1,136 +1,39 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  Dimensions, WebView, Image
-} from 'react-native';
-import {SQLite} from 'expo-sqlite';
-import MapView from "react-native-maps";
-import {Marker} from "react-native-maps";
-import HTML from 'react-native-render-html';
-import {Star} from "../components/Star";
-import {ScaldItem} from "../components/ScaldItem";
-import {ParagraphView} from "../components/ParagraphView";
-import {Term} from "../components/Term";
-import axios from "axios";
-import * as Colors from "../constants/Colors";
-import {EmbeddedNode} from "../components/EmbeddedNode";
+import {Dimensions, Image, ScrollView, StyleSheet, Text, View, WebView} from 'react-native';
+import HTML from "react-native-render-html";
+import MapView, {Marker} from "react-native-maps";
+import {ScaldItem} from "./ScaldItem";
+import {ParagraphView} from "./ParagraphView";
+import {Star} from "./Star";
+
+export class EmbeddedNode extends React.Component {
 
 
-// create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-7');
-
-class NodeScreen extends React.Component {
-  static navigationOptions = ({navigation}) => ({
-    title: `${navigation.getParam('node').title}`,
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
-  });
-
-  constructor(props) {
-    super(props);
-    // Pass props down from App.js, since we're not using Redux
-    const {navigation, screenProps} = this.props;
-    const siteUrl = screenProps.siteUrl;
-    this.state = {
-      url: siteUrl,
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
-      displayModes: false,
-      terms: this.props.screenProps.terms,
-      nodes: null
-    }
-  }
-
+  // There is a lot of redundancy between this and NodeScreen.js,
+  // but basically this is a way to render embedded nodes and their fields.
+  // Ultimately we'll want to abstract all the common stuff from this and NodeScreen, but didn't want to break that right now.
+  // @todo figure out how to render field collections
   componentDidMount() {
-    const type = this.props.navigation.getParam('contentType');
 
-
-    this.setState({displayModes: this.props.screenProps.displayModes[type]});
-
-    // this.props.screenProps.db.transaction(tx => {
-    //   tx.executeSql(
-    //     'select node_view from display_modes where machine_name = ?;',
-    //     [type],
-    //     (query, result) => this.setState({displayModes: JSON.parse(result.rows._array[0].node_view)})
-    //   );
-    // });
-
-
-
-    //
-    // this.props.screenProps.db.transaction(tx => {
-    //   tx.executeSql(
-    //     'select * from taxonomy;',
-    //     '',
-    //     (query, result) => this.setTaxonomy(result.rows._array)
-    //   );
-    // });
-
-    let filteredNodes = {};
-    for(let nid in this.props.screenProps.nodes) {
-      if(this.props.screenProps.nodes[nid].type === type) {
-        filteredNodes[nid] = this.props.screenProps.nodes[nid];
-      }
-    }
-    this.setState({'nodes': filteredNodes});
-
-    if(typeof this.props.screenProps.viewableTypes[type] !== 'undefined' && this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
-      this.setState({'personalCollectionValid': true});
-    }
-
-
-    // this.props.screenProps.db.transaction(tx => {
-    //   tx.executeSql(
-    //     'select * from nodes;',
-    //     '',
-    //     (query, result) => this.setNodes(result.rows._array)
-    //   );
-    // });
   }
-
-  setTaxonomy = (array) => {
-    let termList = {};
-    for (var i = 0; i < array.length; i++) {
-      termList[array[i].tid] = JSON.parse(array[i].entity)
-    }
-    this.setState({terms: termList});
-  }
-
-
-  setNodes = (array) => {
-    let nodeList = {};
-    for (var i = 0; i < array.length; i++) {
-      nodeList[array[i].nid] = JSON.parse(array[i].entity)
-    }
-    this.setState({nodes: nodeList});
-  }
-
 
 
   render() {
 
-
-    if (!this.state.displayModes) {
+    if (!this.props.displayModes) {
       return [];
     }
-    const node = this.props.navigation.getParam('node');
+    const node = this.props.nodes[this.props.nid];
 
-    let showStar = false;
-    if (this.state.personalCollectionValid === true) {
-      showStar = true;
-    } else {
-      showStar = false;
-    }
 
 
     let renderedNode = [];
 
-    for (const [fieldName, fieldObject] of Object.entries(this.state.displayModes)) {
+    renderedNode.push(
+      <Text style={styles.nodeTitle}>{node.title}</Text>
+    );
+
+    for (const [fieldName, fieldObject] of Object.entries(this.props.displayModes['field_unit_lessons']['fields'])) {
       if (typeof node[fieldName] === 'undefined' || node[fieldName].length === 0) {
         continue;
       }
@@ -140,7 +43,6 @@ class NodeScreen extends React.Component {
           <Text key={fieldName} style={styles.label}>{fieldObject.label}</Text>
         )
       }
-      let type = fieldObject.view_mode_properties.type;
 
       if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
@@ -148,7 +50,7 @@ class NodeScreen extends React.Component {
           let fieldData = '';
           let errorMessage = '';
           let oneExists = false;
-          if (!this.props.screenProps.terms) {
+          if (!this.props.terms) {
             errorMessage =
               <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
                 item to Mukurtu Mobile.</Text>
@@ -164,8 +66,8 @@ class NodeScreen extends React.Component {
                 if (i > 0) {
                   fieldData += ', ';
                 }
-                if (typeof this.props.screenProps.terms[tid] !== 'undefined') {
-                  fieldData += this.props.screenProps.terms[tid].name;
+                if (typeof this.props.terms[tid] !== 'undefined') {
+                  fieldData += this.props.terms[tid].name;
                 } else {
                   // This is a catch in case the term isn't synced.
                   // let term = <Term
@@ -174,7 +76,7 @@ class NodeScreen extends React.Component {
                   //   cookie={this.props.screenProps.cookie}
                   //   url={this.props.screenProps.url}
                   //   key={tid}
-                  //   terms={this.props.screenProps.terms}
+                  //   terms={this.props.terms}
                   // />;
                   // renderedNode.push(term);
                 }
@@ -236,63 +138,42 @@ class NodeScreen extends React.Component {
       }
       if (fieldObject.view_mode_properties.type === 'ma_colorbox') {
         // Scald item
-        let items = node[fieldName][lang];
-        for (i = 0; i < items.length; i++) {
-
-          let sid = items[i].sid;
-          renderedNode.push(
-            <ScaldItem
-              token={this.props.screenProps.token}
-              cookie={this.props.screenProps.cookie}
-              url={this.props.screenProps.siteUrl}
-              sid={sid}
-              db={this.props.screenProps.db}
-              key={sid}
-            />
-          );
-
-        }
+        // let items = node[fieldName][lang];
+        // for (i = 0; i < items.length; i++) {
+        //
+        //   let sid = items[i].sid;
+        //   renderedNode.push(
+        //     <ScaldItem
+        //       token={this.props.screenProps.token}
+        //       cookie={this.props.screenProps.cookie}
+        //       url={this.props.screenProps.siteUrl}
+        //       sid={sid}
+        //       db={this.props.screenProps.db}
+        //       key={sid}
+        //     />
+        //   );
+        //
+        // }
       }
 
-      if (fieldObject.view_mode_properties.type === 'entityreference_entity_view') {
-
-        let items = node[fieldName][lang];
-        for (i = 0; i < items.length; i++) {
-          let nid = items[i].target_id;
-          renderedNode.push(
-            <EmbeddedNode
-              nid={nid}
-              fieldName={fieldName}
-              fieldObject={fieldObject}
-              displayModes={this.state.displayModes}
-              nodes={this.props.screenProps.nodes}
-              terms={this.props.screenProps.terms}
-              contentType={this.props.navigation.getParam('contentType')}
-            />
-          );
-        }
-      }
 
       if (fieldObject.view_mode_properties.type === 'paragraphs_view') {
-        let items = node[fieldName][lang];
-        for (i = 0; i < items.length; i++) {
-          let pid = items[i].value;
-          renderedNode.push(
-            <ParagraphView
-              paragraphData={this.props.screenProps.paragraphData}
-              token={this.props.screenProps.token}
-              cookie={this.props.screenProps.cookie}
-              url={this.props.screenProps.siteUrl}
-              pid={pid}
-              viewableFields={this.props.screenProps.displayModes}
-              fieldName={fieldName}
-              nodes={this.props.screenProps.nodes}
-              terms={this.props.screenProps.terms}
-              key={i}
-              contentType={this.props.navigation.getParam('contentType')}
-            />
-          );
-        }
+        // let items = node[fieldName][lang];
+        // for (i = 0; i < items.length; i++) {
+        //   let pid = items[i].value;
+        //   renderedNode.push(
+        //     <ParagraphView
+        //       paragraphData={this.props.screenProps.paragraphData}
+        //       pid={pid}
+        //       viewableFields={this.props.screenProps.displayModes}
+        //       fieldName={fieldName}
+        //       nodes={this.props.nodes}
+        //       terms={this.props.terms}
+        //       key={i}
+        //       contentType={this.props.navigation.getParam('contentType')}
+        //     />
+        //   );
+        // }
       }
 
       /*      if (fieldObject.view_mode_properties.type === 'ma_colorbox') {
@@ -322,7 +203,7 @@ class NodeScreen extends React.Component {
           let fieldData = '';
           let errorMessage = '';
           let oneExists = false;
-          if (!this.props.screenProps.nodes) {
+          if (!this.props.nodes) {
             errorMessage =
               <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
                 item to Mukurtu Mobile.</Text>
@@ -339,11 +220,11 @@ class NodeScreen extends React.Component {
                     item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
-                if (i > 0 && this.props.screenProps.nodes[nid]) {
+                if (i > 0 && this.props.nodes[nid]) {
                   fieldData += ', ';
                 }
-                if (this.props.screenProps.nodes[nid]) {
-                  fieldData += this.props.screenProps.nodes[nid].title;
+                if (this.props.nodes[nid]) {
+                  fieldData += this.props.nodes[nid].title;
                 }
               }
             }
@@ -369,74 +250,31 @@ class NodeScreen extends React.Component {
       }
     }
 
-    let star = null;
-    if (showStar) {
-      {/*Pass nodes to star so we can filter out personal collection*/
-      }
-      star =
-        <View  style={styles.star}>
-        <Star
-
-        starred={false}
-        nid={node.nid}
-        nodes={this.props.screenProps.nodes}
-        db={this.props.screenProps.db}
-        isConnected={this.props.screenProps.isConnected}
-        token={this.props.screenProps.token}
-        cookie={this.props.screenProps.cookie}
-        url={this.props.screenProps.siteUrl}
-      />
-        </View>
-    }
 
 
     return (<View style={{flex: 1}}>
-      <ScrollView style={styles.container}>
-        <Text>{this.state.media_text}</Text>
-        {star}
-        {renderedNode}
-
-      </ScrollView>
+          {renderedNode}
       </View>
     );
   }
 }
 
-const
-  styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#DCDCDC',
-      padding: 10,
-    },
-    interior: {
-      flexDirection: 'column'
-    },
-    label: {
-      marginTop: 10,
-      marginBottom: 5,
-      color: '#000',
-      fontSize: 24
-    },
-    text: {
-      marginBottom: 10,
-      color: '#000',
-      fontSize: 16
-    },
-    map: {
-      width: Dimensions.get('window').width - 20,
-      height: 300,
-      marginBottom: 10
-    },
-    syncError: {
-      fontSize: 12
-    },
-    htmlField: {
-      marginTop: 0,
-      backgroundColor: '#fff'
-    },
+const styles = StyleSheet.create({
+  titleTextStyle: {
+    marginBottom: 5,
+    color: '#000',
+    fontSize: 24
+  },
+  nodeTitle: {
+    marginBottom: 3,
+    color: '#000',
+    fontSize: 20
+  },
+  label: {
+    marginBottom: 3,
+    color: '#000',
+    fontSize: 18
+  }
+});
 
 
-  });
-
-export default NodeScreen;

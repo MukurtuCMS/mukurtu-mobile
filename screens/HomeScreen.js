@@ -64,13 +64,13 @@ class HomeScreen extends React.Component {
 
 
     let list = [];
-    if(typeof this.props.screenProps.contentTypes !== 'object' || Object.entries(this.props.screenProps.contentTypes).length === 0 ) {
+    if(typeof this.props.screenProps.viewableTypes !== 'object' || Object.entries(this.props.screenProps.viewableTypes).length === 0 ) {
       return (
       <View>
         <Text>Please Log In to Sync Content</Text>
       </View>);
     }
-    const contentTypes = this.props.screenProps.contentTypes;
+    const contentTypes = this.props.screenProps.viewableTypes;
 
     // check that content types is not empty
     if (!(Object.entries(contentTypes).length === 0) && contentTypes.constructor === Object) {
@@ -79,7 +79,7 @@ class HomeScreen extends React.Component {
           list.push(
             <SettingsList.Item
               key={machineName}
-              title={this.props.screenProps.contentTypes[machineName].label}
+              title={this.props.screenProps.viewableTypes[machineName].label}
               titleInfoStyle={styles.titleInfoStyle}
               onPress={() =>
                 this.props.navigation.navigate('NodeListing', {

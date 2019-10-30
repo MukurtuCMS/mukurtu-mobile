@@ -446,52 +446,58 @@ export default class App extends React.Component {
         paragraphData.pid = pid;
 
 
+        if(fieldName === 'field_lesson_micro_tasks') {
+          console.log('here');
+        }
+
         // // If there are referenced nodes, we need to retrieve them to get their titles
-        for (let [key, value] of Object.entries(this.state.displayModes[contentType][fieldName]['fields'])) {
-          if (fields[pid][key]) {
-            // Node reference
-            if (typeof fields[pid][key] !== 'undefined' &&
-              typeof fields[pid][key]['und'] !== 'undefined' &&
-              typeof fields[pid][key]['und']['0']['target_id'] !== 'undefined'
-            ) {
-              for (let i = 0; i < fields[pid][key]['und'].length; i++) {
-                let nid = fields[pid][key]['und'][i]['target_id'];
+        if(typeof this.state.displayModes[contentType] === 'object' && typeof this.state.displayModes[contentType][fieldName] == 'object') {
+          for (let [key, value] of Object.entries(this.state.displayModes[contentType][fieldName]['fields'])) {
+            if (fields[pid][key]) {
+              // Node reference
+              if (typeof fields[pid][key] !== 'undefined' &&
+                typeof fields[pid][key]['und'] !== 'undefined' &&
+                typeof fields[pid][key]['und']['0']['target_id'] !== 'undefined'
+              ) {
+                for (let i = 0; i < fields[pid][key]['und'].length; i++) {
+                  let nid = fields[pid][key]['und'][i]['target_id'];
 
 
-                // These nids won't necessarily be in our synced nodes, so we have to fetch it and then get the title
-                data.url = this.state.siteUrl + '/app/node/' + nid + '.json';
-                paragraphData.nodeTitles = {};
-                axios(data)
-                  .then((response) => response.data)
-                  .then((node) => {
-                    paragraphData.nodeTitles[nid] = node.title;
-                  })
-                  .catch((error) => {
-                    console.error(error);
-                  });
+                  // These nids won't necessarily be in our synced nodes, so we have to fetch it and then get the title
+                  data.url = this.state.siteUrl + '/app/node/' + nid + '.json';
+                  paragraphData.nodeTitles = {};
+                  axios(data)
+                    .then((response) => response.data)
+                    .then((node) => {
+                      paragraphData.nodeTitles[nid] = node.title;
+                    })
+                    .catch((error) => {
+                      console.error(error);
+                    });
+                }
+
               }
+              // Get our taxonomy term titles
+              else if (typeof fields[pid][key] !== 'undefined' &&
+                typeof fields[pid][key]['und'] !== 'undefined' &&
+                typeof fields[pid][key]['und']['0']['tid'] !== 'undefined'
+              ) {
+                for (let i = 0; i < fields[pid][key]['und'].length; i++) {
+                  let tid = fields[pid][key]['und'][i]['tid'];
 
-            }
-            // Get our taxonomy term titles
-            else if (typeof fields[pid][key] !== 'undefined' &&
-              typeof fields[pid][key]['und'] !== 'undefined' &&
-              typeof fields[pid][key]['und']['0']['tid'] !== 'undefined'
-            ) {
-              for (let i = 0; i < fields[pid][key]['und'].length; i++) {
-                let tid = fields[pid][key]['und'][i]['tid'];
-
-                data.url = this.state.siteUrl + '/app/tax-term/' + tid + '.json'
-                paragraphData.termNames = {};
-                axios(data)
-                  .then((response) => response.data)
-                  .then((term) => {
-                    paragraphData.termNames[tid] = term.name;
-                  })
-                  .catch((error) => {
-                    console.error(error);
-                  });
+                  data.url = this.state.siteUrl + '/app/tax-term/' + tid + '.json'
+                  paragraphData.termNames = {};
+                  axios(data)
+                    .then((response) => response.data)
+                    .then((term) => {
+                      paragraphData.termNames[tid] = term.name;
+                    })
+                    .catch((error) => {
+                      console.error(error);
+                    });
 
 
+                }
               }
             }
           }
