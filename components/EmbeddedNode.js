@@ -5,6 +5,7 @@ import MapView, {Marker} from "react-native-maps";
 import {ScaldItem} from "./ScaldItem";
 import {ParagraphView} from "./ParagraphView";
 import {Star} from "./Star";
+import {FieldCollection} from "./FieldCollection";
 
 export class EmbeddedNode extends React.Component {
 
@@ -22,6 +23,9 @@ export class EmbeddedNode extends React.Component {
 
     if (!this.props.displayModes) {
       return [];
+    }
+    if(!this.props.nodes[this.props.nid]) {
+      return;
     }
     const node = this.props.nodes[this.props.nid];
 
@@ -92,6 +96,21 @@ export class EmbeddedNode extends React.Component {
           renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
         }
       }
+
+      if (fieldObject.view_mode_properties.type === 'field_collection_view') {
+        let tagsStyles = { p: { marginTop: 0 }};
+        const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
+        if (isObject) {
+          for (var i = 0; i < node[fieldName][lang].length; i++) {
+            renderedNode.push(<FieldCollection
+              fid={node[fieldName][lang][i]['value']}
+              screenProps={this.props.screenProps}
+
+            />)
+          }
+        }
+      }
+
       if (fieldObject.view_mode_properties.type === 'text_default') {
         let tagsStyles = { p: { marginTop: 0 }};
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';

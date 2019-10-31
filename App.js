@@ -60,6 +60,7 @@ export default class App extends React.Component {
       authorized: false,
       initialized: false,
       paragraphData: {},
+      fieldCollectionsData: {},
       nodeSyncMessages: {},
       refreshing: false
     };
@@ -134,6 +135,7 @@ export default class App extends React.Component {
       viewableTypes: this.state.viewableTypes,
       authorized: this.state.authorized,
       paragraphData: this.state.paragraphData,
+      fieldCollectionsData: this.state.fieldCollectionsData,
       nodeSyncMessages: this.state.nodeSyncMessages,
       db: this.state.db
     };
@@ -436,8 +438,14 @@ export default class App extends React.Component {
           if (field.indexOf('field') !== -1) {
 
             if (node.hasOwnProperty(field)) {
-              // Save any paragraphs embedded in here
-              if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
+
+              // Right now can't figure out how to distinguish field collections from paragraphs, so listing them manually. Need to fix though.
+              if(field === 'field_lesson_micro_tasks') {
+                if(node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined') {
+                  let fid = node[field].und[0].value;
+                  promises.push(this.saveFieldCollection(fid, field, node.type));
+                }
+              }else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
                 let pid = node[field].und[0].value;
                 promises.push(this.saveParagraph(pid, field, node.type));
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['tid'] !== 'undefined') {
@@ -561,6 +569,43 @@ export default class App extends React.Component {
       })
       ;
   }
+
+  saveFieldCollection(fid, fieldName, contentType) {
+    let data = this.buildFetchData('GET');
+    data.url = this.state.siteUrl + '/app/field-collection/' + fid;
+
+    return axios(data)
+      .then((response) => {
+        return response.data;
+      })
+
+      .then((fieldCollectionsData) => {
+
+        let currentfieldCollectionsData = this.state.fieldCollectionsData;
+        currentfieldCollectionsData[fieldCollectionsData.item_id] = fieldCollectionsData;
+        this.setState({'fieldCollectionsData': currentfieldCollectionsData});
+
+        // Now we insert this into fieldcollections data
+        this.state.db.transaction(
+          tx => {
+            tx.executeSql('replace into fieldcollections (fid, blob) values (?, ?)',
+              [fid, JSON.stringify(fieldCollectionsData)],
+              (success) => () => {
+                console.log('success');
+                return 'success'
+              },
+              (success, error) => {
+                console.log(error);
+              }
+            );
+          }
+        );
+
+
+      })
+      ;
+  }
+
 
 
   insertContentType = (response, machineName) => {
@@ -816,7 +861,33 @@ export default class App extends React.Component {
                                                               }
                                                               this.setState({'paragraphData': paragraphState});
 
-                                                              console.log('everything retrieved');
+
+                                                              this.state.db.transaction(
+                                                                tx => {
+                                                                  tx.executeSql('select * from fieldcollections',
+                                                                    [],
+                                                                    (success, array) => {
+                                                                      console.log('field collections retrieved');
+                                                                      let fieldCollectionsState = {};
+                                                                      if (array.rows._array.length > 0) {
+                                                                        for (let i = 0; i < array.rows._array.length; i++) {
+                                                                          let fid = array.rows._array[i].fid;
+                                                                          let data = JSON.parse(array.rows._array[i]['blob']);
+                                                                          fieldCollectionsState[fid] = data;
+                                                                        }
+                                                                        this.setState({'fieldCollectionsData': fieldCollectionsState});
+
+                                                                        console.log('everything retrieved');
+                                                                      }
+
+                                                                    },
+                                                                    (success, error) => {
+                                                                      console.log(error);
+                                                                    }
+                                                                  );
+                                                                }
+                                                              );
+
                                                             }
 
                                                           },

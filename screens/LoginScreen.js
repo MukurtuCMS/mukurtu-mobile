@@ -40,7 +40,7 @@ class LoginScreen extends React.Component {
     this._handleLoginStatusUpdate = screenProps._handleLoginStatusUpdate.bind(this);
     this.state = {
       url: siteUrl,
-      name: false,
+      name: '',
       password: false,
       error: false,
       places: 'b',
@@ -88,7 +88,7 @@ class LoginScreen extends React.Component {
 
   onClickListener = (viewId) => {
 
-    if (this.state.name !== false) {
+    if (this.state.name !== '') {
       var name = this.state.name.toLowerCase().trim();
     } else {
       this.setState({'nameEmpty': true});

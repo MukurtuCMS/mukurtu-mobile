@@ -18,6 +18,7 @@ export const createUniqueTables = (db) => {
   createListDisplayModes(db);
   createViewableTypesTable(db);
   createParagraphsTable(db);
+  createFieldCollectionsTable(db);
 };
 
 export const createGlobalTables = () => {
@@ -100,6 +101,14 @@ const createParagraphsTable = (db) => {
   db.transaction(tx => {
     tx.executeSql(
       'create table if not exists paragraphs (pid integer primary key, blob text);'
+    );
+  });
+}
+
+const createFieldCollectionsTable = (db) => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'create table if not exists fieldcollections (fid integer primary key, blob text);'
     );
   });
 }

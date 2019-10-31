@@ -28,6 +28,10 @@ export default class OfflineScreen extends React.Component {
   componentDidMount() {
     this.props.navigation.addListener('willFocus', this.componentActive);
 
+    if(!this.props.screenProps.db) {
+      return;
+    }
+
     this.props.screenProps.db.transaction(
       tx => {
         tx.executeSql('select * from saved_offline',
