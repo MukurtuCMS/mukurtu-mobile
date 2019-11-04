@@ -15,7 +15,7 @@ import {
 import RNPickerSelect, {defaultStyles} from 'react-native-picker-select';
 import {WebBrowser} from 'expo';
 import {FontAwesome} from '@expo/vector-icons';
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import axios from 'axios';
 import {MonoText} from '../components/StyledText';
 import JSONTree from 'react-native-json-tree'

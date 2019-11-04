@@ -15,7 +15,7 @@ import Location from './Location';
 import JSONTree from "react-native-json-tree";
 import {ButtonGroup, Button, Text, Overlay} from "react-native-elements";
 import axios from "axios";
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import * as Sync from "../MukurtuSync"
 import * as FileSystem from 'expo-file-system';
 import Colors from "../../constants/Colors";

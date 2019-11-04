@@ -17,7 +17,7 @@ import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
 import axios from "axios";
 import { WebBrowser} from 'expo';
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import * as Colors from "../constants/Colors";
 
 class HomeScreen extends React.Component {

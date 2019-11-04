@@ -6,7 +6,7 @@ import {
   ScrollView,
   Dimensions, WebView, Image
 } from 'react-native';
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
 import HTML from 'react-native-render-html';

@@ -15,7 +15,7 @@ import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
 import {addUser} from '../actions/user';
 import {WebBrowser} from 'expo';
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import Validator from 'validator';
 import * as Colors from "../constants/Colors";
 import axios from "axios";

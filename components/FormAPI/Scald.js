@@ -1,6 +1,7 @@
 import React from 'react';
 import {Image, Picker, View, Text, StyleSheet, Button, WebView} from 'react-native';
-import {DocumentPicker, Permissions} from 'expo';
+import {DocumentPicker} from 'expo';
+import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker'
 import Constants from 'expo-constants'
 import Required from "./Required";
