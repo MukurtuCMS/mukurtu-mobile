@@ -110,8 +110,10 @@ export default class Textfield extends React.Component {
       // See if we're dealing with a field collection
       else if(this.props.field['#entity_type'] === 'field_collection_item') {
         let parentField = this.props.field['#bundle'];
-        if(typeof this.props.formValues[parentField] !== 'undefined' && typeof this.props.formValues[parentField][this.props.fieldName] !== 'undefined') {
-          value = this.props.formValues[parentField][this.props.fieldName]['und'][i]['value'];
+        if(typeof this.props.formValues[parentField] !== 'undefined' &&
+          typeof this.props.formValues[parentField][this.props.index] !== 'undefined' &&
+          typeof this.props.formValues[parentField][this.props.index][this.props.fieldName] !== 'undefined') {
+          value = this.props.formValues[parentField][this.props.index][this.props.fieldName]['und'][i]['value'];
         }
       }
 

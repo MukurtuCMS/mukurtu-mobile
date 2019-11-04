@@ -48,7 +48,8 @@ export default class FieldCollectionForm extends React.Component {
       // "field_collection": {
       //   "field_name":
       // We only do this part here. Rest is done on setFieldCollectionValue in form.js
-      //   "field_lesson_days",
+      //   "field_lesson_days": {
+      //     0: {
       //     "field_day": {
       //     "und": {
       //       "0": {
@@ -62,9 +63,10 @@ export default class FieldCollectionForm extends React.Component {
       let subformvalue = {};
       // If this field already has a value, just overwrite this subindex
       if (typeof subformValues[FieldCollectionFieldName] !== 'undefined' &&
-        typeof subformValues[FieldCollectionFieldName][fieldName] !== 'undefined'
+         typeof subformValues[FieldCollectionFieldName][index] !== 'undefined' &&
+        typeof subformValues[FieldCollectionFieldName][index][fieldName] !== 'undefined'
       ) {
-        let currentSubIndexForm = subformValues[FieldCollectionFieldName][fieldName][this.props.lang];
+        let currentSubIndexForm = subformValues[FieldCollectionFieldName][index][fieldName][this.props.lang];
         let newValue = {
           [subindex]: {
             [valueName]: value
@@ -95,12 +97,16 @@ export default class FieldCollectionForm extends React.Component {
 
 
       let currentIndexSubForm = {};
-      if (typeof subformValues[FieldCollectionFieldName] !== 'undefined') {
-        currentIndexSubForm = subformValues[FieldCollectionFieldName];
+      if (typeof subformValues[FieldCollectionFieldName] !== 'undefined' && typeof subformValues[FieldCollectionFieldName][index] !== 'undefined') {
+        currentIndexSubForm = subformValues[FieldCollectionFieldName][index];
       }
       Object.assign(currentIndexSubForm, subformvalue);
 
-      subformValues[FieldCollectionFieldName] = currentIndexSubForm;
+      if(typeof subformValues[FieldCollectionFieldName] === 'undefined') {
+        subformValues[FieldCollectionFieldName] = {};
+        subformValues[FieldCollectionFieldName][index] = {};
+      }
+      subformValues[FieldCollectionFieldName][index] = currentIndexSubForm;
 
       // Subform values should look something like
       //   "field_lesson_days",
@@ -275,12 +281,17 @@ export default class FieldCollectionForm extends React.Component {
 
     // Add action button
     let FieldCollectionFormButton;
-    if (this.props.field['actions'] !== undefined) {
+    if(typeof this.props.field['und']['add_more'] !== 'undefined') {
+      let addMoreText = 'Add More';
+      if(this.props.field['und']['add_more']['#value']) {
+        addMoreText = this.props.field['und']['add_more']['#value'];
+      }
       FieldCollectionFormButton = <Button
-        title={this.props.addMoreText}
+        title={addMoreText}
         onPress={this.addFieldCollection.bind(this)}
       />
     }
+
 
     return <View style={styles.viewStyle}>
       {FieldCollectionTitle}
