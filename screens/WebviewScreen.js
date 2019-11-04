@@ -128,6 +128,14 @@ export default class WebviewScreen extends React.Component {
 
   render() {
 
+    if(!this.props.screenProps.isConnected) {
+      return(
+        <View style={styles.wrapper}>
+          <Text style={styles.text}>'Browsing Site is Only Available When Connected to the Internet.</Text>
+        </View>
+      )
+    }
+
     let activityIndicator;
     if (this.state.loading === true) {
       activityIndicator =
@@ -257,5 +265,15 @@ const styles = StyleSheet.create({
   helpLinkText: {
     fontSize: 14,
     color: '#2e78b7',
+  },
+  wrapper: {
+    padding: 30,
+    textAlign: 'center'
+  },
+
+  text: {
+    fontSize: 18,
+    textAlign: 'center',
+    paddingBottom: 20
   },
 });
