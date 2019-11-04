@@ -36,6 +36,7 @@ export default class App extends React.Component {
     this._handleLogoutStatusUpdate = this._handleLogoutStatusUpdate.bind(this);
     this.updateSyncedNids = this.updateSyncedNids.bind(this);
     this.saveNode = this.saveNode.bind(this);
+    this.saveTaxonomy = this.saveTaxonomy.bind(this);
     this.setNodeSyncMessage = this.setNodeSyncMessage.bind(this);
     this._onRefresh = this._onRefresh.bind(this);
 
@@ -218,9 +219,6 @@ export default class App extends React.Component {
         );
       }
     );
-
-
-
 
 
     // Then update the url and database name in the global db
@@ -442,12 +440,12 @@ export default class App extends React.Component {
             if (node.hasOwnProperty(field)) {
 
               // Right now can't figure out how to distinguish field collections from paragraphs, so listing them manually. Need to fix though.
-              if(field === 'field_lesson_micro_tasks') {
-                if(node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined') {
+              if (field === 'field_lesson_micro_tasks') {
+                if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined') {
                   let fid = node[field].und[0].value;
                   promises.push(this.saveFieldCollection(fid, field, node.type));
                 }
-              }else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
+              } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
                 let pid = node[field].und[0].value;
                 promises.push(this.saveParagraph(pid, field, node.type));
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['tid'] !== 'undefined') {
@@ -487,12 +485,12 @@ export default class App extends React.Component {
         paragraphData.pid = pid;
 
 
-        if(fieldName === 'field_lesson_micro_tasks') {
+        if (fieldName === 'field_lesson_micro_tasks') {
           console.log('here');
         }
 
         // // If there are referenced nodes, we need to retrieve them to get their titles
-        if(typeof this.state.displayModes[contentType] === 'object' && typeof this.state.displayModes[contentType][fieldName] == 'object') {
+        if (typeof this.state.displayModes[contentType] === 'object' && typeof this.state.displayModes[contentType][fieldName] == 'object') {
           for (let [key, value] of Object.entries(this.state.displayModes[contentType][fieldName]['fields'])) {
             if (fields[pid][key]) {
               // Node reference
@@ -609,7 +607,6 @@ export default class App extends React.Component {
   }
 
 
-
   insertContentType = (response, machineName) => {
     this.state.db.transaction(
       tx => {
@@ -717,6 +714,7 @@ export default class App extends React.Component {
 
         let currentTerms = this.state.terms;
         currentTerms[term.tid] = term;
+        console.log('term ' + term.name + ' saved');
         this.setState({'terms': currentTerms});
       })
       .catch((error) => {
@@ -792,7 +790,6 @@ export default class App extends React.Component {
                         );
                       }
                     );
-
 
 
                     this.state.db.transaction(
@@ -960,7 +957,7 @@ export default class App extends React.Component {
   }
 
   _onRefresh() {
-    if(!this.state.isConnected) {
+    if (!this.state.isConnected) {
       return;
     }
     this.setState({
@@ -1223,6 +1220,7 @@ export default class App extends React.Component {
         return response.data;
       })
       .then((responseJson) => {
+        let subPromises = [];
         if (typeof responseJson.nodes === 'object') {
           let nodes = {};
           for (const [type, entity] of Object.entries(responseJson.nodes)) {
@@ -1235,240 +1233,235 @@ export default class App extends React.Component {
             }
           }
           this.buildRemovalNids(nodes);
-          Promise.all(Object.keys(nodes).map((key, index) =>
+
+
+          subPromises.push(Object.keys(nodes).map((key, index) =>
             this.saveNode(key, data)
-          ))
-            .then((response) => {
-              console.log('done syncing nodes');
-            });
-
-
-          // Run the taxonomy stuff
-          if (typeof responseJson.terms === 'object') {
-            Promise.all(Object.keys(responseJson.terms).map((key, index) =>
-              this.saveTaxonomy(key, data)
-            ))
-              .then((response) => {
-                this.setState({'terms': responseJson.terms});
-                console.log('done syncing terms');
-              });
-
-          }
-
-          // Run the atoms
-          if (typeof responseJson.atoms === 'object') {
-            Promise.all(Object.keys(responseJson.atoms).map((key, index) =>
-              // @todo don't update all nodes but starring a node does not save
-              this.saveAtom(key, data)
-            ))
-              .then((response) => {
-                this.setState({'atoms': responseJson.atoms});
-                console.log('done syncing atoms');
-              });
-          }
-
-          this.updateSync();
-
+          ));
         }
+
+
+        // Run the taxonomy stuff
+        if (typeof responseJson.terms === 'object') {
+          subPromises.push(Object.keys(responseJson.terms).map((key, index) =>
+            this.saveTaxonomy(key, data)
+          ));
+          // this.setState({'terms': responseJson.terms});
+        }
+
+        // Run the atoms
+        if (typeof responseJson.atoms === 'object') {
+          subPromises.push(Object.keys(responseJson.atoms).map((key, index) =>
+            // @todo don't update all nodes but starring a node does not save
+            this.saveAtom(key, data)
+          ));
+          // this.setState({'atoms': responseJson.atoms});
+        }
+
+        this.updateSync();
+
+        console.log('starting group sync');
+        return Promise.all(subPromises);
+
+
       })
       .then((t) => {
-        console.log('done fetching');
-      });
+        // set up the creatable types request
+        data.url = this.state.siteUrl + '/app/creatable-types/retrieve';
+        let creatableTypes = axios(data)
+          .then((response) => {
+            return response.data;
+          })
+          .then((responseJson) => {
+            if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
+              console.log('access denied');
+            }
+            if (typeof responseJson === 'object' && responseJson !== null) {
+              this.state.db.transaction(
+                tx => {
+                  tx.executeSql('delete from content_types;',
+                    [],
+                    (success) => {
+                      // run this after things have been deleted
+                      this.state.db.transaction(
+                        tx => {
+                          tx.executeSql('replace into content_types (id, blob) values (?, ?)',
+                            [1, JSON.stringify(responseJson)],
+                            (success) => {
 
-
-    // set up the creatable types request
-    data.url = this.state.siteUrl + '/app/creatable-types/retrieve';
-    let creatableTypes = axios(data)
-      .then((response) => {
-        return response.data;
-      })
-      .then((responseJson) => {
-        if (responseJson[0] && responseJson[0] === 'Access denied for user anonymous') {
-          console.log('access denied');
-        }
-        if (typeof responseJson === 'object' && responseJson !== null) {
-          this.state.db.transaction(
-            tx => {
-              tx.executeSql('delete from content_types;',
-                [],
-                (success) => {
-                  // run this after things have been deleted
-                  this.state.db.transaction(
-                    tx => {
-                      tx.executeSql('replace into content_types (id, blob) values (?, ?)',
-                        [1, JSON.stringify(responseJson)],
-                        (success) => {
-
-                        },
-                        (success, error) => console.log(' ')
+                            },
+                            (success, error) => console.log(' ')
+                          );
+                        }
                       );
-                    }
+                    },
+                    (success, error) => console.log(error)
                   );
-                },
-                (success, error) => console.log(error)
+                }
               );
+              // Set content types to state
+              this.setState({contentTypes: responseJson});
+              // now let's sync all content type endpoints
+              let urls = [];
+              for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+                urls.push({
+                  url: this.state.siteUrl + '/app/node-form-fields/retrieve/' + machineName,
+                  machineName: machineName
+                });
+              }
+              return Promise.all(urls.map(url =>
+                axios({method: data.method, url: url.url, headers: data.headers})
+                  .then((response) => {
+                    return response.data;
+                  })
+                  .then((response) => this.insertContentType(response, url.machineName))
+                  .then((response) => {
+                    let currentFormFieldsState = this.state.formFields;
+                    currentFormFieldsState[url.machineName] = response;
+                    this.setState({'formFields': currentFormFieldsState});
+                    console.log('done with this promise')
+                  })
+                  .catch(error => {
+                    console.log('error with this promise')
+                    console.log(error)
+                  })
+              ))
             }
-          );
-          // Set content types to state
-          this.setState({contentTypes: responseJson});
-          // now let's sync all content type endpoints
-          let urls = [];
-          for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-            urls.push({
-              url: this.state.siteUrl + '/app/node-form-fields/retrieve/' + machineName,
-              machineName: machineName
-            });
-          }
-          return Promise.all(urls.map(url =>
-            axios({method: data.method, url: url.url, headers: data.headers})
-              .then((response) => {
-                return response.data;
-              })
-              .then((response) => this.insertContentType(response, url.machineName))
-              .then((response) => {
-                let currentFormFieldsState = this.state.formFields;
-                currentFormFieldsState[url.machineName] = response;
-                this.setState({'formFields': currentFormFieldsState});
-                console.log('done with this promise')
-              })
-              .catch(error => {
-                console.log('error with this promise')
-                console.log(error)
-              })
-          ))
-        }
-      })
-      .then((response) => {
-        console.log('done syncing creatable types');
-      });
+          })
+          .then((response) => {
+            console.log('done syncing creatable types');
+          });
 
-    // Set up request for viewable types
-    data.url = this.state.siteUrl + '/app/viewable-types/retrieve';
-    let viewableTypes = axios(data)
-      .then((response) => {
-        return response.data;
-      })
-      .then((responseJson) => {
-        if (typeof responseJson === 'object' && responseJson !== null) {
+        // Set up request for viewable types
+        data.url = this.state.siteUrl + '/app/viewable-types/retrieve';
+        let viewableTypes = axios(data)
+          .then((response) => {
+            return response.data;
+          })
+          .then((responseJson) => {
+            if (typeof responseJson === 'object' && responseJson !== null) {
 
 
-          this.setState({'viewableTypes': responseJson});
-          this.insertViewableType(responseJson);
+              this.setState({'viewableTypes': responseJson});
+              this.insertViewableType(responseJson);
 
 
-          // now let's sync all content type display endpoints
-          let retrieveFieldsFetch = [];
-          let retrieveListFieldsFetch = []
-          for (const [machineName, TypeObject] of Object.entries(responseJson)) {
-            data.url = this.state.siteUrl + '/app/node-view-fields/retrieve/' + machineName;
-            retrieveFieldsFetch.push(axios(data)
-              .then((response) => {
-                return response.data;
-              })
-              .then((responseJson) => {
+              // now let's sync all content type display endpoints
+              let retrieveFieldsFetch = [];
+              let retrieveListFieldsFetch = []
+              for (const [machineName, TypeObject] of Object.entries(responseJson)) {
+                data.url = this.state.siteUrl + '/app/node-view-fields/retrieve/' + machineName;
+                retrieveFieldsFetch.push(axios(data)
+                  .then((response) => {
+                    return response.data;
+                  })
+                  .then((responseJson) => {
 
-                let displayModesState = this.state.displayModes;
-                displayModesState[machineName] = responseJson;
-                this.setState({'displayModes': displayModesState});
+                    let displayModesState = this.state.displayModes;
+                    displayModesState[machineName] = responseJson;
+                    this.setState({'displayModes': displayModesState});
 
-                this.state.db.transaction(
-                  tx => {
-                    tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
-                      [machineName, JSON.stringify(responseJson)],
-                      (success) => '',
-                      (success, error) => ''
+                    this.state.db.transaction(
+                      tx => {
+                        tx.executeSql('replace into display_modes (machine_name, node_view) values (?, ?)',
+                          [machineName, JSON.stringify(responseJson)],
+                          (success) => '',
+                          (success, error) => ''
+                        );
+                      }
                     );
-                  }
+                  })
+                  .catch((error) => {
+                    console.log('error 1');
+                    console.log(error);
+                  })
                 );
-              })
-              .catch((error) => {
-                console.log('error 1');
-                console.log(error);
-              })
-            );
-            // Now do the list view fields display
-            data.url = this.state.siteUrl + '/app/list-view-fields/retrieve/' + machineName;
-            retrieveListFieldsFetch.push(axios(data)
-              .then((response) => {
-                return response.data;
-              })
-              .then((responseJson) => {
+                // Now do the list view fields display
+                data.url = this.state.siteUrl + '/app/list-view-fields/retrieve/' + machineName;
+                retrieveListFieldsFetch.push(axios(data)
+                  .then((response) => {
+                    return response.data;
+                  })
+                  .then((responseJson) => {
 
-                let listDisplayModesState = this.state.listDisplayModes;
-                listDisplayModesState[machineName] = responseJson;
-                this.setState({'listDisplayModes': listDisplayModesState});
+                    let listDisplayModesState = this.state.listDisplayModes;
+                    listDisplayModesState[machineName] = responseJson;
+                    this.setState({'listDisplayModes': listDisplayModesState});
 
-                this.state.db.transaction(
-                  tx => {
-                    tx.executeSql('replace into list_display_modes (machine_name, node_view) values (?, ?)',
-                      [machineName, JSON.stringify(responseJson)],
-                      (success) => '',
-                      (success, error) => ''
+                    this.state.db.transaction(
+                      tx => {
+                        tx.executeSql('replace into list_display_modes (machine_name, node_view) values (?, ?)',
+                          [machineName, JSON.stringify(responseJson)],
+                          (success) => '',
+                          (success, error) => ''
+                        );
+                      }
                     );
-                  }
-                );
-              }));
+                  }));
 
-          }
+              }
 
-          let retrieveAllFieldsFetch = retrieveFieldsFetch.concat(retrieveListFieldsFetch);
+              let retrieveAllFieldsFetch = retrieveFieldsFetch.concat(retrieveListFieldsFetch);
 
-          return Promise.all(retrieveAllFieldsFetch)
-            .then(() => {
-              console.log('done syncing viewable types')
-            });
+              return Promise.all(retrieveAllFieldsFetch)
+                .then(() => {
+                  console.log('done syncing viewable types')
+                });
 
-        }
-      })
-      .catch((error) => {
-        console.log('error 2');
-        console.log(error);
-      });
+            }
+          })
+          .catch((error) => {
+            console.log('error 2');
+            console.log(error);
+          });
 
-    // Set up site info fetch
-    data.url = this.state.siteUrl + '/app/site-info/retrieve';
-    let siteInfo = axios(data)
-      .then((response) => {
-        return response.data;
-      })
-      .then((siteInfo) => {
-        if (siteInfo && siteInfo.site_name) {
-          this.state.db.transaction(
-            tx => {
-              tx.executeSql('replace into site_info (site_name, mobile_enabled, logo) values (?, ?, ?)',
-                [siteInfo.site_name, siteInfo.mukurtu_mobile_enabled, siteInfo.logo],
-                (success) => '',
-                (success, error) => ''
+        // Set up site info fetch
+        data.url = this.state.siteUrl + '/app/site-info/retrieve';
+        let siteInfo = axios(data)
+          .then((response) => {
+            return response.data;
+          })
+          .then((siteInfo) => {
+            if (siteInfo && siteInfo.site_name) {
+              this.state.db.transaction(
+                tx => {
+                  tx.executeSql('replace into site_info (site_name, mobile_enabled, logo) values (?, ?, ?)',
+                    [siteInfo.site_name, siteInfo.mukurtu_mobile_enabled, siteInfo.logo],
+                    (success) => '',
+                    (success, error) => ''
+                  );
+                }
               );
+              this.setState({'siteInfo': siteInfo});
+              console.log('done syncing site info')
             }
-          );
-          this.setState({'siteInfo': siteInfo});
-          console.log('done syncing site info')
-        }
-      })
-      .catch((error) => {
-        console.log('error 3');
-        console.log(error);
+          })
+          .catch((error) => {
+            console.log('error 3');
+            console.log(error);
+          });
+
+
+        // Run all the requests
+        Promise.all([noderequest, creatableTypes, viewableTypes, siteInfo])
+          .then((values) => {
+            console.log('done syncing everything');
+            this.setState({
+              'syncing': false,
+              'refreshing': false
+            })
+          })
+          .catch((error) => {
+            console.log('error syncing');
+            this.setState({
+              'syncing': false,
+              'refreshing': false
+            })
+            console.log(error);
+          });
       });
 
 
-    // Run all the requests
-    Promise.all([noderequest, creatableTypes, viewableTypes, siteInfo])
-      .then((values) => {
-        console.log('done syncing everything');
-        this.setState({
-          'syncing': false,
-          'refreshing': false
-        })
-      })
-      .catch((error) => {
-        console.log('error syncing');
-        this.setState({
-          'syncing': false,
-          'refreshing': false
-        })
-        console.log(error);
-      });
   }
 
 
