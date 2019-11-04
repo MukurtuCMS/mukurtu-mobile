@@ -409,6 +409,10 @@ export default class App extends React.Component {
       })
       .then((node) => {
 
+        if(node.nid == '472') {
+          console.log('break');
+        }
+
         this.state.db.transaction(
           tx => {
             tx.executeSql('replace into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',

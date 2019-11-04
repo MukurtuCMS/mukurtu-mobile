@@ -19,6 +19,7 @@ import {SQLite} from 'expo-sqlite';
 import * as Sync from "../MukurtuSync"
 import * as FileSystem from 'expo-file-system';
 import Colors from "../../constants/Colors";
+import FieldCollectionForm from "./FieldCollectionForm";
 
 
 export default class FormComponent extends React.Component {
@@ -771,7 +772,7 @@ export default class FormComponent extends React.Component {
           if (fieldArray['#type'] !== undefined) {
 
             // If field type is container, we need to drill down and find the form to render
-            if (fieldArray['#type'] === 'container') {
+            if (fieldArray['#type'] === 'container' && typeof fieldArray['field_collection_subfields'] !== 'object') {
               fieldArray = field['und'];
 
               if(typeof fieldArray['mukurtu_record'] === 'object') {
@@ -871,7 +872,23 @@ export default class FormComponent extends React.Component {
                   enableSubmit={this.enableSubmit}
                   disableSubmit={this.disableSubmit}
                 />);
-              } else if (fieldArray['#type'] === 'textfield') {
+              }
+              else if(typeof fieldArray['field_collection_subfields'] === 'object') {
+                form[i].push(<FieldCollectionForm
+                  formValues={this.state.formValues}
+                  title={fieldArray['und']['#title']}
+                  fieldName={fieldArray['#array_parents'][0]}
+                  field={fieldArray}
+                  key={fieldName}
+                  lang={'und'}
+                  setFormValue={this.setFormValue}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
+                  items={fieldArray['field_collection_subfields']}
+                />)
+              }
+              else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
                   formValues={this.state.formValues}
                   fieldName={fieldName}
