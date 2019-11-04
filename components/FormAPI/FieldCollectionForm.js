@@ -271,7 +271,7 @@ export default class FieldCollectionForm extends React.Component {
 
     let FieldCollectionForms = [];
 
-    let FieldCollectionTitle = <Text>{this.props.title}</Text>;
+    let FieldCollectionTitle = <Text style={styles.titleTextStyle}>{this.props.title}</Text>;
 
     for (let i = 0; i < this.state.numberOfForms; i++) {
       let FieldCollectionForm = this.createFieldCollectionForm(i);
@@ -304,5 +304,10 @@ export default class FieldCollectionForm extends React.Component {
 const styles = StyleSheet.create({
   viewStyle: {
     marginBottom: 15,
-  }
+  },
+  titleTextStyle: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
 });

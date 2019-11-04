@@ -117,6 +117,10 @@ export default class Textfield extends React.Component {
         }
       }
 
+      let defaultValue = '';
+      if(typeof field['#default_value'] === 'string') {
+        defaultValue = field['#default_value']
+      }
 
       return (
           <TextInput
@@ -125,7 +129,7 @@ export default class Textfield extends React.Component {
               style={textfieldStyle}
               onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, this.props.index, i)}
               value={value}
-              defaultValue={field['#default_value']}
+              defaultValue={defaultValue}
               maxLength={field['#maxlength']}
               onBlur={ () => this.onBlur() }
               onFocus={ () => this.onFocus() }

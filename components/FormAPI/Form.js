@@ -574,7 +574,7 @@ export default class FormComponent extends React.Component {
               this.setState({
                 formSubmitted: true,
                 submitting: false
-              })
+              });
               console.log('error');
               console.log(error);
 
@@ -621,6 +621,7 @@ export default class FormComponent extends React.Component {
               this.setState({'submitting': false});
             } else {
               this.props.screenProps.saveNode(this.state.formValues.nid);
+              this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
             }
           })
           .catch((error) => {
@@ -679,7 +680,7 @@ export default class FormComponent extends React.Component {
           });
           // Submit this nid to synced entities
           if (responseJson.hasOwnProperty('nid')) {
-            this.updateSyncedNids(responseJson.nid);
+            this.props.screenProps.updateSyncedNids(responseJson.nid);
             this.props.screenProps.saveNode(responseJson.nid);
           }
 
@@ -722,7 +723,6 @@ export default class FormComponent extends React.Component {
     // Get our first key, which is the field_name
     let fieldName = Object.keys(data)[0];
 
-
     let body = {
       'host_nid': nid,
       'field_collection': {
@@ -730,72 +730,78 @@ export default class FormComponent extends React.Component {
       }
     };
 
-    // Put our values in the right place in the object
-    let values = data[fieldName][0]; // This 0 needs to be removed/addressed once we figure out multiple value submissions
-    for (let key in values) {
-      if (values.hasOwnProperty(key)) {
-        body.field_collection[key] = values[key];
+    let i = 0;
+    for(let fcKey in data[fieldName]) {
+      i++;
+
+      // Put our values in the right place in the object
+      let values = data[fieldName][fcKey]; // This 0 needs to be removed/addressed once we figure out multiple value submissions
+      for (let key in values) {
+        if (values.hasOwnProperty(key)) {
+          body.field_collection[key] = values[key];
+        }
       }
+
+      // Endpoint:  /app/field-collection (no parameters)
+      const token = this.props.screenProps.token;
+      const cookie = this.props.screenProps.cookie;
+      let submitData = {
+        method: 'POST',
+        mode: 'cors',
+        cache: 'no-cache',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': token,
+          'Cookie': cookie
+        },
+        redirect: 'follow',
+        referrer: 'no-referrer',
+        body: JSON.stringify(body)
+      };
+
+
+      // Looks like Drupal will throw a 500 error if these are sent right in a row, even if promises are done sequentially.
+      // So we add a half second timeout to ensure Drupal can handle it.
+      setTimeout(() => {
+        fetch(this.props.screenProps.siteUrl + '/app/field-collection/', submitData)
+          .then((response) => {
+            // console.log(response);
+          })
+          .catch((response) => {
+            console.log('field collection error');
+          });
+      }, i * 500);
     }
-
-    // Endpoint:  /app/field-collection (no parameters)
-    const token = this.props.screenProps.token;
-    const cookie = this.props.screenProps.cookie;
-    let submitData = {
-      method: 'POST',
-      mode: 'cors',
-      cache: 'no-cache',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cookie': cookie
-      },
-      redirect: 'follow',
-      referrer: 'no-referrer',
-      body: JSON.stringify(body)
-    };
-
-
-    return fetch(this.props.screenProps.siteUrl + '/app/field-collection/', submitData)
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((response) => {
-        console.log('field collection error');
-        console.log(response);
-      });
-
-
   }
 
-  // Need to replace with screenprops method from app.js
-  updateSyncedNids(nid) {
-
-    fetch(this.props.screenProps.siteUrl + '/app/synced-entities/create', {
-      method: 'post',
-
-      mode: 'cors',
-      cache: 'no-cache',
-      // credentials: 'same-origin',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': this.props.screenProps.token,
-        'Cookie': this.props.screenProps.cookie
-      },
-      redirect: 'follow',
-      referrer: 'no-referrer',
-      body: nid,
-    })
-      .then((response) => {
-
-      })
-      .then((responseJson) => {
-
-      });
-
-  }
+  // Replaced with screenprops method from app.js
+  // updateSyncedNids(nid) {
+  //
+  //   fetch(this.props.screenProps.siteUrl + '/app/synced-entities/create', {
+  //     method: 'post',
+  //
+  //     mode: 'cors',
+  //     cache: 'no-cache',
+  //     // credentials: 'same-origin',
+  //     headers: {
+  //       'Accept': 'application/json',
+  //       'Content-Type': 'application/json',
+  //       'X-CSRF-Token': this.props.screenProps.token,
+  //       'Cookie': this.props.screenProps.cookie
+  //     },
+  //     redirect: 'follow',
+  //     referrer: 'no-referrer',
+  //     body: nid,
+  //   })
+  //     .then((response) => {
+  //
+  //     })
+  //     .then((responseJson) => {
+  //
+  //     });
+  //
+  // }
 
 
   render() {

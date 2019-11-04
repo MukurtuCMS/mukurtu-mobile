@@ -34,6 +34,7 @@ export default class App extends React.Component {
     super(props);
     this._handleLoginStatusUpdate = this._handleLoginStatusUpdate.bind(this);
     this._handleLogoutStatusUpdate = this._handleLogoutStatusUpdate.bind(this);
+    this.updateSyncedNids = this.updateSyncedNids.bind(this);
     this.saveNode = this.saveNode.bind(this);
     this.setNodeSyncMessage = this.setNodeSyncMessage.bind(this);
     this._onRefresh = this._onRefresh.bind(this);
@@ -128,6 +129,7 @@ export default class App extends React.Component {
       formFields: this.state.formFields,
       _handleLoginStatusUpdate: this._handleLoginStatusUpdate,
       _handleLogoutStatusUpdate: this._handleLogoutStatusUpdate,
+      updateSyncedNids: this.updateSyncedNids,
       saveNode: this.saveNode,
       nodes: this.state.nodes,
       displayModes: this.state.displayModes,
