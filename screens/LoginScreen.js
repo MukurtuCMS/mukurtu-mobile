@@ -220,7 +220,7 @@ class LoginScreen extends React.Component {
     return (
       <View style={styles.container}>
 
-        <View>
+        <View style={styles.errorTextStyle}>
           <Text>{nameEmpty}</Text>
         </View>
         <View style={styles.inputContainer}>
@@ -234,8 +234,8 @@ class LoginScreen extends React.Component {
         </View>
 
 
-        <View>
-          <Text>{passwordEmpty}</Text>
+        <View style={styles.errorTextStyle}>
+          <Text >{passwordEmpty}</Text>
         </View>
 
         <View style={styles.inputContainer}>
@@ -247,7 +247,7 @@ class LoginScreen extends React.Component {
                      onChangeText={(password) => this.setState({password})}/>
         </View>
 
-        <View>
+        <View style={styles.errorTextStyle}>
           <Text>{urlInvalid}</Text>
         </View>
 
@@ -267,7 +267,7 @@ class LoginScreen extends React.Component {
                      }/>
         </View>
 
-        <View>
+        <View style={styles.errorTextStyle}>
           <Text>{loginError}</Text>
         </View>
 
@@ -337,7 +337,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   errorTextStyle: {
-    color: '#000'
+    color: '#000',
+    marginBottom: 5,
+    marginTop: 10
   },
   errorTextStyleError: {
     color: Colors.default.errorBackground,
@@ -352,7 +354,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 8,
     fontSize: 20
-  }
+  },
 });
 
 const mapStateToProps = state => {
