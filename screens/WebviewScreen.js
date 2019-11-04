@@ -13,6 +13,7 @@ import {
 import Validator from 'validator';
 import {Overlay} from "react-native-elements";
 import {PleaseLogin} from "../components/PleaseLogin";
+import * as Colors from "../constants/Colors";
 
 
 export default class WebviewScreen extends React.Component {
@@ -29,7 +30,12 @@ export default class WebviewScreen extends React.Component {
   }
 
   static navigationOptions = {
-    header: null,
+    title: 'Browse Site',
+    headerStyle: {
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
+    },
+    headerTintColor: '#000',
   };
 
   componentDidMount() {
@@ -158,7 +164,6 @@ export default class WebviewScreen extends React.Component {
         {activityIndicator}
         <WebView
           source={{uri: this.state.targetUrl}}
-          style={{marginTop: 20}}
           useWebKit={true}
         />
       </View>
@@ -179,11 +184,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   contentContainer: {
-    paddingTop: 30,
+    // paddingTop: 30,
   },
   welcomeContainer: {
     alignItems: 'center',
-    marginTop: 10,
+    // marginTop: 10,
     marginBottom: 20,
   },
   welcomeImage: {
