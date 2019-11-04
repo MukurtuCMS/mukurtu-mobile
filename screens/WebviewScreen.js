@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Validator from 'validator';
 import {Overlay} from "react-native-elements";
+import {PleaseLogin} from "../components/PleaseLogin";
 
 
 export default class WebviewScreen extends React.Component {
@@ -83,7 +84,7 @@ export default class WebviewScreen extends React.Component {
 
         }
       })
-      .catch((error) =>{
+      .catch((error) => {
         this.setState({
           loading: false
         });
@@ -143,12 +144,13 @@ export default class WebviewScreen extends React.Component {
     // If it's an invalid URL or the user is not logged in, don't open browser
     if (!Validator.isURL(this.state.targetUrl) || !this.props.screenProps.loggedIn) {
       return (
-        <View style={styles.container}>
-          <TouchableHighlight style={styles.buttonContainer} onPress={() => this.props.navigation.navigate('Login')}>
-            <Text>Please Log In to Browse Offline</Text>
-          </TouchableHighlight>
-        </View>
-      )
+
+        <PleaseLogin
+          loginText='Please Log In to Browse Site.'
+          navigation={this.props.navigation}
+        />
+      );
+
     }
 
     return (

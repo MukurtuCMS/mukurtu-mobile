@@ -19,6 +19,7 @@ import axios from "axios";
 import { WebBrowser} from 'expo';
 import {SQLite} from 'expo-sqlite';
 import * as Colors from "../constants/Colors";
+import {PleaseLogin} from "../components/PleaseLogin";
 
 class HomeScreen extends React.Component {
   static navigationOptions = {
@@ -66,9 +67,11 @@ class HomeScreen extends React.Component {
     let list = [];
     if(typeof this.props.screenProps.viewableTypes !== 'object' || Object.entries(this.props.screenProps.viewableTypes).length === 0 ) {
       return (
-      <View>
-        <Text>Please Log In to Sync Content</Text>
-      </View>);
+      <PleaseLogin
+        loginText='Please Log In to Sync Content.'
+        navigation={this.props.navigation}
+      />
+    );
     }
     const contentTypes = this.props.screenProps.viewableTypes;
 
