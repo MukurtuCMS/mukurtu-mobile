@@ -587,6 +587,34 @@ export default class FormComponent extends React.Component {
       if (this.state.formValues.nid) {
         this.setState({'submitting': true});
 
+        let formValues = this.state.formValues;
+        // This is ugly, but drupal sometimes returns array wrappers around objects, so we need to remove them
+        for(let key in formValues) {
+          if(formValues.hasOwnProperty(key)) {
+            if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['und'] !== 'undefined') {
+              if(Array.isArray(formValues[key]['und'])) {
+                let tempObject = formValues[key]['und'][0];
+                formValues[key]['und'] = tempObject;
+                console.log('array');
+              }
+            }
+          }
+        }
+
+        // Do it for 'en' key as well. This obviously needs to be fixed to pull the node language
+        for(let key in formValues) {
+          if(formValues.hasOwnProperty(key)) {
+            if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['en'] !== 'undefined') {
+              if(Array.isArray(formValues[key]['en'])) {
+                let tempObject = formValues[key]['en'][0];
+                formValues[key]['en'] = tempObject;
+                console.log('array');
+              }
+            }
+          }
+        }
+
+
         // I have to do this right now because I am getting errors trying to use the postData method
         const token = this.props.screenProps.token;
         const cookie = this.props.screenProps.cookie;
@@ -602,7 +630,7 @@ export default class FormComponent extends React.Component {
           },
           redirect: 'follow',
           referrer: 'no-referrer',
-          body: JSON.stringify(this.state.formValues)
+          body: JSON.stringify(formValues)
         };
 
 
@@ -620,6 +648,7 @@ export default class FormComponent extends React.Component {
               });
               this.setState({'submitting': false});
             } else {
+              this.setState({'submitting': false});
               this.props.screenProps.saveNode(this.state.formValues.nid);
               this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
             }
