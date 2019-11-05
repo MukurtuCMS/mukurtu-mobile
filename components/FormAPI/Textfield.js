@@ -107,7 +107,20 @@ export default class Textfield extends React.Component {
       ) {
         value = this.props.formValues[this.props.parentField][lang][this.props.index][this.props.fieldName][lang][i][valueKey];
       }
+      // See if we're dealing with a field collection
+      else if(this.props.field['#entity_type'] === 'field_collection_item') {
+        let parentField = this.props.field['#bundle'];
+        if(typeof this.props.formValues[parentField] !== 'undefined' &&
+          typeof this.props.formValues[parentField][this.props.index] !== 'undefined' &&
+          typeof this.props.formValues[parentField][this.props.index][this.props.fieldName] !== 'undefined') {
+          value = this.props.formValues[parentField][this.props.index][this.props.fieldName]['und'][i]['value'];
+        }
+      }
 
+      let defaultValue = '';
+      if(typeof field['#default_value'] === 'string') {
+        defaultValue = field['#default_value']
+      }
 
       return (
           <TextInput
@@ -116,7 +129,7 @@ export default class Textfield extends React.Component {
               style={textfieldStyle}
               onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, this.props.index, i)}
               value={value}
-              defaultValue={field['#default_value']}
+              defaultValue={defaultValue}
               maxLength={field['#maxlength']}
               onBlur={ () => this.onBlur() }
               onFocus={ () => this.onFocus() }

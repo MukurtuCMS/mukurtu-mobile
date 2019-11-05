@@ -17,11 +17,20 @@ import {addUser} from '../actions/user';
 import {WebBrowser} from 'expo';
 import * as SQLite from 'expo-sqlite';
 import Axios from "axios";
+import * as Colors from "../constants/Colors";
 
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global-7');
 
 class LogoutScreen extends React.Component {
+
+  static navigationOptions = {
+    headerStyle: {
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
+    },
+    headerTintColor: '#000',
+  };
 
   constructor(props) {
     super(props);
@@ -52,34 +61,8 @@ class LogoutScreen extends React.Component {
 
 
   handleLogoutClick() {
-
-    // this.props.screenProps.db.transaction(
-    //   tx => {
-    //     tx.executeSql('delete from auth;',
-    //     );
-    //   }
-    // );
-    //
-    // this.props.screenProps.db.transaction(
-    //     tx => {
-    //       tx.executeSql('delete from auth;',
-    //       );
-    //     }
-    // );
-    //
-    // // we need to remove our global user
-    // globalDB.transaction(
-    //     tx => {
-    //       tx.executeSql('delete from user;',
-    //       );
-    //     }
-    // );
-
-
     this._handleLogoutStatusUpdate();
 
-    // this.getToken();
-    //
   }
 
   handleLoginClick() {
@@ -87,32 +70,6 @@ class LogoutScreen extends React.Component {
   }
 
 
-  getToken(array) {
-    if (array === undefined || array.length < 1) {
-      return false;
-    }
-    const token = array[0].token;
-    const cookie = array[0].cookie;
-    let data = {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cache-Control': 'no-cache',
-        'Cookie': cookie
-      }
-    };
-    // Log out of app
-    data.url = this.props.screenProps.siteUrl + '/app/user/logout',
-      axios(data)
-        .then((response) => {
-          return response.data;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-  }
 
 
   render() {
@@ -121,7 +78,7 @@ class LogoutScreen extends React.Component {
     if (this.props.screenProps.loggedIn) {
       return (
           <View style={styles.container}>
-            <Text>You Are Logged in as {this.props.screenProps.user.user.name}</Text>
+            <Text style={{marginBottom: 20}}>You Are Logged in as {this.props.screenProps.user.user.name}</Text>
             <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
                                 onPress={() => this.handleLogoutClick()}>
               <Text style={styles.loginText}>Log Out</Text>
@@ -131,7 +88,7 @@ class LogoutScreen extends React.Component {
     }
     return (
         <View style={styles.container}>
-          <Text>You Have Been Logged Out</Text>
+          <Text style={{marginBottom: 20}}>You Have Been Logged Out</Text>
           <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
                               onPress={() => this.handleLoginClick()}>
             <Text style={styles.loginText}>Log In</Text>

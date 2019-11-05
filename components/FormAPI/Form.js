@@ -19,6 +19,7 @@ import * as SQLite from 'expo-sqlite';
 import * as Sync from "../MukurtuSync"
 import * as FileSystem from 'expo-file-system';
 import Colors from "../../constants/Colors";
+import FieldCollectionForm from "./FieldCollectionForm";
 
 
 export default class FormComponent extends React.Component {
@@ -80,43 +81,43 @@ export default class FormComponent extends React.Component {
   //   });
   // }
 
-  getToken(array) {
-    if (array === undefined || array.length < 1) {
-
-      this.alertNotLoggedIn();
-      return false;
-    }
-
-    const token = array[0].token;
-    const cookie = array[0].cookie;
-
-    this.setState({
-      cookie: cookie,
-      token: token
-    });
-
-    let data = {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cookie': cookie
-      }
-    };
-    fetch(this.props.screenProps.siteUrl + '/index.php?q=taxonomy/autocomplete/field_creator', data)
-      .then((response) => response.json())
-      .then((responseJson) => {
-        let form = responseJson;
-
-
-        this.setState({ajax: form});
-      })
-      .catch((error) => {
-        // console.error(error);
-      });
-
-  }
+  // getToken(array) {
+  //   if (array === undefined || array.length < 1) {
+  //
+  //     this.alertNotLoggedIn();
+  //     return false;
+  //   }
+  //
+  //   const token = array[0].token;
+  //   const cookie = array[0].cookie;
+  //
+  //   this.setState({
+  //     cookie: cookie,
+  //     token: token
+  //   });
+  //
+  //   let data = {
+  //     method: 'GET',
+  //     headers: {
+  //       'Accept': 'application/json',
+  //       'Content-Type': 'application/json',
+  //       'X-CSRF-Token': token,
+  //       'Cookie': cookie
+  //     }
+  //   };
+  //   fetch(this.props.screenProps.siteUrl + '/index.php?q=taxonomy/autocomplete/field_creator', data)
+  //     .then((response) => response.json())
+  //     .then((responseJson) => {
+  //       let form = responseJson;
+  //
+  //
+  //       this.setState({ajax: form});
+  //     })
+  //     .catch((error) => {
+  //       // console.error(error);
+  //     });
+  //
+  // }
 
   disableSubmit() {
     this.setState({'enabled': false});
@@ -294,6 +295,22 @@ export default class FormComponent extends React.Component {
       //     }
       //   }
       // },
+
+      Object.assign(formValues, values);
+
+      // save value to state
+      this.setState({formValues: formValues});
+    }
+  }
+
+
+  setFormValueFieldCollection(fieldCollectionFieldName, fieldCollectionFormState) {
+    if (this.state.formValues) {
+      const formValues = this.state.formValues;
+
+      let values = {
+        'field_collection': fieldCollectionFormState
+      };
 
       Object.assign(formValues, values);
 
@@ -539,7 +556,7 @@ export default class FormComponent extends React.Component {
       let id = Math.floor(Math.random() * 1000000000);
       if (this.state.formValues.nid) {
         id = this.state.formValues.nid;
-      } else if(this.props.did) {
+      } else if (this.props.did) {
         id = this.props.did;
       }
       this.props.screenProps.db.transaction(
@@ -557,7 +574,7 @@ export default class FormComponent extends React.Component {
               this.setState({
                 formSubmitted: true,
                 submitting: false
-              })
+              });
               console.log('error');
               console.log(error);
 
@@ -595,14 +612,16 @@ export default class FormComponent extends React.Component {
             if (typeof responseJson.form_errors === 'object') {
               this.setState({formErrors: responseJson.form_errors});
               this.setState({'submitting': false});
-            } else if(typeof responseJson[0] === 'string' && responseJson[0].indexOf('denied') !== -1) {
-              this.setState({formErrors: {
+            } else if (typeof responseJson[0] === 'string' && responseJson[0].indexOf('denied') !== -1) {
+              this.setState({
+                formErrors: {
                   'general': responseJson[0]
-                }});
+                }
+              });
               this.setState({'submitting': false});
-            }
-            else {
+            } else {
               this.props.screenProps.saveNode(this.state.formValues.nid);
+              this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
             }
           })
           .catch((error) => {
@@ -647,24 +666,35 @@ export default class FormComponent extends React.Component {
       .then((responseJson) => {
         if (typeof responseJson.form_errors === 'object') {
           this.setState({formErrors: responseJson.form_errors, submitting: false})
-        } else if(typeof responseJson[0] === 'string' && responseJson[0].indexOf('denied') !== -1) {
-          this.setState({formErrors: {
+        } else if (typeof responseJson[0] === 'string' && responseJson[0].indexOf('denied') !== -1) {
+          this.setState({
+            formErrors: {
               'general': responseJson[0]
-            }});
+            }
+          });
           this.setState({'submitting': false});
-        }
-        else {
+        } else {
           this.setState({
             formSubmitted: true,
             submitting: false
           });
           // Submit this nid to synced entities
           if (responseJson.hasOwnProperty('nid')) {
-            this.updateSyncedNids(responseJson.nid);
+            this.props.screenProps.updateSyncedNids(responseJson.nid);
             this.props.screenProps.saveNode(responseJson.nid);
           }
 
         }
+        return responseJson;
+      })
+      .then((responseJson) => {
+        // Submit field collections, if we have any
+        if (!data.field_collection || typeof data.field_collection !== 'object') {
+          return responseJson
+        }
+
+        this.postFieldCollection(data.field_collection, responseJson.nid);
+
       })
       .catch((error) => {
         console.log(error);
@@ -675,33 +705,103 @@ export default class FormComponent extends React.Component {
     ;
   }
 
-  // Need to replace with screenprops method from app.js
-  updateSyncedNids(nid) {
+  postFieldCollection(data, nid) {
+    // Need to submit like this:
+    // {
+    //   "host_nid": "472",
+    //   "field_collection": {
+    //   "field_name": "field_lesson_days",
+    //     "field_day": {
+    //     "und": {
+    //       "0": {
+    //         "value": "day 1"
+    //       }
+    //     }
+    //   }
+    // }
 
-    fetch(this.props.screenProps.siteUrl + '/app/synced-entities/create', {
-      method: 'post',
+    // Get our first key, which is the field_name
+    let fieldName = Object.keys(data)[0];
 
-      mode: 'cors',
-      cache: 'no-cache',
-      // credentials: 'same-origin',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': this.props.screenProps.token,
-        'Cookie': this.props.screenProps.cookie
-      },
-      redirect: 'follow',
-      referrer: 'no-referrer',
-      body: nid,
-    })
-      .then((response) => {
+    let body = {
+      'host_nid': nid,
+      'field_collection': {
+        'field_name': fieldName,
+      }
+    };
 
-      })
-      .then((responseJson) => {
+    let i = 0;
+    for(let fcKey in data[fieldName]) {
+      i++;
 
-      });
+      // Put our values in the right place in the object
+      let values = data[fieldName][fcKey]; // This 0 needs to be removed/addressed once we figure out multiple value submissions
+      for (let key in values) {
+        if (values.hasOwnProperty(key)) {
+          body.field_collection[key] = values[key];
+        }
+      }
 
+      // Endpoint:  /app/field-collection (no parameters)
+      const token = this.props.screenProps.token;
+      const cookie = this.props.screenProps.cookie;
+      let submitData = {
+        method: 'POST',
+        mode: 'cors',
+        cache: 'no-cache',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': token,
+          'Cookie': cookie
+        },
+        redirect: 'follow',
+        referrer: 'no-referrer',
+        body: JSON.stringify(body)
+      };
+
+
+      // Looks like Drupal will throw a 500 error if these are sent right in a row, even if promises are done sequentially.
+      // So we add a half second timeout to ensure Drupal can handle it.
+      setTimeout(() => {
+        fetch(this.props.screenProps.siteUrl + '/app/field-collection/', submitData)
+          .then((response) => {
+            // console.log(response);
+          })
+          .catch((response) => {
+            console.log('field collection error');
+          });
+      }, i * 500);
+    }
   }
+
+  // Replaced with screenprops method from app.js
+  // updateSyncedNids(nid) {
+  //
+  //   fetch(this.props.screenProps.siteUrl + '/app/synced-entities/create', {
+  //     method: 'post',
+  //
+  //     mode: 'cors',
+  //     cache: 'no-cache',
+  //     // credentials: 'same-origin',
+  //     headers: {
+  //       'Accept': 'application/json',
+  //       'Content-Type': 'application/json',
+  //       'X-CSRF-Token': this.props.screenProps.token,
+  //       'Cookie': this.props.screenProps.cookie
+  //     },
+  //     redirect: 'follow',
+  //     referrer: 'no-referrer',
+  //     body: nid,
+  //   })
+  //     .then((response) => {
+  //
+  //     })
+  //     .then((responseJson) => {
+  //
+  //     });
+  //
+  // }
 
 
   render() {
@@ -740,7 +840,7 @@ export default class FormComponent extends React.Component {
 
           // For now we're omitting the additional media field on the dictionary word content type,
           // until we figure out how we want to address media-in-text fields
-          if(fieldName === 'field_additional_media') {
+          if (fieldName === 'field_additional_media') {
             continue;
           }
 
@@ -764,20 +864,19 @@ export default class FormComponent extends React.Component {
           }
 
 
-          if(fieldName === 'field_mukurtu_terms') {
+          if (fieldName === 'field_mukurtu_terms') {
             console.log('terms');
           }
 
           if (fieldArray['#type'] !== undefined) {
 
             // If field type is container, we need to drill down and find the form to render
-            if (fieldArray['#type'] === 'container') {
+            if (fieldArray['#type'] === 'container' && typeof fieldArray['field_collection_subfields'] !== 'object') {
               fieldArray = field['und'];
 
-              if(typeof fieldArray['mukurtu_record'] === 'object') {
+              if (typeof fieldArray['mukurtu_record'] === 'object') {
                 fieldArray = fieldArray['mukurtu_record']['terms_all'];
               }
-
 
 
               if (fieldArray['#type'] === undefined && fieldArray[0] !== undefined) {
@@ -871,6 +970,20 @@ export default class FormComponent extends React.Component {
                   enableSubmit={this.enableSubmit}
                   disableSubmit={this.disableSubmit}
                 />);
+              } else if (typeof fieldArray['field_collection_subfields'] === 'object') {
+                form[i].push(<FieldCollectionForm
+                  formValues={this.state.formValues}
+                  title={fieldArray['und']['#title']}
+                  fieldName={fieldArray['#array_parents'][0]}
+                  field={fieldArray}
+                  key={fieldName}
+                  lang={'und'}
+                  setFormValue={this.setFormValueFieldCollection.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
+                  items={fieldArray['field_collection_subfields']}
+                />)
               } else if (fieldArray['#type'] === 'textfield') {
                 form[i].push(<Textfield
                   formValues={this.state.formValues}
@@ -1079,7 +1192,7 @@ export default class FormComponent extends React.Component {
 
     } else {
       let generalFormError;
-      if(this.state.formErrors !== null && typeof this.state.formErrors === 'object' && this.state.formErrors.general) {
+      if (this.state.formErrors !== null && typeof this.state.formErrors === 'object' && this.state.formErrors.general) {
         generalFormError = <Text>{this.state.formErrors.general}</Text>;
       }
       formDisplay = <View>
@@ -1088,7 +1201,7 @@ export default class FormComponent extends React.Component {
         <View
           style={styles.view}
         >
-        {form[this.state.selectedIndex]}
+          {form[this.state.selectedIndex]}
         </View>
         {activityIndicator}
         {generalFormError}

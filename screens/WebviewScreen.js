@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import Validator from 'validator';
 import {Overlay} from "react-native-elements";
+import {PleaseLogin} from "../components/PleaseLogin";
+import * as Colors from "../constants/Colors";
 
 
 export default class WebviewScreen extends React.Component {
@@ -28,7 +30,12 @@ export default class WebviewScreen extends React.Component {
   }
 
   static navigationOptions = {
-    header: null,
+    title: 'Browse Site',
+    headerStyle: {
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
+    },
+    headerTintColor: '#000',
   };
 
   componentDidMount() {
@@ -83,7 +90,7 @@ export default class WebviewScreen extends React.Component {
 
         }
       })
-      .catch((error) =>{
+      .catch((error) => {
         this.setState({
           loading: false
         });
@@ -121,6 +128,14 @@ export default class WebviewScreen extends React.Component {
 
   render() {
 
+    if(!this.props.screenProps.isConnected) {
+      return(
+        <View style={styles.wrapper}>
+          <Text style={styles.text}>Browsing Site is Only Available When Connected to the Internet.</Text>
+        </View>
+      )
+    }
+
     let activityIndicator;
     if (this.state.loading === true) {
       activityIndicator =
@@ -143,12 +158,13 @@ export default class WebviewScreen extends React.Component {
     // If it's an invalid URL or the user is not logged in, don't open browser
     if (!Validator.isURL(this.state.targetUrl) || !this.props.screenProps.loggedIn) {
       return (
-        <View style={styles.container}>
-          <TouchableHighlight style={styles.buttonContainer} onPress={() => this.props.navigation.navigate('Login')}>
-            <Text>Please Log In to Browse Offline</Text>
-          </TouchableHighlight>
-        </View>
-      )
+
+        <PleaseLogin
+          loginText='Please Log In to Browse Site.'
+          navigation={this.props.navigation}
+        />
+      );
+
     }
 
     return (
@@ -156,7 +172,6 @@ export default class WebviewScreen extends React.Component {
         {activityIndicator}
         <WebView
           source={{uri: this.state.targetUrl}}
-          style={{marginTop: 20}}
           useWebKit={true}
         />
       </View>
@@ -177,11 +192,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   contentContainer: {
-    paddingTop: 30,
+    // paddingTop: 30,
   },
   welcomeContainer: {
     alignItems: 'center',
-    marginTop: 10,
+    // marginTop: 10,
     marginBottom: 20,
   },
   welcomeImage: {
@@ -250,5 +265,15 @@ const styles = StyleSheet.create({
   helpLinkText: {
     fontSize: 14,
     color: '#2e78b7',
+  },
+  wrapper: {
+    padding: 30,
+    textAlign: 'center'
+  },
+
+  text: {
+    fontSize: 18,
+    textAlign: 'center',
+    paddingBottom: 20
   },
 });

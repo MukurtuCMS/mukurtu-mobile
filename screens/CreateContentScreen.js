@@ -19,6 +19,7 @@ import axios from "axios";
 import { WebBrowser} from 'expo';
 import * as SQLite from 'expo-sqlite';
 import * as Colors from "../constants/Colors";
+import {PleaseLogin} from "../components/PleaseLogin";
 
 export default class CreateContentScreen extends React.Component {
   static navigationOptions = {
@@ -56,10 +57,10 @@ export default class CreateContentScreen extends React.Component {
 
     if(!this.props.screenProps.loggedIn || typeof this.props.screenProps.contentTypes === 'undefined') {
       return (
-        <View style={{backgroundColor:'#EFEFF4',flex:1}}>
-          <Text>Please log in to create content.</Text>
-        </View>
-
+        <PleaseLogin
+          loginText='Please Log In to Create Content.'
+          navigation={this.props.navigation}
+        />
       );
     }
 
