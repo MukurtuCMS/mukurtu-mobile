@@ -11,7 +11,7 @@ import {
   RefreshControl,
   Alert
 } from 'react-native';
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import AppNavigator from './navigation/AppNavigator';
 import {Provider} from 'react-redux';
 import InitializingApp from "./components/InitializingApp"

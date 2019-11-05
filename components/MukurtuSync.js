@@ -1,5 +1,5 @@
 import React from 'react';
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import * as FileSystem from 'expo-file-system';
 
 export const Sync = () => {

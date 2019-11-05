@@ -15,7 +15,7 @@ import Location from './Location';
 import JSONTree from "react-native-json-tree";
 import {ButtonGroup, Button, Text, Overlay} from "react-native-elements";
 import axios from "axios";
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import * as Sync from "../MukurtuSync"
 import * as FileSystem from 'expo-file-system';
 import Colors from "../../constants/Colors";
@@ -525,10 +525,17 @@ export default class FormComponent extends React.Component {
       let formValues = this.state.formValues;
       let values;
       // If we already have a form value for this field, this is a new index
-      if (typeof formValues[fieldName] !== 'undefined') {
-        formValues[fieldName][lang][index] = {
-          ['sid']: value
-        };
+      if (formValues[fieldName] !== undefined && Object.keys(formValues[fieldName]).length > 0) {
+
+        // If null is the new value, remove this item.
+        if (value == null) {
+          formValues[fieldName][lang].splice(index, 1);
+        }
+        else {
+          formValues[fieldName][lang][index] = {
+            ['sid']: value
+          };
+        }
         let tempvalue = formValues[fieldName];
         values = {[fieldName]: tempvalue}
       } else {
@@ -651,6 +658,7 @@ export default class FormComponent extends React.Component {
               this.setState({'submitting': false});
               this.props.screenProps.saveNode(this.state.formValues.nid);
               this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
+              this.setState({'submitting': false});
             }
           })
           .catch((error) => {

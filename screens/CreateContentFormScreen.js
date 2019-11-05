@@ -20,7 +20,7 @@ import t from 'tcomb-form-native';
 import ImageFactory from 'react-native-image-picker-form';
 import DigitalHeritageForm from '../endpoints/DigitalHeritage';
 import {FileSystem} from 'expo';
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import FormComponent from '../components/FormAPI/Form';
 import weightSort from 'weight-sort';
 import * as Colors from "../constants/Colors";

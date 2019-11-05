@@ -15,7 +15,7 @@ import {
 import RNPickerSelect, {defaultStyles} from 'react-native-picker-select';
 import {WebBrowser} from 'expo';
 import {FontAwesome} from '@expo/vector-icons';
-import {SQLite} from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import * as Colors from "../constants/Colors"
 import {Ionicons} from '@expo/vector-icons';
