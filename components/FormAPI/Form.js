@@ -525,7 +525,7 @@ export default class FormComponent extends React.Component {
       let formValues = this.state.formValues;
       let values;
       // If we already have a form value for this field, this is a new index
-      if (typeof formValues[fieldName] !== 'undefined') {
+      if (formValues[fieldName] !== undefined && Object.keys(formValues[fieldName]).length > 0) {
         formValues[fieldName][lang][index] = {
           ['sid']: value
         };
