@@ -664,30 +664,71 @@ export default class App extends React.Component {
           }
         );
 
+        return atom;
+      })
+      .then((atom) => {
 
-        if (atom.base_entity && atom.base_entity.fid) {
-          const fid = atom.base_entity.fid;
-          // now grab file blob and save to filesystem
-          data.url = state.siteUrl + '/app/file/' + fid + '.json';
-          axios(data)
-            .then((response) => {
-              return response.data;
-            })
-            .then(async (file) => {
+        FileSystem.downloadAsync(
+          atom.file_url,
+          FileSystem.documentDirectory + atom.title
+        )
+          .then(({ uri }) => {
+            console.log('Finished downloading to ', uri);
+          })
+          .catch(error => {
+            console.error(error);
+          });
 
-              // It appears that sometimes the payload is too large on these, which we'll probably have to address.
-              // In the meantime catching the error so it doesn't error out the app.
-              try {
-                const savedFile = await FileSystem.writeAsStringAsync(FileSystem.documentDirectory + file.filename, file.file);
-              } catch (error) {
-                console.log(error);
-              }
+        // RNFetchBlob.config({
+        //   fileCache: true
+        // })
+        //   .fetch("GET", atom.file_url)
+        //   .then(()=>{
+        //     console.log('test');
+        //     });
+          // the image is now dowloaded to device's storage
+          // .then(resp => {
+          //   // the image path you can use it directly with Image component
+          //   let imagePath = resp.path();
+          //   return resp.readFile("base64");
+          // })
+          // .then(base64Data => {
+          //   // here's base64 encoded image
+          //   console.log(base64Data);
+          //   // remove the file from storage
+          //   return fs.unlink(imagePath);
+          // }
 
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        }
+
+        // const test = await FileSystem.writeAsStringAsync(FileSystem.documentDirectory + atom.title, atom.file_url);
+        // test.then((response)=> {
+        //   console.log('yep');
+        // });
+
+        //atom.file_url
+        // if (atom.base_entity && atom.base_entity.fid) {
+        //   const fid = atom.base_entity.fid;
+        //   // now grab file blob and save to filesystem
+        //   data.url = state.siteUrl + '/app/file/' + fid + '.json';
+        //   axios(data)
+        //     .then((response) => {
+        //       return response.data;
+        //     })
+        //     .then(async (file) => {
+        //
+        //       // It appears that sometimes the payload is too large on these, which we'll probably have to address.
+        //       // In the meantime catching the error so it doesn't error out the app.
+        //       try {
+        //         const savedFile = await FileSystem.writeAsStringAsync(FileSystem.documentDirectory + file.filename, file.file);
+        //       } catch (error) {
+        //         console.log(error);
+        //       }
+        //
+        //     })
+        //     .catch((error) => {
+        //       console.error(error);
+        //     });
+        // }
       })
       .catch((error) => {
         console.error(error);

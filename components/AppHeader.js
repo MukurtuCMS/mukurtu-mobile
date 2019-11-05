@@ -10,7 +10,6 @@ export default class AppHeader extends React.Component {
     const { navigation, screenProps } = this.props;
     this.state = {
       siteInfo: null,
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null
     }
   }
 
