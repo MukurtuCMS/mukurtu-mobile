@@ -237,14 +237,16 @@ export default class HomeScreen extends React.Component {
   };
 
   setSearchText = (text) => {
+    // Make this case insensitive
     this.setState({search: text});
+    text = text.toLowerCase();
     if (text.length > 0) {
 
       let filteredNodes = {};
       for (let key in this.state.nodes) {
         // key: the name of the object key
         // index: the ordinal position of the key within the object
-        if (this.state.nodes[key].title.indexOf(text) !== -1) {
+        if (this.state.nodes[key].title.toLowerCase().indexOf(text) !== -1) {
           filteredNodes[key] = this.state.nodes[key];
         }
       }

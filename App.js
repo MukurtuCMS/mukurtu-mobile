@@ -8,7 +8,8 @@ import {
   NetInfo,
   YellowBox,
   ScrollView,
-  RefreshControl
+  RefreshControl,
+  Alert
 } from 'react-native';
 import {SQLite} from 'expo-sqlite';
 import AppNavigator from './navigation/AppNavigator';
@@ -958,6 +959,14 @@ export default class App extends React.Component {
 
   _onRefresh() {
     if (!this.state.isConnected) {
+      Alert.alert(
+        'Sync Not Available Offline',
+        'Please connect to the internet to sync new content.',
+        [
+          {text: 'OK', onPress: () => console.log('OK Pressed')},
+        ],
+        {cancelable: false},
+      );
       return;
     }
     this.setState({
