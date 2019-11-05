@@ -526,9 +526,16 @@ export default class FormComponent extends React.Component {
       let values;
       // If we already have a form value for this field, this is a new index
       if (formValues[fieldName] !== undefined && Object.keys(formValues[fieldName]).length > 0) {
-        formValues[fieldName][lang][index] = {
-          ['sid']: value
-        };
+
+        // If null is the new value, remove this item.
+        if (value == null) {
+          formValues[fieldName][lang].splice(index, 1);
+        }
+        else {
+          formValues[fieldName][lang][index] = {
+            ['sid']: value
+          };
+        }
         let tempvalue = formValues[fieldName];
         values = {[fieldName]: tempvalue}
       } else {

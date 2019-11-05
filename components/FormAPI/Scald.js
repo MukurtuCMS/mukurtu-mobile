@@ -1,6 +1,6 @@
 import React from 'react';
-import {Image, Picker, View, Text, StyleSheet, Button, WebView} from 'react-native';
-import {DocumentPicker} from 'expo';
+import {Image, Picker, View, Text, StyleSheet, Button, WebView, Platform} from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker'
 import Constants from 'expo-constants'
@@ -8,6 +8,7 @@ import Required from "./Required";
 import * as FileSystem from "expo-file-system";
 import axios from "axios";
 import ProgressBar from 'react-native-progress/Bar';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 
 // To do on this if we have time:
 // 1. Ensure that if images are removed they're removed from drupal side.
@@ -36,7 +37,7 @@ export default class Scald extends React.Component {
   }
 
 
-  handleUpload(fieldName, value, index = '0', lang = 'und', error = null,) {
+  async handleUpload(fieldName, value, type, index = '0', lang = 'und', error = null,) {
     this.props.disableSubmit();
 
     let indexState = this.state[index];
@@ -45,92 +46,76 @@ export default class Scald extends React.Component {
       [index]: indexState
     });
 
-    FileSystem.readAsStringAsync(value.uri, {'encoding': FileSystem.EncodingType.Base64})
-      .then((base64File) => {
-        return base64File;
-      })
-      .then((file) => {
+    let filename = value.uri.split('/').pop();
+    let postUrl = this.props.url + '/app/file/create_raw';
+    var fd = new FormData();
+    fd.append("files", {
+      uri: Platform.OS === "android" ? value.uri : value.uri.replace("file:/", ""),
+      name: type === 'document' ? value.name : filename,
+      type: "multipart/form-data"
+    });
 
-        // Submit the file to the Drupal site
-        // Using Axios so we can do a progress indicator
-        let filename = value.uri.split('/').pop();
-        let postUrl = this.props.url + '/app/file';
-
-
-        let result = axios({
-          method: 'post',
-          url: postUrl,
-          data: {
-            'filename': filename,
-            'file': file
-          },
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': this.props.token,
-            'Cookie': this.props.cookie
-          },
-          // redirect: 'follow',
-          // referrer: 'no-referrer',
-          onUploadProgress: (progressEvent) => {
-            let percentCompleted = progressEvent.loaded / progressEvent.total;
-            let indexState = this.state[index];
-            indexState['percent'] = percentCompleted;
-            this.setState({
-              [index]: indexState
-            })
-          }
-        });
-
-        return result;
-
-      })
-      .then((response) => {
-
-        // Get the file id
-        let fid = response.data.fid;
-        // Now we submit the file to create the atom
-        const data = {
-          method: 'post',
-          mode: 'cors',
-          cache: 'no-cache',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': this.props.token,
-            'Cookie': this.props.cookie
-          },
-          redirect: 'follow',
-          referrer: 'no-referrer',
-        };
-
-
-        let url = this.props.url;
-        return fetch(url + '/app/scald/create?id=' + fid, data);
-      })
-      .then((response) => response.json())
-      .then((response) => {
-
-        // Now we have the scald ID, and pass that to the form submission function
-        let sid = response.sid;
-        this.props.setFormValue(this.props.fieldName, sid, index);
-
-        this.props.enableSubmit();
-
-      })
-      .catch((error) => {
-        console.error(error);
-        this.props.enableSubmit();
+    try {
+      const fileUpload = await axios({
+        method: 'post',
+        url: postUrl,
+        data: fd,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
+          'X-CSRF-Token': this.props.token,
+          'Cookie': this.props.cookie
+        },
+        onUploadProgress: (progressEvent) => {
+          let percentCompleted = progressEvent.loaded / progressEvent.total;
+          let indexState = this.state[index];
+          indexState['percent'] = percentCompleted;
+          this.setState({
+            [index]: indexState
+          })
+        }
       });
+
+      let fid = fileUpload.data[0].fid;
+
+      // Now we submit the file to create the atom
+      const data = {
+        method: 'post',
+        mode: 'cors',
+        cache: 'no-cache',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': this.props.token,
+          'Cookie': this.props.cookie
+        },
+        redirect: 'follow',
+        referrer: 'no-referrer',
+      };
+
+      let url = this.props.url;
+
+      const fileAtom = await fetch(url + '/app/scald/create?id=' + fid, data)
+        .then((response) => response.json());
+
+      // Now we have the scald ID, and pass that to the form submission function
+      let sid = fileAtom.sid;
+      this.props.setFormValue(this.props.fieldName, sid, index);
+
+      this.props.enableSubmit();
+    }
+    catch (e) {
+      console.error(e);
+      this.props.enableSubmit();
+    }
+
   }
 
 
   addItem() {
     let currentIndex = this.state.numberOfValues;
 
-    this.setState({numberOfValues: currentIndex + 1}, () => {
-
-    })
+    this.setState({numberOfValues: currentIndex + 1}, () => {})
   }
 
   _launchDocumentAsync = async (index) => {
@@ -141,45 +126,55 @@ export default class Scald extends React.Component {
           chosenDocument: result, chosenImage: null, takenImage: null
         }
       });
-      this.handleUpload(this.props.fieldName, result, index);
+      this.handleUpload(this.props.fieldName, result, 'document', index);
     }
   }
+
   _launchCameraRollAsync = async (index) => {
     let {status} = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     if (status !== 'granted') {
-      console.error('Camera not granted')
+      console.error('Camera not granted');
       return
     }
-    let image = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: false,
-      mediaTypes: 'All'
-      // aspect: [4, 3],
-      // exif: true,
-    })
-    if (!image.cancelled) {
-      this.setState({
-        [index]: {
-          chosenImage: image, takenImage: null, chosenDocument: null
-        }
+
+    try {
+      let image = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: false,
+        mediaTypes: ImagePicker.MediaTypeOptions.All
       });
+      console.log(image);
 
-      this.handleUpload(this.props.fieldName, image, index);
+      if (!image.cancelled) {
+        const thumbnailUri = await this.getThumbnailUri(image);
+        this.setState({
+          [index]: {
+            chosenImage: image, takenImage: null, chosenDocument: null, thumbnailUri: thumbnailUri
+          }
+        });
+
+        this.handleUpload(this.props.fieldName, image, 'image', index);
+      }
+
     }
-
+    catch (e) {
+      console.log(e);
+    }
   }
+
   _launchCameraAsync = async (index) => {
     let {status} = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL)
     if (status !== 'granted') {
       console.log("Camera permission Denied")
     }
-    let image = await ImagePicker.launchCameraAsync()
-    if (image.cancelled) {
+    let image = await ImagePicker.launchCameraAsync();
+    if (!image.cancelled) {
+      const thumbnailUri = await this.getThumbnailUri(image);
       this.setState({
         [index]: {
-          takenImage: image, chosenImage: null, chosenDocument: null
+          takenImage: image, chosenImage: null, chosenDocument: null, thumbnailUri: thumbnailUri
         }
       });
-      this.handleUpload(this.props.fieldName, image, index);
+      this.handleUpload(this.props.fieldName, image, 'camera', index);
     }
   }
 
@@ -192,6 +187,29 @@ export default class Scald extends React.Component {
     );
 
     this.props.setFormValue(this.props.fieldName, null, index);
+  };
+
+  getThumbnailUri = async (mediaObject) => {
+    if (!mediaObject.uri) {
+      return null;
+    }
+
+    if (mediaObject.type == 'video') {
+      try {
+        const { uri } = await VideoThumbnails.getThumbnailAsync(
+          mediaObject.uri,
+          {
+            time: 15000,
+          }
+        );
+        return  uri;
+      } catch (e) {
+        console.warn('Could not create video thumbnail.', e);
+      }
+    }
+    else {
+      return mediaObject.uri
+    }
   };
 
   render() {
@@ -252,6 +270,15 @@ export default class Scald extends React.Component {
                   }
                 }
               })
+            } else if (response.base_id && response.provider === 'scald_video') {
+              this.setState({
+                [i]: {
+                  'chosenImage': {
+                    'name': response.title,
+                    'uri': response.thumbnail_url
+                  }
+                }
+              })
             } else if (typeof response.base_entity !== 'undefined') {
               // still need to detect whether this is a doc or an image
               this.setState({
@@ -273,15 +300,15 @@ export default class Scald extends React.Component {
 
 
       let chosenDocumentText = "Select document";
-      let chosenImageText = "Select image";
+      let chosenImageText = "Select image/video";
       let takenImageText = "Take photo";
-      let removeFileText = "Remove Image";
+      let removeFileText = "Remove image/video";
       let showRemoveFile = false;
       if (this.state[i] && this.state[i].chosenDocument) {
         chosenDocumentText = "Select a different document";
       }
       if (this.state[i] && this.state[i].chosenImage) {
-        chosenImageText = "Select a different image";
+        chosenImageText = "Select a different image/video";
       }
       if (this.state[i] && this.state[i].takenImage) {
         takenImageText = "Take a different photo";
@@ -325,8 +352,9 @@ export default class Scald extends React.Component {
       if (this.state[i] && this.state[i].chosenDocument) {
         doctext = <Text
           style={{
-            height: 200,
-            width: 200
+            height: 50,
+            width: 200,
+            textAlign: "center"
           }}>
           {this.state[i].chosenDocument.name}
         </Text>
@@ -337,8 +365,8 @@ export default class Scald extends React.Component {
       if (this.state[i] && this.state[i].chosenImage) {
 
         let imgSrc;
-        if (this.state[i].chosenImage.uri) {
-          imgSrc = {uri: this.state[i].chosenImage.uri}
+        if (this.state[i].thumbnailUri) {
+          imgSrc = {uri: this.state[i].thumbnailUri}
         } else if (this.state[i].chosenImage.url) {
           imgSrc = {uri: this.state[i].chosenImage.url}
         }
@@ -377,7 +405,7 @@ export default class Scald extends React.Component {
         removefile = <Button color="red" title={removeFileText} onPress={() => this.removeFile(i)}/>;
       }
 
-      let element = [doctext, line, image, camerabutton, photobutton, takenImage, docbutton, removefile];
+      let element = <View key={i}>{doctext}{line}{image}{camerabutton}{photobutton}{takenImage}{docbutton}{removefile}</View>;
       elements.push(element);
 
     }
