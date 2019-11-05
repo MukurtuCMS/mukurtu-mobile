@@ -131,7 +131,7 @@ export default class WebviewScreen extends React.Component {
     if(!this.props.screenProps.isConnected) {
       return(
         <View style={styles.wrapper}>
-          <Text style={styles.text}>'Browsing Site is Only Available When Connected to the Internet.</Text>
+          <Text style={styles.text}>Browsing Site is Only Available When Connected to the Internet.</Text>
         </View>
       )
     }

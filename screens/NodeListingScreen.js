@@ -16,16 +16,10 @@ import RNPickerSelect, {defaultStyles} from 'react-native-picker-select';
 import {WebBrowser} from 'expo';
 import {FontAwesome} from '@expo/vector-icons';
 import {SQLite} from 'expo-sqlite';
-import axios from 'axios';
-import {MonoText} from '../components/StyledText';
-import JSONTree from 'react-native-json-tree'
-import SettingsList from "react-native-settings-list";
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import * as Colors from "../constants/Colors"
 import {Ionicons} from '@expo/vector-icons';
 
-// create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-7');
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
@@ -66,7 +60,7 @@ export default class HomeScreen extends React.Component {
       collectionSelected: '0',
       keywordsList: [],
       keywordsSelected: '0',
-      filteredContentList: [],
+      filteredNodes: filteredNodes,
       search: ''
     }
   }
@@ -89,132 +83,14 @@ export default class HomeScreen extends React.Component {
 
     this.updateFilters();
 
-    // Get our viewable fields to pass to the node teaser
-    // let contentType = this.props.navigation.state.params.contentType;
-    //
-    //
-    // // Need to move all of this to the initial props loading.
-    // const data = {
-    //   method: 'GET',
-    //   headers: {
-    //     'Accept': 'application/json',
-    //     'Content-Type': 'application/json',
-    //     'X-CSRF-Token': this.props.screenProps.token,
-    //     'Cookie': this.props.screenProps.cookie,
-    //     'Cache-Control': 'no-cache, no-store, must-revalidate',
-    //     'Pragma': 'no-cache',
-    //     'Expires': 0
-    //   }
-    // };
-
-    // Get the fields we're supposed to display from the endpoint
-    // data.url = this.props.screenProps.siteUrl + '/app/list-view-fields/retrieve/' + contentType;
-    //   axios(data)
-    //   .then((response) => {
-    //     return response.data;
-    //   })
-    //     .then((responseJson) => {
-    //       this.setState({'viewableFields': responseJson});
-    //     })
-    //
-    //     .catch((error)=>{
-    //       console.log(error);
-    //
-    //     })
-
   }
 
-  // checkInitialConnection = async () => {
-  //   const isConnected = await NetInfo.isConnected.fetch();
-  //   this.setState({isConnected: isConnected});
-  // }
+
 
   componentWillUnmount() {
     // NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
-  // handleConnectivityChange = isConnected => {
-  //   this.setState({isConnected});
-  // }
-
-  // componentActive = () => {
-  //   // Immediately check if first time, and rout to login screen
-  //   if (this.props.screenProps.firstTime) {
-  //     this.props.navigation.navigate('Login');
-  //   }
-  //   if (this.state.db) {
-  //
-  //     this.state.db.transaction(tx => {
-  //       tx.executeSql(
-  //           'select * from nodes;',
-  //           '',
-  //           (_, {rows: {_array}}) => this.updateNodes(_array)
-  //       );
-  //     });
-  //
-  //     this.state.db.transaction(tx => {
-  //       tx.executeSql(
-  //           'select * from taxonomy;',
-  //           '',
-  //           (query, result) => this.setTaxonomy(result.rows._array)
-  //       );
-  //     });
-  //   }
-  // }
-
-  // setTaxonomy = (array) => {
-  //   let termList = {};
-  //   for (var i = 0; i < array.length; i++) {
-  //     termList[array[i]['tid']] = JSON.parse(array[i].entity)
-  //   }
-  //   this.setState({terms: termList});
-  // }
-
-  updateNodes(array) {
-    let nodeList = {};
-    // Not sure this is needed anymore
-    // // let's parse the json blobs before setting state
-    // for (var i = 0; i < array.length; i++) {
-    //   if (array[i].entity && array[i].entity.length > 0) {
-    //     array[i].entity = JSON.parse(array[i].entity);
-    //     if (array[i]) {
-    //       nodeList[array[i].nid] = array[i].entity;
-    //     }
-    //   }
-    // }
-
-    // Eliminate all nodes that aren't current content type
-    // array = array.filter(node => (node.type === this.props.navigation.state.params.contentType));
-
-
-    this.setState({nodes: array, filteredContentList: array});
-    this.updateFilters();
-  }
-
-  // // @todo: Possibly remove this as I had to use a custom function for filtering anyways
-  // preprocessFilteredContent = (array) => {
-  //   // we need to replace any languages with und so we can filter correctly
-  //   let count = 0;
-  //   count++;
-  //   let preprocessedArray = [];
-  //   if (array.length > 0) {
-  //     for (var i = 0; i < array.length; i++) {
-  //       count++;
-  //       if (array[i].entity) {
-  //         for (const [fieldName, fieldValue] of Object.entries(array[i].entity)) {
-  //           if (fieldValue && typeof fieldValue === 'object') {
-  //             const lang = (Object.keys(fieldValue)) ? Object.keys(fieldValue)[0] : null;
-  //             if (lang && lang === 'en') {
-  //               array[i].entity[fieldName]['und'] = array[i].entity[fieldName]['en'];
-  //               delete array[i].entity[fieldName][lang];
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return array;
-  // }
 
   updateFilters = () => {
 
@@ -332,33 +208,14 @@ export default class HomeScreen extends React.Component {
     return false;
   }
 
-  setFilters = (filter, tid) => {
-    if (filter === 'category') {
-      this.setState({categoriesSelected: tid});
-      let content = this.state.nodes;
-      if (tid !== '0') {
-        content = content.filter(node => this.filterCategory(node.field_category, tid));
-      }
-      this.setState({filteredContentList: content});
-    }
-    if (filter === 'community') {
-      this.setState({communitySelected: tid});
-      let content = this.state.nodes;
-      if (tid !== '0') {
-        content = content.filter(node => this.filterCategory(node.field_community_ref, tid, 'nid'));
-      }
-      this.setState({filteredContentList: content});
-    }
-  }
 
   getFilteredContentList = () => {
 
     // Convert filtered content list to array for filtering
-    let filteredContentList = Object.keys(this.state.nodes).map((key) => {
-      return [Number(key), this.state.nodes[key]];
+    let filteredContentList = Object.keys(this.state.filteredNodes).map((key) => {
+      return [Number(key), this.state.filteredNodes[key]];
     });
 
-    // let filteredContentList = this.state.nodes;
 
     // First we want to restrict this to just the nodes in this content type
     filteredContentList = filteredContentList.filter(node => (node[1].type === this.props.navigation.state.params.contentType));
@@ -377,7 +234,7 @@ export default class HomeScreen extends React.Component {
     }
 
     return filteredContentList;
-  }
+  };
 
   setSearchText = (text) => {
     this.setState({search: text});
@@ -391,129 +248,31 @@ export default class HomeScreen extends React.Component {
           filteredNodes[key] = this.state.nodes[key];
         }
       }
-      this.setState({'nodes': filteredNodes});
-      // this.updateNodes(filteredNodes);
+      this.setState({'filteredNodes': filteredNodes});
 
-      // Filter nodes by title
-
-
-      // this.state.db.transaction(tx => {
-
-
-      //   tx.executeSql(
-      //       "select * from nodes where instr(upper(entity), upper(?)) > 0;",
-      //       [text],
-      //       (_, {rows: {_array}}) => this.updateNodes(_array)
-      //   );
-      // });
     } else {
-      // Need to filter this to current content type
-      this.setState({'nodes': this.props.screenProps.nodes});
-
+      this.setState({'filteredNodes': this.props.screenProps.nodes});
     }
   }
 
 
-  /**
-   * Handler for button that switches to browser
-   * @param event
-   * @returns {Promise<void>}
-   * @private
-   */
-  // _handlePressButtonAsync = async (url) => {
-  //
-  //   let isLoggedInBrowser = this._checkBrowserLoginStatus(url);
-  //
-  //   if (this.state.loggedIn === true) {
-  //
-  //     if (isLoggedInBrowser) {
-  //       let result = WebBrowser.openBrowserAsync(url);
-  //     } else {
-  //       // // If we're not logged in in the browser, get one time login link and then use it
-  //       let data = {
-  //         method: 'GET',
-  //         headers: {
-  //           'Accept': 'application/json',
-  //           'Content-Type': 'application/json',
-  //           'X-CSRF-Token': this.state.token,
-  //           'Cookie': this.state.cookie
-  //         }
-  //       };
-  //
-  //       data.url = this.props.screenProps.siteUrl + '/app/one-time-login/retrieve';
-  //         axios(data)
-  //         .then((response) => {
-  //           return response.data;
-  //         })
-  //           .then((responseText) => {
-  //
-  //             let result = WebBrowser.openBrowserAsync(responseText[0]);
-  //           })
-  //           .catch((error) => {
-  //             console.error(error);
-  //           });
-  //     }
-  //
-  //   } else {
-  //     // If user is not logged into app but is logged into browser, hit logout page with redirect to homepage
-  //     // That way login status stays in sync
-  //     if (isLoggedInBrowser) {
-  //       let result = WebBrowser.openBrowserAsync(url + '/user/logout?destination=' + url);
-  //     } else {
-  //       // If user not logged into app, and we're not logged into the browser, go to the homepage
-  //       let result = WebBrowser.openBrowserAsync(url);
-  //     }
-  //   }
-  // };
-
-  /**
-   * Checks browser login status by fetching the homepage HTML and checking for logged-in class
-   * @returns {boolean}
-   * @private
-   */
-  // _checkBrowserLoginStatus(url) {
-  //   let loggedIn = false;
-  //
-  //   fetch(url, {
-  //     method: 'GET',
-  //     credentials: 'include',
-  //     headers: {
-  //       'Accept': 'application/json',
-  //       'Content-Type': 'application/json',
-  //       'X-CSRF-Token': this.state.token,
-  //     }
-  //   })
-  //       .then((response) => {
-  //         // When the page is loaded convert it to text
-  //         return response.text()
-  //       })
-  //       .then((html) => {
-  //         // Might be better to use a dom parser
-  //         loggedIn = html.includes(' logged-in');
-  //       })
-  //       .catch((error) => {
-  //         console.error(error);
-  //       });
-  //
-  //   return loggedIn;
-  // }
 
   render() {
 
 
-    if (Object.entries(this.state.nodes).length === 0 && this.state.nodes.constructor === Object) {
+    if (Object.entries(this.props.screenProps.nodes).length === 0 && this.props.screenProps.nodes.constructor === Object) {
       return (
         <ScrollView style={styles.container}>
           <View>
-            <View style={styles.searchInputContainer}>
-              <Ionicons name="md-search" size={32} style={styles.searchIcon}/>
-              <TextInput
-                style={styles.searchInputInner}
-                placeholder="Search"
-                value={this.state.search}
-                onChangeText={(text) => this.setSearchText(text)}
-              />
-            </View>
+            {/*<View style={styles.searchInputContainer}>*/}
+            {/*  <Ionicons name="md-search" size={32} style={styles.searchIcon}/>*/}
+            {/*  <TextInput*/}
+            {/*    style={styles.searchInputInner}*/}
+            {/*    placeholder="Search"*/}
+            {/*    value={this.state.search}*/}
+            {/*    onChangeText={(text) => this.setSearchText(text)}*/}
+            {/*  />*/}
+            {/*</View>*/}
 
             <Text>No nodes were found in offline storage.</Text>
           </View>
@@ -693,39 +452,6 @@ export default class HomeScreen extends React.Component {
     );
   }
 
-
-  _maybeRenderDevelopmentModeWarning() {
-    if (__DEV__) {
-      const learnMoreButton = (
-        <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
-          Learn more
-        </Text>
-      );
-
-      return (
-        <Text style={styles.developmentModeText}>
-          Development mode is enabled, your app will be slower but you can use useful development
-          tools. {learnMoreButton}
-        </Text>
-      );
-    } else {
-      return (
-        <Text style={styles.developmentModeText}>
-          You are not in development mode, your app will run at full speed.
-        </Text>
-      );
-    }
-  }
-
-  _handleLearnMorePress = () => {
-    WebBrowser.openBrowserAsync('https://docs.expo.io/versions/latest/guides/development-mode');
-  };
-
-  _handleHelpPress = () => {
-    WebBrowser.openBrowserAsync(
-      'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
-    );
-  };
 }
 
 const styles = StyleSheet.create({
