@@ -622,6 +622,7 @@ export default class FormComponent extends React.Component {
             } else {
               this.props.screenProps.saveNode(this.state.formValues.nid);
               this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
+              this.setState({'submitting': false});
             }
           })
           .catch((error) => {
