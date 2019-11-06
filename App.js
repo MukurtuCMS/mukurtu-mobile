@@ -679,15 +679,20 @@ export default class App extends React.Component {
           FileSystem.documentDirectory + atom.title
         )
           .then(( uri ) => {
-            let options = { encoding: FileSystem.EncodingType.Base64 };
-            return FileSystem.readAsStringAsync(uri.uri, options)
+            // If we have a video, just save it — we don't base 64 those
+            if(uri.headers['Content-Type'].indexOf('video') !== -1) {
+              return null;
+            } else {
+              let options = {encoding: FileSystem.EncodingType.Base64};
+              return FileSystem.readAsStringAsync(uri.uri, options)
+            }
           })
           .then((filestring) => {
+            if(filestring === null) {
+              return null;
+            }
             let options = { encoding: FileSystem.EncodingType.Base64 };
             return FileSystem.writeAsStringAsync(FileSystem.documentDirectory + atom.title, filestring, options)
-          })
-          .then((write) => {
-            console.log(write)
           })
           .catch((error) =>{
             console.log(error);

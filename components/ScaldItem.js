@@ -2,6 +2,7 @@ import React from 'react';
 import {Image, StyleSheet, Text, View, WebView, Dimensions} from 'react-native';
 import {SQLite} from "expo-sqlite";
 import * as FileSystem from "expo-file-system";
+import { Video } from 'expo-av';
 
 export class ScaldItem extends React.Component {
   // A lot of overlap between this and the form scald components,
@@ -13,11 +14,12 @@ export class ScaldItem extends React.Component {
     this.state = {
       title: null,
       data: null,
-      atom: null
+      atom: null,
+      video: null
     }
   }
 
-  async componentDidMount() {
+componentDidMount() {
 
     this.props.db.transaction(
       tx => {
@@ -28,15 +30,31 @@ export class ScaldItem extends React.Component {
 
             this.setState({title: atom.title, atom: JSON.parse(atom.entity)});
 
-            let options = { encoding: FileSystem.EncodingType.Base64 };
-            FileSystem.readAsStringAsync(this.props.documentDirectory + atom.title, options)
-              .then((savedAtom) => {
-                this.setState({data: savedAtom});
-              })
-              .catch((error) => {
-                console.log('error getting scald item');
-                console.log(this.props.documentDirectory + atom.title);
-              });
+
+
+            if(JSON.parse(atom.entity).type === 'video') {
+              FileSystem.getInfoAsync(this.props.documentDirectory + atom.title)
+                .then((result) => {
+                  if(result.exists) {
+                    console.log('exists');
+                    this.setState({'video': result.uri})
+                  } else {
+                    console.log('does not exist');
+                    console.log(result);
+                  }
+                });
+
+            } else {
+              let options = {encoding: FileSystem.EncodingType.Base64};
+              FileSystem.readAsStringAsync(this.props.documentDirectory + atom.title, options)
+                .then((savedAtom) => {
+                  this.setState({data: savedAtom});
+                })
+                .catch((error) => {
+                  console.log('error getting scald item');
+                  console.log(this.props.documentDirectory + atom.title);
+                });
+            }
           },
           (success, error) => ''
         );
@@ -45,34 +63,48 @@ export class ScaldItem extends React.Component {
 
   }
 
-  gcd(a, b) {
-    if(isNaN(a) && isNaN(b)) {
-      return 1;
-    }
-    if ( ! b) {
-      return a;
-    }
-    return this.gcd(b, a % b);
-  }
 
   render() {
 
     let renderedItem;
-    // First check for youtube video
-    if (this.state && this.state.atom && this.state.atom.base_entity) {
 
-      const width = parseInt(this.state.atom.base_entity.width);
-      const height = parseInt(this.state.atom.base_entity.height);
+    if (this.state && this.state.atom) {
 
-      const screenWidth = Dimensions.get('window').width;
-      let calcWidth = screenWidth - 40;
-      let calcImageHeight = screenWidth * .6;
-      if(Number.isInteger(width) && Number.isInteger(height)) {
-        calcImageHeight = screenWidth * (height / width);
+
+
+
+      let calcWidth = 300;
+      let calcImageHeight = 200;
+      if(this.state.atom.base_entity) {
+         let width = parseInt(this.state.atom.base_entity.width);
+         let height = parseInt(this.state.atom.base_entity.height);
+        const screenWidth = Dimensions.get('window').width;
+        calcWidth = screenWidth - 40;
+        let calcImageHeight = screenWidth * .6;
+        if(Number.isInteger(width) && Number.isInteger(height)) {
+          calcImageHeight = screenWidth * (height / width);
+        }
       }
 
+
+
       let response = this.state.atom;
-      if (response.base_id && response.provider === 'scald_youtube') {
+
+      // First check for video
+      if(this.state.video !== null) {
+        renderedItem =  <Video
+          source={{uri: decodeURI(this.state.video)}}
+          rate={1.0}
+          volume={1.0}
+          isMuted={false}
+          resizeMode="cover"
+          shouldPlay
+          isLooping
+          style={{ width: 300, height: 300 }}
+        />
+      }
+      // Then check for youtube
+      else if (response.base_id && response.provider === 'scald_youtube') {
 
         renderedItem = <WebView
           style={{
