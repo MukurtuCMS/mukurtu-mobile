@@ -37,6 +37,9 @@ export default class ConditionalSelect extends React.Component {
 
     let options = field['#options'];
 
+    if(options.length === 0) {
+      return null;
+    }
     let parentPickerOptions = [];
     parentPickerOptions.push(<Picker.Item
             key='0'
@@ -62,25 +65,27 @@ export default class ConditionalSelect extends React.Component {
     if (options[this.state.parentValue] !== undefined && options[this.state.parentValue] !== 0) {
       let currentOptions = options[this.state.parentValue];
       let childPickerOptions = [];
-      childPickerOptions.push(<Picker.Item
-              key='0'
-              label='Select'
-              value='0'
+      if (currentOptions.length > 0) {
+        childPickerOptions.push(<Picker.Item
+            key='0'
+            label='Select'
+            value='0'
           />
-      );
+        );
 
-      for (let [childKey, value] of Object.entries(currentOptions)) {
+        for (let [childKey, value] of Object.entries(currentOptions)) {
 
-        childPickerOptions.push(
+
+          childPickerOptions.push(
             <Picker.Item
-                key={childKey}
-                label={value}
-                value={childKey}
+              key={childKey}
+              label={value}
+              value={childKey}
             />);
-      }
+        }
 
 
-      childPicker = <Picker
+        childPicker = <Picker
           style={(Platform.OS === 'ios') ? styles.selectListIOS : styles.selectListAndroid}
           itemStyle={{height: 60}}
           onValueChange={(itemValue, itemIndex, childKey) => {
@@ -92,15 +97,16 @@ export default class ConditionalSelect extends React.Component {
           }
           }
           selectedValue={this.state.childValue}
-      >
-        {childPickerOptions}
-      </Picker>;
+        >
+          {childPickerOptions}
+        </Picker>;
+      }
     }
 
 
 
     return <View style={styles.viewStyle}>
-      <Text>{field['#title']}</Text>
+      <Text style={styles.titleTextStyle}>{field['#title']}</Text>
       <FieldDescription description={(this.props.description) ? this.props.description : null} />
       <Required required={this.props.required}/>
       <Picker
@@ -141,5 +147,10 @@ var styles = StyleSheet.create({
   },
   viewStyle: {
     marginBottom: 15,
-  }
+  },
+  titleTextStyle: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
 });

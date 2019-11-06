@@ -65,7 +65,8 @@ export default class App extends React.Component {
       paragraphData: {},
       fieldCollectionsData: {},
       nodeSyncMessages: {},
-      refreshing: false
+      refreshing: false,
+      editable: {}
     };
   }
 
@@ -141,6 +142,7 @@ export default class App extends React.Component {
       paragraphData: this.state.paragraphData,
       fieldCollectionsData: this.state.fieldCollectionsData,
       nodeSyncMessages: this.state.nodeSyncMessages,
+      editable: this.state.editable,
       db: this.state.db
     };
     // Not sure if this is necessary any longer, but leaving it just in case.
@@ -428,6 +430,9 @@ export default class App extends React.Component {
 
         currentNodes[node.nid] = node;
         this.setState({'nodes': currentNodes});
+        let currentEditable = this.state.editable;
+        currentEditable[node.nid] = editable;
+        this.setState({'editable': currentEditable});
 
         return node;
       })
@@ -795,12 +800,15 @@ export default class App extends React.Component {
           (success, array) => {
             console.log('nodes retreieved');
             let nodesState = {};
+            let editableState = this.state.editable;
             for (let i = 0; i < array.rows._array.length; i++) {
               let nid = array.rows._array[i].nid;
               let node = JSON.parse(array.rows._array[i].entity);
               nodesState[nid] = node;
+              editableState[nid] = array.rows._array[i].editable;
             }
             this.setState({'nodes': nodesState});
+            this.setState({'editable': editableState});
 
             this.state.db.transaction(
               tx => {
@@ -1286,7 +1294,7 @@ export default class App extends React.Component {
 
 
           subPromises.push(Object.keys(nodes).map((key, index) =>
-            this.saveNode(key, data)
+            this.saveNode(key, data, nodes[key].editable)
           ));
         }
 

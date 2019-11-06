@@ -54,7 +54,7 @@ export default class LocationComponent extends React.Component {
     if(this.state.longitude) {
       lat = this.state.latitude;
       long = this.state.longitude
-    } else if (this.props.formValues[this.props.fieldName]) {
+    } else if (this.props.formValues[this.props.fieldName] && typeof this.props.formValues[this.props.fieldName]['und'] !== 'undefined') {
       lat = this.props.formValues[this.props.fieldName]['und'][0]['geom']['lat'];
       long = this.props.formValues[this.props.fieldName]['und'][0]['geom']['lon'];
     }

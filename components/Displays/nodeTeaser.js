@@ -134,15 +134,22 @@ export default class NodeTeaser extends React.Component {
       }
     }
 
+    let feather = null;
+    let nid = this.props.node.nid;
+    if(this.props.editable[nid] === true || this.props.editable[nid] == '1') {
+      feather =(<View style={styles.nodeEditWrapper}>
+        <Feather onPress={() => this.editNode()} name="edit" size={24} color="gray"/>
+      </View>);
+    }
+
+
     return <View style={styles.nodeWrapper}>
       <View style={styles.nodeInnerWrapper}>
         <Text style={styles.nodeTitle} onPress={() => this.viewNode()}>{node.title}</Text>
         <Text style={styles.nodeBody} numberOfLines={2}>{body}</Text>
         {viewableFields}
       </View>
-      <View style={styles.nodeEditWrapper}>
-        <Feather onPress={() => this.editNode()} name="edit" size={24} color="gray"/>
-      </View>
+      {feather}
     </View>;
   }
 }

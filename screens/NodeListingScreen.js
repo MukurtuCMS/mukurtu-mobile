@@ -445,6 +445,7 @@ export default class HomeScreen extends React.Component {
                 terms={this.props.screenProps.terms}
                 allNodes={this.props.screenProps.nodes}
                 navigation={this.props.navigation}
+                editable={this.props.screenProps.editable}
               />
             ))
           }
