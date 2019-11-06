@@ -56,7 +56,7 @@ class LoginScreen extends React.Component {
 
   componentDidMount() {
     // Get saved info for username and URL
-    const globalDB = SQLite.openDatabase('global-7');
+    const globalDB = SQLite.openDatabase('global-8');
     globalDB.transaction(
       tx => {
         tx.executeSql('select * from savedinfo;',

@@ -26,7 +26,7 @@ import * as FileSystem from "expo-file-system";
 const store = configureStore();
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-7');
+const globalDB = SQLite.openDatabase('global-8');
 
 
 export default class App extends React.Component {
@@ -194,7 +194,7 @@ export default class App extends React.Component {
 
     let userObject = JSON.parse(user).user;
 
-    let databaseName = url.replace(/(^\w+:|^)\/\//, '').replace(/\./g, '_') + '_' + userObject.uid + 'new3';
+    let databaseName = url.replace(/(^\w+:|^)\/\//, '').replace(/\./g, '_') + '_' + userObject.uid + 'new4';
 
     // First update the username and url in the saved data so it can persist if user logs out
     globalDB.transaction(
@@ -1151,7 +1151,6 @@ export default class App extends React.Component {
                         this.updateSyncedNids(responseJson.nid);
                         // If we have a nid, we remove this from the queued nodes
                         this.deleteFromQueue(currentId);
-
                       }
 
                       if (typeof responseJson.form_errors === 'object') {

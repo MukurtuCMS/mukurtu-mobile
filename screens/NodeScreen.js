@@ -20,7 +20,7 @@ import {EmbeddedNode} from "../components/EmbeddedNode";
 
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-7');
+const globalDB = SQLite.openDatabase('global-8');
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => ({

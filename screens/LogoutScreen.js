@@ -20,7 +20,7 @@ import Axios from "axios";
 import * as Colors from "../constants/Colors";
 
 // create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-7');
+const globalDB = SQLite.openDatabase('global-8');
 
 class LogoutScreen extends React.Component {
 

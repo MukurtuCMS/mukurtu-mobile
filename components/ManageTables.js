@@ -1,7 +1,7 @@
 import React from 'react';
 import * as SQLite from 'expo-sqlite';
 
-const globalDB = SQLite.openDatabase('global-7');
+const globalDB = SQLite.openDatabase('global-8');
 
 export const createUniqueTables = (db) => {
   createTokenTable(db);
