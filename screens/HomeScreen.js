@@ -41,12 +41,10 @@ class HomeScreen extends React.Component {
 
   componentDidMount(){
     this.props.navigation.addListener('willFocus', this.componentActive);
-    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+  //   NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
   }
 
-  componentWillUnmount() {
-    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
-  }
+
 
   componentActive(){
     // Immediately check if first time, and rout to login screen

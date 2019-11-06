@@ -76,7 +76,7 @@ export default class HomeScreen extends React.Component {
   componentDidMount() {
     // this.props.navigation.addListener('willFocus', this.componentActive);
     // Add listener for internet connection change
-    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    // NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
     // this.checkInitialConnection();
     // this.componentActive();
 
