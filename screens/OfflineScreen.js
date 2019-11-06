@@ -4,13 +4,14 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
+  Text, TouchableHighlight,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {SQLite} from "expo-sqlite";
 import * as Sync from "../components/MukurtuSync"
 import {Feather, FontAwesome} from "@expo/vector-icons"
+import * as Colors from "../constants/Colors";
 
 export default class OfflineScreen extends React.Component {
   constructor(props) {
@@ -22,7 +23,12 @@ export default class OfflineScreen extends React.Component {
   }
 
   static navigationOptions = {
-    header: null,
+    title: 'Queued Nodes',
+    headerStyle: {
+      backgroundColor: Colors.default.gold,
+      marginTop: -20,
+    },
+    headerTintColor: '#000',
   };
 
   componentDidMount() {
@@ -88,8 +94,11 @@ export default class OfflineScreen extends React.Component {
   render() {
     // console.log(this.state.nodes);
     if (this.state.nodes.length < 1) {
+
+
       return (
-        <View><Text>No nodes are queued for saving.</Text></View>
+    <View style={styles.wrapper}>
+    <Text style={styles.text}>No nodes are queued for saving.</Text></View>
       )
     }
 
@@ -160,5 +169,15 @@ const styles = StyleSheet.create({
   },
   listTextHeader: {
     fontSize: 20
-  }
+  },
+  wrapper: {
+    padding: 30,
+    textAlign: 'center'
+  },
+
+  text: {
+    fontSize: 18,
+    textAlign: 'center',
+    paddingBottom: 20
+  },
 });

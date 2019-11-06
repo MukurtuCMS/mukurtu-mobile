@@ -262,7 +262,7 @@ export default class HomeScreen extends React.Component {
   render() {
 
 
-    if (Object.entries(this.props.screenProps.nodes).length === 0 && this.props.screenProps.nodes.constructor === Object) {
+    if (Object.entries(this.state.nodes).length === 0 && this.state.nodes.constructor === Object) {
       return (
         <ScrollView style={styles.container}>
           <View>

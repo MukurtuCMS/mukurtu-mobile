@@ -645,16 +645,27 @@ export default class FormComponent extends React.Component {
           .then((response) => response.json())
           .then((responseJson) => {
             if (typeof responseJson.form_errors === 'object') {
-              this.setState({formErrors: responseJson.form_errors});
+              if(typeof responseJson.form_errors.changed === 'string') {
+                this.setState({
+                  formErrors: {
+                    'general': responseJson.form_errors.changed
+                  }
+                });
+              } else {
+                this.setState({formErrors: responseJson.form_errors});
+              }
               this.setState({'submitting': false});
-            } else if (typeof responseJson[0] === 'string' && responseJson[0].indexOf('denied') !== -1) {
+            } else if (typeof responseJson[0] === 'string' && (responseJson[0].indexOf('denied') !== -1)) {
               this.setState({
                 formErrors: {
                   'general': responseJson[0]
                 }
               });
               this.setState({'submitting': false});
-            } else {
+            }
+
+
+            else {
               this.setState({'submitting': false});
               this.props.screenProps.saveNode(this.state.formValues.nid);
               this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
@@ -718,7 +729,8 @@ export default class FormComponent extends React.Component {
           // Submit this nid to synced entities
           if (responseJson.hasOwnProperty('nid')) {
             this.props.screenProps.updateSyncedNids(responseJson.nid);
-            this.props.screenProps.saveNode(responseJson.nid);
+            // Using false for now for editable
+            this.props.screenProps.saveNode(responseJson.nid, {}, false);
           }
 
         }

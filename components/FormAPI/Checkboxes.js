@@ -27,6 +27,10 @@ export default class Checkboxes extends React.Component {
   }
 
   render() {
+    if(this.props.field['#options'].length === 0) {
+      return null;
+    }
+
     let error = null;
     let formErrorString = null;
     let lang = 'und';

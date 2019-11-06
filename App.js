@@ -415,7 +415,7 @@ export default class App extends React.Component {
         this.state.db.transaction(
           tx => {
             tx.executeSql('replace into nodes (nid, title, entity, editable) values (?, ?, ?, ?)',
-              [node.nid, node.title, JSON.stringify(node), editable],
+              [nid, node.title, JSON.stringify(node), editable],
               (success) => {
               },
               (success, error) => {
@@ -1016,6 +1016,10 @@ export default class App extends React.Component {
         ],
         {cancelable: false},
       );
+      this.setState({
+        'refreshing': false,
+        'nodeSyncMessages': {}
+      });
       return;
     }
     this.setState({
