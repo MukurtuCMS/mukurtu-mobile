@@ -1,5 +1,6 @@
 import React from 'react';
-import {Image, StyleSheet, Text, View, WebView} from 'react-native';
+import {Dimensions, Image, StyleSheet, Text, View, WebView} from 'react-native';
+import HTML from "react-native-render-html";
 
 export class ParagraphView extends React.Component {
 
@@ -20,10 +21,12 @@ export class ParagraphView extends React.Component {
               typeof this.props.paragraphData[this.props.pid][key]['und'] !== 'undefined' &&
               typeof this.props.paragraphData[this.props.pid][key]['und']['0']['value'] !== 'undefined'
           ) {
+            let tagsStyles = { p: { marginTop: 0 }};
             renderedItem.push(
                 <View key={key}>
                   <Text style={styles.titleTextStyle}>{value.label}</Text>
-                  <Text>{this.props.paragraphData[this.props.pid][key]['und']['0']['value']}</Text>
+                  <HTML tagsStyles={tagsStyles}  key={key} html={this.props.paragraphData[this.props.pid][key]['und']['0']['value']}
+                        imagesMaxWidth={Dimensions.get('window').width}/>
                 </View>
             )
           }
@@ -80,10 +83,11 @@ export class ParagraphView extends React.Component {
 
 const styles = StyleSheet.create({
   titleTextStyle: {
+    marginTop: 10,
     marginBottom: 5,
     color: '#000',
     fontSize: 24
-  }
+  },
 });
 
 
