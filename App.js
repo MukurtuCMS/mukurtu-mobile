@@ -1066,8 +1066,8 @@ export default class App extends React.Component {
   pushSavedOffline() {
 
     return new Promise((resolve, reject) => {
-      // If we're connected, just immediately resolve
-      if (this.state.isConnected) {
+      // If we're  not connected, just immediately resolve
+      if (!this.state.isConnected) {
         resolve();
       }
 
