@@ -28,12 +28,14 @@ export class ScaldItem extends React.Component {
 
             this.setState({title: atom.title, atom: JSON.parse(atom.entity)});
 
-            FileSystem.readAsStringAsync(FileSystem.documentDirectory + atom.title)
+            let options = { encoding: FileSystem.EncodingType.Base64 };
+            FileSystem.readAsStringAsync(this.props.documentDirectory + atom.title, options)
               .then((savedAtom) => {
                 this.setState({data: savedAtom});
               })
               .catch((error) => {
                 console.log('error getting scald item');
+                console.log(this.props.documentDirectory + atom.title);
               });
           },
           (success, error) => ''

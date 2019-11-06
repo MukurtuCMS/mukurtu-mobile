@@ -248,6 +248,7 @@ class NodeScreen extends React.Component {
               sid={sid}
               db={this.props.screenProps.db}
               key={sid}
+              documentDirectory={this.props.screenProps.documentDirectory}
             />
           );
 

@@ -143,7 +143,8 @@ export default class App extends React.Component {
       fieldCollectionsData: this.state.fieldCollectionsData,
       nodeSyncMessages: this.state.nodeSyncMessages,
       editable: this.state.editable,
-      db: this.state.db
+      db: this.state.db,
+      documentDirectory: FileSystem.documentDirectory
     };
     // Not sure if this is necessary any longer, but leaving it just in case.
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
@@ -677,12 +678,23 @@ export default class App extends React.Component {
           atom.file_url,
           FileSystem.documentDirectory + atom.title
         )
-          .then(({ uri }) => {
-            console.log('Finished downloading to ', uri);
+          .then(( uri ) => {
+            let options = { encoding: FileSystem.EncodingType.Base64 };
+            return FileSystem.readAsStringAsync(uri.uri, options)
           })
-          .catch(error => {
-            console.error(error);
+          .then((filestring) => {
+            let options = { encoding: FileSystem.EncodingType.Base64 };
+            return FileSystem.writeAsStringAsync(FileSystem.documentDirectory + atom.title, filestring, options)
+          })
+          .then((write) => {
+            console.log(write)
+          })
+          .catch((error) =>{
+            console.log(error);
+            console.log('error syncing file')
           });
+
+
 
         // RNFetchBlob.config({
         //   fileCache: true
@@ -1030,6 +1042,7 @@ export default class App extends React.Component {
         // Push any nodes we've saved offline
         this.pushSavedOffline()
           .then(() => {
+            console.log('finished pushing');
             this.newSyncEverything()
           })
 
@@ -1077,7 +1090,11 @@ export default class App extends React.Component {
             [],
             (success, array) => {
               console.log('pushing saved nodes');
+              if(array.rows._array.length === 0) {
+                resolve();
+              }
               for (let i = 0; i < array.rows._array.length; i++) {
+                console.log('iterating through');
                 let formValuesString = array.rows._array[i].blob;
                 let formValues = JSON.parse(array.rows._array[i].blob);
 
@@ -1085,6 +1102,7 @@ export default class App extends React.Component {
 
                 // Largely copied from Form.js method for updating existing nodes, but our state setting is different here
                 if (formValues.nid) {
+                  console.log('here');
                   const token = this.state.token;
                   const cookie = this.state.cookie;
                   const data = {
@@ -1119,9 +1137,10 @@ export default class App extends React.Component {
                       resolve();
                     })
                     .catch((error) => {
-
+                      resolve();
                     });
                 } else {
+                  console.log('there');
                   fetch(this.state.siteUrl + '/app/node.json', {
                     method: 'POST',
                     mode: 'cors',
@@ -1146,6 +1165,7 @@ export default class App extends React.Component {
                       return response.json();
                     })
                     .then((responseJson) => {
+                      console.log('ok');
 
                       if (responseJson.hasOwnProperty('nid')) {
                         this.updateSyncedNids(responseJson.nid);
@@ -1179,7 +1199,7 @@ export default class App extends React.Component {
             },
             (success, error) => {
               console.log(error);
-
+              resolve();
             }
           );
         }
@@ -1187,6 +1207,7 @@ export default class App extends React.Component {
 
 
     });
+
 
 
   }
