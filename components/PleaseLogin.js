@@ -11,15 +11,20 @@ export class PleaseLogin extends React.Component {
       text = this.props.loginText;
     }
 
-    return (
-      <View style={styles.wrapper}>
-        <Text style={styles.text}>{text}</Text>
-
+    let loginButton;
+    if(this.props.hideButton !== true) {
+      loginButton = (
         <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
                             onPress={() => this.props.navigation.navigate('Login')}>
           <Text style={styles.loginText}>Log In</Text>
         </TouchableHighlight>
+      );
+    }
 
+    return (
+      <View style={styles.wrapper}>
+        <Text style={styles.text}>{text}</Text>
+        {loginButton}
       </View>
     )
   }

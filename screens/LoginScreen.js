@@ -19,6 +19,7 @@ import * as SQLite from 'expo-sqlite';
 import Validator from 'validator';
 import * as Colors from "../constants/Colors";
 import axios from "axios";
+import {PleaseLogin} from "../components/PleaseLogin";
 
 
 // create a global db for database list and last known user
@@ -190,6 +191,16 @@ class LoginScreen extends React.Component {
   }
 
   render() {
+
+    if(!this.props.screenProps.isConnected) {
+      return (
+        <PleaseLogin
+          loginText='You need to be online to log in.'
+          hideButton={true}
+          navigation={this.props.navigation}
+        />
+      );
+    }
 
     let showError = [];
     if (this.state.error.length > 0) {

@@ -36,10 +36,10 @@ export default class ConditionalSelect extends React.Component {
     const field = this.props.field;
 
     let options = field['#options'];
-
-    if(options.length === 0) {
+    if(Object.keys(field['#options']).length === 0) {
       return null;
     }
+
     let parentPickerOptions = [];
     parentPickerOptions.push(<Picker.Item
             key='0'
@@ -65,7 +65,7 @@ export default class ConditionalSelect extends React.Component {
     if (options[this.state.parentValue] !== undefined && options[this.state.parentValue] !== 0) {
       let currentOptions = options[this.state.parentValue];
       let childPickerOptions = [];
-      if (currentOptions.length > 0) {
+      if (Object.keys(currentOptions).length > 0) {
         childPickerOptions.push(<Picker.Item
             key='0'
             label='Select'
