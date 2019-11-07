@@ -34,7 +34,7 @@ export default class OfflineScreen extends React.Component {
   componentDidMount() {
     this.props.navigation.addListener('willFocus', this.componentActive);
 
-    if(!this.props.screenProps.db) {
+    if (!this.props.screenProps.db) {
       return;
     }
 
@@ -70,16 +70,6 @@ export default class OfflineScreen extends React.Component {
 
   }
 
-  componentActive = async () => {
-    // const offlineNodes = await Sync.getSavedOffline(this.state);
-    // console.log(offlineNodes);
-    // if (offlineNodes && offlineNodes.length > 0) {
-    //   for (let i = 0; i < offlineNodes.length; i++) {
-    //     offlineNodes[i].blob = JSON.parse(offlineNodes[i].blob);
-    //   }
-    //   this.setState({nodes: offlineNodes})
-    // }
-  }
 
   editNode(node, did) {
     this.props.navigation.navigate('CreateContentForm', {
@@ -97,8 +87,9 @@ export default class OfflineScreen extends React.Component {
 
 
       return (
-    <View style={styles.wrapper}>
-    <Text style={styles.text}>No nodes are queued for saving.</Text></View>
+        <View style={styles.wrapper}>
+          <Text style={styles.text}>No nodes are queued for saving.</Text>
+        </View>
       )
     }
 
