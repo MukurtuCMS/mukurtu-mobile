@@ -82,6 +82,8 @@ class CreateContentFormScreen extends React.Component {
 
     var FormMarkup = [];
     var Form = t.form.Form;
+    const contentType = this.props.navigation.getParam('contentType');
+    let propsForm = this.props.screenProps.formFields[contentType];
     for (var i = 0; i < DigitalHeritageForm.length; i++) {
       var TcombType = transform(DigitalHeritageForm[i]['form']);
       var options = DigitalHeritageForm[i]['options'];
@@ -97,8 +99,7 @@ class CreateContentFormScreen extends React.Component {
     }
 
     let nodeForm = [];
-    const contentType = this.props.navigation.getParam('contentType');
-    let propsForm = this.props.screenProps.formFields[contentType];
+
 
     const formObject = Object.entries(propsForm).length;
     if (formObject > 0) {
@@ -157,7 +158,17 @@ class CreateContentFormScreen extends React.Component {
 
       const formState = this.props.navigation.getParam('formState');
       const did = this.props.navigation.getParam('did');
-      nodeForm = <FormComponent form={sortedNodeForm} contentType={contentType} url={this.props.screenProps.siteUrl} node={node} screenProps={this.props.screenProps} formState={formState} did={did}  />
+      nodeForm = <FormComponent
+        form={sortedNodeForm}
+        contentType={contentType}
+        url={this.props.screenProps.siteUrl}
+        node={node}
+        screenProps={this.props.screenProps}
+        formState={formState}
+        did={did}
+        navigation={this.props.navigation}
+
+      />
     }
 
     return (

@@ -91,7 +91,10 @@ export default class Textfield extends React.Component {
         if (this.props.formValues[this.props.fieldName].length > 0) {
           value = this.props.formValues[this.props.fieldName];
         }
-      } else if (typeof this.props.formValues[this.props.fieldName] !== 'undefined' && typeof this.props.formValues[this.props.fieldName][lang] !== 'undefined') {
+      } else if (typeof this.props.formValues[this.props.fieldName] !== 'undefined' &&
+        typeof this.props.formValues[this.props.fieldName][lang] !== 'undefined' &&
+        typeof this.props.formValues[this.props.fieldName][lang][i] !== 'undefined'
+      ) {
         // set the language key as initial key
         value = this.props.formValues[this.props.fieldName][lang][i][valueKey];
       }

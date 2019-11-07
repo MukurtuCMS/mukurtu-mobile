@@ -666,10 +666,17 @@ export default class FormComponent extends React.Component {
 
 
             else {
-              this.setState({'submitting': false});
               this.props.screenProps.saveNode(this.state.formValues.nid);
               this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
-              this.setState({'submitting': false});
+              // Navigate back to main content screen
+              this.setState({'submitting': false}, () => {
+                this.props.navigation.navigate('NodeListing', {
+                  contentType: this.props.contentType,
+                  contentTypeLabel: 'Test Label'
+                })
+              });
+
+
             }
           })
           .catch((error) => {
