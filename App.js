@@ -66,7 +66,8 @@ export default class App extends React.Component {
       fieldCollectionsData: {},
       nodeSyncMessages: {},
       refreshing: false,
-      editable: {}
+      editable: {},
+      syncText: ''
     };
   }
 
@@ -113,7 +114,11 @@ export default class App extends React.Component {
     // If we're syncing, run the ajax spinner
     // But don't run the spinner if we're refreshing — just let the refresh graphic run
     if (this.state.syncing && !this.state.refreshing) {
-      return (<AjaxSpinner/>);
+      return (
+        <AjaxSpinner
+          text={this.state.syncText}
+      />
+      );
     }
 
 
@@ -164,6 +169,7 @@ export default class App extends React.Component {
           refreshControl={<RefreshControl
             refreshing={this.state.refreshing}
             onRefresh={this._onRefresh}
+            title={this.state.syncText}
           />}
           >
 
@@ -416,6 +422,7 @@ export default class App extends React.Component {
         return response.json();
       })
       .then((node) => {
+        this.setState({'syncText': 'Retrieving Node ' + node.title});
 
         this.state.db.transaction(
           tx => {
@@ -663,6 +670,8 @@ export default class App extends React.Component {
         return response.data;
       })
       .then((atom) => {
+
+        this.setState({'syncText': 'Retrieving Media ' + atom.title});
 
         state.db.transaction(
           tx => {
@@ -1312,6 +1321,7 @@ export default class App extends React.Component {
 
   newSyncEverything() {
     this.setState({'initialized': true}); // just in case
+    this.setState({'syncText': 'Retrieving Synced Content'});
     let data = this.buildFetchData('GET');
     data.url = this.state.siteUrl + '/app/synced-entities/retrieve';
 
@@ -1549,14 +1559,16 @@ export default class App extends React.Component {
             console.log('done syncing everything');
             this.setState({
               'syncing': false,
-              'refreshing': false
+              'refreshing': false,
+              'syncText': ''
             })
           })
           .catch((error) => {
             console.log('error syncing');
             this.setState({
               'syncing': false,
-              'refreshing': false
+              'refreshing': false,
+              'syncText': ''
             })
             console.log(error);
           });
