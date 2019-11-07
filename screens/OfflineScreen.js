@@ -67,7 +67,45 @@ export default class OfflineScreen extends React.Component {
       }
     );
 
+  }
 
+  componentDidUpdate(prevProps, prevState, snapshot) {
+
+    if (!this.props.screenProps.db) {
+      return;
+    }
+
+    this.props.screenProps.db.transaction(
+      tx => {
+        tx.executeSql('select * from saved_offline',
+          [],
+          (success, array) => {
+            console.log('queueing');
+            let offlineNodes = [];
+            for (let i = 0; i < array.rows._array.length; i++) {
+              let id = array.rows._array[i].id;
+              let message = '';
+              if (this.props.screenProps.nodeSyncMessages[id]) {
+                message = this.props.screenProps.nodeSyncMessages[id].message;
+              }
+              let tempNode = {
+                'blob': JSON.parse(array.rows._array[i].blob),
+                'id': id,
+                'message': message
+              }
+              offlineNodes.push(tempNode);
+            }
+
+            if(this.state.nodes.length !== offlineNodes.length) {
+              this.setState({'nodes': offlineNodes});
+            }
+          },
+          (success, error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
   }
 
   componentActive = async () => {

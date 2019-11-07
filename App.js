@@ -154,15 +154,19 @@ export default class App extends React.Component {
     }
 
 
+
     return (
       <Provider store={store}>
 
         <View style={styles.container}>
-          <ScrollView style={styles.container} contentContainerStyle={{flex: 1}}>
-            <RefreshControl
-              refreshing={this.state.refreshing}
-              onRefresh={this._onRefresh}
-            />
+          <ScrollView style={styles.container} contentContainerStyle={{flex: 1}}
+
+          refreshControl={<RefreshControl
+            refreshing={this.state.refreshing}
+            onRefresh={this._onRefresh}
+          />}
+          >
+
             <AppHeader
               loggedIn={this.state.loggedIn}
               url={this.state.siteUrl}
@@ -1023,20 +1027,30 @@ export default class App extends React.Component {
     });
   }
 
+  refreshAlert() {
+    // This isn't ideal, but setting the alert immediately causes the refresh indicator to hang. Setting it on a timeout
+    // prevents this.
+    setTimeout(
+      function() {
+        Alert.alert(
+          'Sync Not Available Offline',
+          'Please connect to the internet to sync new content.',
+          [
+            {text: 'OK', onPress: () => {
+
+              }},
+          ],
+          {cancelable: false},
+        );
+      }
+        .bind(this),
+      1000
+    );
+  }
+
   _onRefresh() {
     if (!this.state.isConnected) {
-      Alert.alert(
-        'Sync Not Available Offline',
-        'Please connect to the internet to sync new content.',
-        [
-          {text: 'OK', onPress: () => console.log('OK Pressed')},
-        ],
-        {cancelable: false},
-      );
-      this.setState({
-        'refreshing': false,
-        'nodeSyncMessages': {}
-      });
+      this.refreshAlert();
       return;
     }
     this.setState({
