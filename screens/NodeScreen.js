@@ -50,26 +50,31 @@ class NodeScreen extends React.Component {
     const type = this.props.navigation.getParam('contentType');
 
 
-    this.setState({displayModes: this.props.screenProps.displayModes[type]});
 
-    // this.props.screenProps.db.transaction(tx => {
-    //   tx.executeSql(
-    //     'select node_view from display_modes where machine_name = ?;',
-    //     [type],
-    //     (query, result) => this.setState({displayModes: JSON.parse(result.rows._array[0].node_view)})
-    //   );
-    // });
-
-
-
+    // Filter display modes by weight
+    let displayModes = this.props.screenProps.displayModes[type];
+    // let filteredDisplayModes = [];
     //
-    // this.props.screenProps.db.transaction(tx => {
-    //   tx.executeSql(
-    //     'select * from taxonomy;',
-    //     '',
-    //     (query, result) => this.setTaxonomy(result.rows._array)
-    //   );
-    // });
+    // for (let key in displayModes) {
+    //   if (displayModes.hasOwnProperty(key)) {
+    //     filteredDisplayModes.push({[key]: displayModes[key]})
+    //   }
+    // }
+
+    let displayModesArray = Object.keys(displayModes).map(function(key) {
+      return [key, displayModes[key]];
+    });
+
+    displayModesArray.sort((a, b) =>{
+      console.log('test')
+      return a['weight'] - b['weight'];
+    });
+
+
+    // filteredDisplayModes = {...filteredDisplayModes};
+
+    this.setState({displayModes: displayModesArray});
+
 
     let filteredNodes = {};
     for(let nid in this.props.screenProps.nodes) {
@@ -84,13 +89,6 @@ class NodeScreen extends React.Component {
     }
 
 
-    // this.props.screenProps.db.transaction(tx => {
-    //   tx.executeSql(
-    //     'select * from nodes;',
-    //     '',
-    //     (query, result) => this.setNodes(result.rows._array)
-    //   );
-    // });
   }
 
   setTaxonomy = (array) => {
@@ -130,12 +128,17 @@ class NodeScreen extends React.Component {
 
     let renderedNode = [];
 
-    for (const [fieldName, fieldObject] of Object.entries(this.state.displayModes)) {
+    this.state.displayModes.forEach( (elem) => {
+      let fieldName = elem[0];
+      let fieldObject = elem[1];
+
+
       if (typeof node[fieldName] === 'undefined' || node[fieldName].length === 0) {
-        continue;
+        return;
       }
       const lang = Object.keys(node[fieldName])[0];
-      if (fieldObject.label && fieldObject.view_mode_properties.label !== 'hidden') {
+      // Hide title on scald fields per request
+      if (fieldObject.label && fieldObject.view_mode_properties.label !== 'hidden' && fieldObject.view_mode_properties.type !== 'ma_colorbox') {
         renderedNode.push(
           <Text key={fieldName} style={styles.label}>{fieldObject.label}</Text>
         )
@@ -251,7 +254,8 @@ class NodeScreen extends React.Component {
               documentDirectory={this.props.screenProps.documentDirectory}
             />
           );
-
+          // Current request is to just show one of these
+          break;
         }
       }
 
@@ -369,7 +373,7 @@ class NodeScreen extends React.Component {
           }
         }
       }
-    }
+    });
 
     let star = null;
     if (showStar) {
