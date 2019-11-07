@@ -30,9 +30,8 @@ componentDidMount() {
 
             this.setState({title: atom.title, atom: JSON.parse(atom.entity)});
 
-
-
             if(JSON.parse(atom.entity).type === 'video') {
+              // Probably unnecessary to check this, but was having issues with file saving earlier so keeping it in case
               FileSystem.getInfoAsync(this.props.documentDirectory + atom.title)
                 .then((result) => {
                   if(result.exists) {
@@ -93,14 +92,13 @@ componentDidMount() {
       // First check for video
       if(this.state.video !== null) {
         renderedItem =  <Video
-          source={{uri: decodeURI(this.state.video)}}
+          source={{uri: this.state.video}}
           rate={1.0}
           volume={1.0}
           isMuted={false}
-          resizeMode="cover"
-          shouldPlay
-          isLooping
-          style={{ width: 300, height: 300 }}
+          resizeMode={Video.RESIZE_MODE_CONTAIN}
+          useNativeControls={true}
+          style={{width: '100%', height: '100%'}}
         />
       }
       // Then check for youtube
