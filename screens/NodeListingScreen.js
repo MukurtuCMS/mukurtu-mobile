@@ -25,17 +25,10 @@ export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
     const {navigation, screenProps} = this.props;
+    this.reduceNodes= this.reduceNodes.bind(this);
 
     // Filter the list of all nodes to just nodes in this content type
-    let contentType = this.props.navigation.state.params.contentType;
-    let filteredNodes = {};
-    for(let nid in this.props.screenProps.nodes) {
-      if (this.props.screenProps.nodes.hasOwnProperty(nid)) {
-        if (this.props.screenProps.nodes[nid].type === contentType) {
-          filteredNodes[nid] = this.props.screenProps.nodes[nid];
-        }
-      }
-    }
+    let filteredNodes = this.reduceNodes();
 
 
     this.state = {
@@ -61,7 +54,8 @@ export default class HomeScreen extends React.Component {
       keywordsList: [],
       keywordsSelected: '0',
       filteredNodes: filteredNodes,
-      search: ''
+      search: '',
+      numberOfNodes: Object.keys(this.props.screenProps.nodes).length
     }
   }
 
@@ -83,14 +77,39 @@ export default class HomeScreen extends React.Component {
 
     this.updateFilters();
 
+
   }
 
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // Force re-render if number of nodes have changed
+    if(this.state.numberOfNodes !== Object.keys(this.props.screenProps.nodes).length) {
+      let filteredNodes = this.reduceNodes();
+      this.setState({
+        'numberOfNodes': Object.keys(this.props.screenProps.nodes).length,
+        'nodes': filteredNodes,
+        'filteredNodes': filteredNodes
+      })
+    }
+  }
 
 
   componentWillUnmount() {
     // NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
+
+  reduceNodes() {
+    let contentType = this.props.navigation.state.params.contentType;
+    let filteredNodes = {};
+    for(let nid in this.props.screenProps.nodes) {
+      if (this.props.screenProps.nodes.hasOwnProperty(nid)) {
+        if (this.props.screenProps.nodes[nid].type === contentType) {
+          filteredNodes[nid] = this.props.screenProps.nodes[nid];
+        }
+      }
+    }
+    return filteredNodes;
+  }
 
   updateFilters = () => {
 
