@@ -70,6 +70,18 @@ export default class OfflineScreen extends React.Component {
 
   }
 
+  componentActive = async () => {
+    // const offlineNodes = await Sync.getSavedOffline(this.state);
+    // console.log(offlineNodes);
+    // if (offlineNodes && offlineNodes.length > 0) {
+    //   for (let i = 0; i < offlineNodes.length; i++) {
+    //     offlineNodes[i].blob = JSON.parse(offlineNodes[i].blob);
+    //   }
+    //   this.setState({nodes: offlineNodes})
+    // }
+  }
+
+
 
   editNode(node, did) {
     this.props.navigation.navigate('CreateContentForm', {
