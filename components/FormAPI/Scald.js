@@ -299,7 +299,7 @@ export default class Scald extends React.Component {
       }
 
 
-      let chosenDocumentText = "Select document";
+      let chosenDocumentText = "Select audio/document";
       let chosenImageText = "Select image/video";
       let takenImageText = "Take photo";
       let removeFileText = "Remove image/video";

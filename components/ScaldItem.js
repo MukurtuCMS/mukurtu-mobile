@@ -2,7 +2,7 @@ import React from 'react';
 import {Image, StyleSheet, Text, View, WebView, Dimensions} from 'react-native';
 import {SQLite} from "expo-sqlite";
 import * as FileSystem from "expo-file-system";
-import { Video } from 'expo-av';
+import { Video, Audio } from 'expo-av';
 
 export class ScaldItem extends React.Component {
   // A lot of overlap between this and the form scald components,
@@ -15,7 +15,8 @@ export class ScaldItem extends React.Component {
       title: null,
       data: null,
       atom: null,
-      video: null
+      video: null,
+      audio: false
     }
   }
 
@@ -29,21 +30,25 @@ componentDidMount() {
             const atom = atoms.rows._array[0];
 
             this.setState({title: atom.title, atom: JSON.parse(atom.entity)});
+            let type = JSON.parse(atom.entity).type;
+            if(type === 'audio') {
+              this.setState({'audio': true});
+            }
 
-            if(JSON.parse(atom.entity).type === 'video') {
+            if(['video', 'audio'].includes(type)) {
               // Probably unnecessary to check this, but was having issues with file saving earlier so keeping it in case
               FileSystem.getInfoAsync(this.props.documentDirectory + atom.title)
                 .then((result) => {
                   if(result.exists) {
-                    console.log('exists');
                     this.setState({'video': result.uri})
                   } else {
-                    console.log('does not exist');
+                    console.log('error retrieving scald')
                     console.log(result);
                   }
                 });
 
-            } else {
+            }
+            else {
               let options = {encoding: FileSystem.EncodingType.Base64};
               FileSystem.readAsStringAsync(this.props.documentDirectory + atom.title, options)
                 .then((savedAtom) => {
@@ -69,9 +74,6 @@ componentDidMount() {
 
     if (this.state && this.state.atom) {
 
-
-
-
       let calcWidth = 300;
       let calcImageHeight = 200;
       if(this.state.atom.base_entity) {
@@ -91,6 +93,11 @@ componentDidMount() {
 
       // First check for video
       if(this.state.video !== null) {
+        // Adjust height of player if it's audio
+        let videoHeight = '100%';
+        if(this.state.audio) {
+          videoHeight = 45;
+        }
         renderedItem =  <Video
           source={{uri: this.state.video}}
           rate={1.0}
@@ -98,7 +105,7 @@ componentDidMount() {
           isMuted={false}
           resizeMode={Video.RESIZE_MODE_CONTAIN}
           useNativeControls={true}
-          style={{width: '100%', height: '100%'}}
+          style={{width: '100%', height: videoHeight}}
         />
       }
       // Then check for youtube
