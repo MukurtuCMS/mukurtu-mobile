@@ -25,6 +25,8 @@ import FormComponent from '../components/FormAPI/Form';
 import weightSort from 'weight-sort';
 import * as Colors from "../constants/Colors";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { HeaderBackButton } from 'react-navigation';
+import CustomBackButton from "../components/CustomBackButton";
 
 class CreateContentFormScreen extends React.Component {
   static navigationOptions = ({navigation}) => (
@@ -36,6 +38,7 @@ class CreateContentFormScreen extends React.Component {
       headerTintColor: '#000',
     },
     headerTintColor: '#000',
+    headerLeft: (<CustomBackButton navigation={navigation}/>)
   });
 
   constructor(props) {
@@ -51,9 +54,20 @@ class CreateContentFormScreen extends React.Component {
   }
 
 
+
+
   componentActive = () => {
   }
 
+
+  // customBackButton(props) {
+  //   return <HeaderBackButton
+  //     onPress={()=>{navigation.navigate('Home')}}
+  //     style={styles.backButton}
+  //     title='test'
+  //     tintColor='black'
+  //   />
+  // }
 
   onPress = async () => {
     var value = this.refs.form.getValue();
@@ -202,6 +216,9 @@ var styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: 'stretch',
     justifyContent: 'center'
+  },
+  backButton: {
+    color: '#000'
   }
 });
 

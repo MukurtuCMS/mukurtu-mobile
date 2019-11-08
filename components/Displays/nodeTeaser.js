@@ -11,7 +11,8 @@ export default class NodeTeaser extends React.Component {
       contentType: this.props.node.type,
       contentTypeLabel: this.props.node.title,
       node: this.props.node,
-      editWord: 'Edit'
+      editWord: 'Edit',
+      customBackScreen: 'NodeListing'
     })
   }
 
