@@ -31,8 +31,10 @@ export default class AppHeader extends React.Component {
   render() {
     let loginBubbleStyle = styles.loginBubble;
 
+    let pullDownText;
     if (this.props.screenProps.isConnected) {
       loginBubbleStyle = styles.loginBubbleLoggedIn;
+      pullDownText = <Text style={styles.smallText}>Pull Down to Sync Content</Text>;
     }
 
     let siteLogo = <Image
@@ -52,7 +54,10 @@ export default class AppHeader extends React.Component {
         {siteLogo}
       <Text style={loginBubbleStyle}></Text>
       </View>
-      <Text style={styles.siteName}>{this.props.url}</Text>
+      <View style={styles.siteName}>
+      <Text>{this.props.url}</Text>
+        {pullDownText}
+      </View>
 {/*      <Image
         style={styles.profileIcon}
         source={require('../assets/images/profileIcon.png')}
@@ -113,5 +118,8 @@ const styles = StyleSheet.create({
     bottom: -3,
     backgroundColor: '#87c415',
     borderRadius: 100
+  },
+  smallText: {
+     fontSize: 12
   }
 });
