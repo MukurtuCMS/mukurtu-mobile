@@ -18,8 +18,8 @@ import axios from "axios";
 import * as SQLite from 'expo-sqlite';
 import * as Sync from "../MukurtuSync"
 import * as FileSystem from 'expo-file-system';
-import Colors from "../../constants/Colors";
 import FieldCollectionForm from "./FieldCollectionForm";
+import Colors from "../../constants/Colors";
 
 
 export default class FormComponent extends React.Component {
@@ -1248,8 +1248,15 @@ export default class FormComponent extends React.Component {
 
     } else {
       let generalFormError;
-      if (this.state.formErrors !== null && typeof this.state.formErrors === 'object' && this.state.formErrors.general) {
-        generalFormError = <Text>{this.state.formErrors.general}</Text>;
+      if (this.state.formErrors !== null && typeof this.state.formErrors === 'object') {
+        let formErrorsArray = [];
+        for (let key in this.state.formErrors) {
+          if(this.state.formErrors.hasOwnProperty(key)) {
+            formErrorsArray.push(<Text style={styles.errorTextStyleError}>{this.state.formErrors[key]}</Text>);
+          }
+        }
+
+        generalFormError = formErrorsArray;
       }
       formDisplay = <View>
 
@@ -1313,5 +1320,10 @@ const styles = StyleSheet.create({
   },
   activityContainer: {
     padding: 10
-  }
+  },
+  errorTextStyleError: {
+    color: Colors.errorBackground,
+    fontSize: 18,
+    marginBottom: 10
+  },
 });

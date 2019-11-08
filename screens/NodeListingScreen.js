@@ -433,6 +433,11 @@ export default class HomeScreen extends React.Component {
 
     const filteredContentList = this.getFilteredContentList();
 
+    let message;
+    if(filteredContentList.length === 0) {
+      message = <Text>No nodes found for those search criteria.</Text>
+    }
+
     return (
       <ScrollView style={styles.container}>
         <View>
@@ -451,6 +456,7 @@ export default class HomeScreen extends React.Component {
           {keywordsList}
           {communityList}
           {collectionList}
+          {message}
           {
             filteredContentList.map((node) => (
               <NodeTeaser
