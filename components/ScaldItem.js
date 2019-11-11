@@ -16,7 +16,8 @@ export class ScaldItem extends React.Component {
       data: null,
       atom: null,
       video: null,
-      audio: false
+      audio: false,
+      vimeoUrl: null
     }
   }
 
@@ -35,7 +36,19 @@ componentDidMount() {
               this.setState({'audio': true});
             }
 
-            if(['video', 'audio'].includes(type)) {
+            let provider =  JSON.parse(atom.entity).provider;
+            if(['scald_youtube'].includes(provider)) {
+              return;
+            } else if(provider === 'scald_vimeo') {
+              const VIMEO_ID = JSON.parse(atom.entity).base_id;
+              fetch(`https://player.vimeo.com/video/${VIMEO_ID}/config`)
+                .then(res => res.json())
+                .then(res => this.setState({
+                  thumbnailUrl: res.video.thumbs['640'],
+                  vimeoUrl: res.request.files.hls.cdns[res.request.files.hls.default_cdn].url,
+                  vimeoInfo: res.video,
+                }));
+            }else if(['video', 'audio'].includes(type)) {
               // Probably unnecessary to check this, but was having issues with file saving earlier so keeping it in case
               FileSystem.getInfoAsync(this.props.documentDirectory + atom.title)
                 .then((result) => {
@@ -121,7 +134,22 @@ componentDidMount() {
         />;
 
 
-      } else if (response.base_id && response.provider === 'scald_file') {
+      }
+      else if (this.state.vimeoUrl !== null) {
+        renderedItem =  <Video
+          source={{uri: this.state.vimeoUrl}}
+          // navigator={this.props.navigator}
+          fullscreen={true}
+          rate={1.0}
+          volume={1.0}
+          isMuted={false}
+          resizeMode={Video.RESIZE_MODE_CONTAIN}
+          useNativeControls={true}
+          style={{width: '100%', height: '80%'}}
+        />
+      }
+
+      else if (response.base_id && response.provider === 'scald_file') {
         renderedItem = <Text
           style={{
             height: calcImageHeight,

@@ -21,6 +21,7 @@ export default class Scald extends React.Component {
     super(props);
     this.state = {
       numberOfValues: 1,
+      permission: true
     };
     this.handleUpload = this.handleUpload.bind(this);
   }
@@ -134,6 +135,7 @@ export default class Scald extends React.Component {
     let {status} = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     if (status !== 'granted') {
       console.error('Camera not granted');
+      this.setState({'permission': false});
       return
     }
 
@@ -164,7 +166,9 @@ export default class Scald extends React.Component {
   _launchCameraAsync = async (index) => {
     let {status} = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL)
     if (status !== 'granted') {
+      this.setState({'permission': false});
       console.log("Camera permission Denied")
+      return;
     }
     let image = await ImagePicker.launchCameraAsync();
     if (!image.cancelled) {
@@ -317,7 +321,7 @@ export default class Scald extends React.Component {
         removeFileText = "Remove Document";
       }
 
-      if (this.state[i] && (this.state[i].chosenDocument || this.state[i].chosenImage || this.state[i].takenImage || this.state[i].youtube)) {
+      if (this.state[i] && this.state.permission && (this.state[i].chosenDocument || this.state[i].chosenImage || this.state[i].takenImage || this.state[i].youtube)) {
         showRemoveFile = true;
       }
 
@@ -335,16 +339,25 @@ export default class Scald extends React.Component {
             <Text>Upload Complete</Text>
           </View>
       }
-      let showButtons = (typeof this.state[i] === 'undefined' ||
-        (this.state[i]['chosenDocument'] == null && this.state[i]['chosenImage'] == null && this.state[i]['takenImage'] == null));
+      let showButtons = (
+        typeof this.state[i] === 'undefined' ||
+        (this.state.permission &&
+          this.state[i]['chosenDocument'] == null &&
+          this.state[i]['chosenImage'] == null &&
+          this.state[i]['takenImage'] == null
+        ));
 
       let docbutton;
       let photobutton = null;
       let camerabutton;
+      let permissionText;
       if (showButtons) {
         docbutton = <Button title={chosenDocumentText} onPress={() => this._launchDocumentAsync(i)}/>;
         photobutton = <Button title={chosenImageText} onPress={() => this._launchCameraRollAsync(i)}/>;
         camerabutton = <Button title={takenImageText} onPress={() => this._launchCameraAsync(i)}/>;
+      }
+      else if(!this.state.permission) {
+        permissionText = <Text>To upload media, please give this app permission to access photos/camera in your device's settings.</Text>
       }
 
 
@@ -405,7 +418,7 @@ export default class Scald extends React.Component {
         removefile = <Button color="red" title={removeFileText} onPress={() => this.removeFile(i)}/>;
       }
 
-      let element = <View key={i}>{doctext}{line}{image}{camerabutton}{photobutton}{takenImage}{docbutton}{removefile}</View>;
+      let element = <View key={i}>{doctext}{line}{image}{camerabutton}{photobutton}{takenImage}{docbutton}{removefile}{permissionText}</View>;
       elements.push(element);
 
     }
@@ -417,7 +430,7 @@ export default class Scald extends React.Component {
       addMoreText = this.props.addMoreText;
     }
     // Check for cardinality
-    if (this.props.cardinality === '-1') {
+    if (this.props.cardinality === '-1' && this.state.permission) {
       addMoreButton = <Button
         title={addMoreText}
         onPress={this.addItem.bind(this)}

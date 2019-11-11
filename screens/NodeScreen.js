@@ -66,7 +66,6 @@ class NodeScreen extends React.Component {
     });
 
     displayModesArray.sort((a, b) =>{
-      console.log('test')
       return a['weight'] - b['weight'];
     });
 
