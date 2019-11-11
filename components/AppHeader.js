@@ -32,7 +32,7 @@ export default class AppHeader extends React.Component {
     let loginBubbleStyle = styles.loginBubble;
 
     let pullDownText;
-    if (this.props.screenProps.isConnected) {
+    if (this.props.screenProps.isConnected && this.props.screenProps.loggedIn) {
       loginBubbleStyle = styles.loginBubbleLoggedIn;
       pullDownText = <Text style={styles.smallText}>Pull Down to Sync Content</Text>;
     }

@@ -30,6 +30,16 @@ export default class ConditionalSelect extends React.Component {
     }
   }
 
+  getParentVid(name) {
+    for(let key in this.props.nodes) {
+      if(this.props.nodes.hasOwnProperty(key)) {
+        if (this.props.nodes[key].title === name) {
+          return key;
+        }
+      }
+    }
+  }
+
 
   render() {
 
@@ -92,7 +102,9 @@ export default class ConditionalSelect extends React.Component {
             this.setState({
               childValue: itemValue
             }, () => {
-              this.props.setFormValue(this.props.fieldName, this.state.childValue);
+              // For this component we need the title as the parentValue state, but form submit needs the ID
+              let parentVal = this.getParentVid(this.state.parentValue);
+              this.props.setFormValue(this.props.fieldName, this.state.childValue, parentVal);
             });
           }
           }

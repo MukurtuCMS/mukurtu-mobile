@@ -419,7 +419,7 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueConditionalSelect(newFieldName, val) {
+  setFormValueConditionalSelect(newFieldName, val, parentVal) {
 
     if (this.state.formValues) {
       let formValues = this.state.formValues;
@@ -439,7 +439,7 @@ export default class FormComponent extends React.Component {
       let values = {
         ['oggroup_fieldset']: {
           "0": {
-            "dropdown_first": "2",
+            "dropdown_first": parentVal,
             "dropdown_second": {
               "target_id": val
             }
@@ -529,7 +529,12 @@ export default class FormComponent extends React.Component {
 
         // If null is the new value, remove this item.
         if (value == null) {
-          formValues[fieldName][lang].splice(index, 1);
+          // Second case here prevents an error removing images
+          if(typeof formValues[fieldName][lang].splice === 'function') {
+            formValues[fieldName][lang].splice(index, 1);
+          } else {
+            formValues[fieldName][lang][index] = null;
+          }
         }
         else {
           formValues[fieldName][lang][index] = {
@@ -1118,6 +1123,7 @@ export default class FormComponent extends React.Component {
                   formErrors={this.state.formErrors}
                   required={required}
                   description={description}
+                  nodes={this.props.screenProps.nodes}
                 />);
 
               } else if (fieldArray['#type'] === 'select') {
