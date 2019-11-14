@@ -44,20 +44,30 @@ class CreateContentFormScreen extends React.Component {
   constructor(props) {
     super(props);
     const { navigation, screenProps } = this.props;
-    this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', placeName: '', form: [], oldForm: '', db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null};
+    this.state = {
+      switchValue: false,
+      loggedIn: false,
+      token: false,
+      user: {},
+      places: '',
+      placeName: '', form: [], oldForm: '', db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
+      node: this.props.navigation.getParam('node')
+    };
     this.onPress = this.onPress.bind(this);
+    this.componentActive = this.componentActive.bind(this);
   }
 
   componentDidMount() {
     this.props.navigation.addListener('willFocus', this.componentActive)
-
   }
 
 
 
 
   componentActive = () => {
-  }
+    let node = this.props.navigation.getParam('node');
+    this.setState({'node': node});
+  };
 
 
   // customBackButton(props) {
@@ -168,7 +178,7 @@ class CreateContentFormScreen extends React.Component {
 
 
       const contentType = this.props.navigation.getParam('contentType');
-      const node = this.props.navigation.getParam('node');
+      let node = this.state.node;
 
       const formState = this.props.navigation.getParam('formState');
       const did = this.props.navigation.getParam('did');
@@ -176,7 +186,7 @@ class CreateContentFormScreen extends React.Component {
         form={sortedNodeForm}
         contentType={contentType}
         url={this.props.screenProps.siteUrl}
-        node={node}
+        node={this.state.node}
         screenProps={this.props.screenProps}
         formState={formState}
         did={did}

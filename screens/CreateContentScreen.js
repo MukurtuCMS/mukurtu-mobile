@@ -41,6 +41,7 @@ export default class CreateContentScreen extends React.Component {
 
   componentDidMount(){
     // this.props.navigation.addListener('willFocus', this.componentActive);
+    this.props.navigation.addListener('willFocus', this.componentActive)
     // NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
     if (this.props.screenProps.firstTime) {
       this.props.navigation.navigate('Login');

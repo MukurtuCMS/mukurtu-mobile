@@ -44,11 +44,25 @@ export default class FormComponent extends React.Component {
     this.resetForm = this.resetForm.bind(this);
     this.enableSubmit = this.enableSubmit.bind(this);
     this.disableSubmit = this.disableSubmit.bind(this);
+    this.componentActive = this.componentActive.bind(this);
   }
 
   componentDidMount() {
     // this.update();
+    this.props.navigation.addListener('willFocus', this.componentActive)
     this.preprocessNodeForSaving();
+  }
+
+  componentActive() {
+    if(this.state.formValues.nid !== this.props.node.nid) {
+      this.preprocessNodeForSaving();
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if(this.props.node.nid !== prevProps.node.nid) {
+      this.preprocessNodeForSaving();
+    }
   }
 
   preprocessNodeForSaving = () => {
@@ -56,68 +70,13 @@ export default class FormComponent extends React.Component {
     if (node) {
       this.setState({formValues: node});
     }
-    /*    for (const [machineName, groupObject] of Object.entries(node)) {
-          if (groupObject) {
-            const lang = Object.keys(groupObject)[0];
-            if (lang) {
-              console.log(groupObject[lang]);
-            }
-          }
-
-        }*/
   }
 
   updateIndex(selectedIndex) {
     this.setState({selectedIndex})
   }
 
-  // update() {
-  //   this.state.db.transaction(tx => {
-  //     tx.executeSql(
-  //       'select * from auth limit 1;',
-  //       '',
-  //       (_, {rows: {_array}}) => this.getToken(_array)
-  //     );
-  //   });
-  // }
 
-  // getToken(array) {
-  //   if (array === undefined || array.length < 1) {
-  //
-  //     this.alertNotLoggedIn();
-  //     return false;
-  //   }
-  //
-  //   const token = array[0].token;
-  //   const cookie = array[0].cookie;
-  //
-  //   this.setState({
-  //     cookie: cookie,
-  //     token: token
-  //   });
-  //
-  //   let data = {
-  //     method: 'GET',
-  //     headers: {
-  //       'Accept': 'application/json',
-  //       'Content-Type': 'application/json',
-  //       'X-CSRF-Token': token,
-  //       'Cookie': cookie
-  //     }
-  //   };
-  //   fetch(this.props.screenProps.siteUrl + '/index.php?q=taxonomy/autocomplete/field_creator', data)
-  //     .then((response) => response.json())
-  //     .then((responseJson) => {
-  //       let form = responseJson;
-  //
-  //
-  //       this.setState({ajax: form});
-  //     })
-  //     .catch((error) => {
-  //       // console.error(error);
-  //     });
-  //
-  // }
 
   disableSubmit() {
     this.setState({'enabled': false});
