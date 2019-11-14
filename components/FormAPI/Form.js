@@ -54,13 +54,13 @@ export default class FormComponent extends React.Component {
   }
 
   componentActive() {
-    if(this.state.formValues.nid !== this.props.node.nid) {
+    if(typeof this.state.formValues !== 'undefined' && typeof this.props.node !== 'undefined' && (this.state.formValues.nid !== this.props.node.nid)) {
       this.preprocessNodeForSaving();
     }
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if(this.props.node.nid !== prevProps.node.nid) {
+    if(typeof this.props.node !== 'undefined' && typeof prevProps.node !== 'undefined' && (this.props.node.nid !== prevProps.node.nid)) {
       this.preprocessNodeForSaving();
     }
   }

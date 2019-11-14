@@ -35,13 +35,11 @@ export default class CreateContentScreen extends React.Component {
     super(props);
     const { navigation, screenProps } = this.props;
     // this.onValueChange = this.onValueChange.bind(this);
-    // this.componentActive = this.componentActive.bind(this);
     // this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: '', isConnected: false, db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
   }
 
   componentDidMount(){
     // this.props.navigation.addListener('willFocus', this.componentActive);
-    this.props.navigation.addListener('willFocus', this.componentActive)
     // NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
     if (this.props.screenProps.firstTime) {
       this.props.navigation.navigate('Login');
