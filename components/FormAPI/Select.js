@@ -2,6 +2,8 @@ import React from 'react';
 import {Picker, View, Text, StyleSheet} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import Required from "./Required";
+import RNPickerSelect from "react-native-picker-select";
+
 
 export default class Select extends React.Component {
 
