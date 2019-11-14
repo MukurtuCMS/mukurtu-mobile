@@ -17,6 +17,7 @@ import {Term} from "../components/Term";
 import axios from "axios";
 import * as Colors from "../constants/Colors";
 import {EmbeddedNode} from "../components/EmbeddedNode";
+import NodeTeaser from "../components/Displays/nodeTeaser";
 
 
 // create a global db for database list and last known user
@@ -332,6 +333,9 @@ class NodeScreen extends React.Component {
               <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
                 item to Mukurtu Mobile.</Text>
           } else {
+            renderedNode.push(
+              <Text>Collection only displays synced nodes; unsynced nodes will not display in collection even if they're in the collection on the desktop site.</Text>
+            );
             for (i = 0; i < node[fieldName][lang].length; i++) {
               let nid = node[fieldName][lang][i].nid;
               if (fieldObject.view_mode_properties.type === 'entityreference_label') {
@@ -344,11 +348,24 @@ class NodeScreen extends React.Component {
                     item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
-                if (i > 0 && this.props.screenProps.nodes[nid]) {
-                  fieldData += ', ';
-                }
+
+                // Push the node teaser so that it links
                 if (this.props.screenProps.nodes[nid]) {
-                  fieldData += this.props.screenProps.nodes[nid].title;
+                  renderedNode.push(
+                    <NodeTeaser
+                      key={i++}
+                      node={this.props.screenProps.nodes[nid]}
+                      viewableFields={this.state.viewableFields}
+                      token={this.props.screenProps.token}
+                      cookie={this.props.screenProps.cookie}
+                      url={this.props.screenProps.siteUrl}
+                      db={this.props.screenProps.db}
+                      terms={this.props.screenProps.terms}
+                      allNodes={this.props.screenProps.nodes}
+                      navigation={this.props.navigation}
+                      editable={false}
+                    />
+                  )
                 }
               }
             }
@@ -359,7 +376,7 @@ class NodeScreen extends React.Component {
                   this item to Mukurtu Mobile.</Text>
             }
           }
-          renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
+          // renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
         }
       }
 

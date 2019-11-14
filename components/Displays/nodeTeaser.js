@@ -1,8 +1,9 @@
 import React from 'react';
-import {TextInput, View, Text, StyleSheet} from 'react-native';
+import {TextInput, View, Text, StyleSheet, TouchableHighlight} from 'react-native';
 import {Feather} from '@expo/vector-icons';
 import {ScaldItem} from "../ScaldItem";
 import {ParagraphView} from "../ParagraphView";
+import Colors from "../../constants/Colors";
 
 export default class NodeTeaser extends React.Component {
 
@@ -146,7 +147,9 @@ export default class NodeTeaser extends React.Component {
 
     return <View style={styles.nodeWrapper}>
       <View style={styles.nodeInnerWrapper}>
-        <Text style={styles.nodeTitle} onPress={() => this.viewNode()}>{node.title}</Text>
+        <TouchableHighlight style={styles.touchable}  onPress={() => this.viewNode()}>
+          <Text style={styles.nodeTitle}>{node.title}</Text>
+        </TouchableHighlight>
         <Text style={styles.nodeBody} numberOfLines={2}>{body}</Text>
         {viewableFields}
       </View>
@@ -160,7 +163,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: 24,
-    flex: 1
+    flex: 1,
+    color: Colors.primary
   },
   nodeBody: {
     fontSize: 16,
@@ -189,5 +193,8 @@ const styles = StyleSheet.create({
   view: {
     width: '100%',
     marginBottom: 15,
+  },
+  touchable: {
+
   }
 });
