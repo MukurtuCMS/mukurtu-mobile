@@ -3,6 +3,7 @@ import {View, Text, StyleSheet} from 'react-native';
 import {Button, CheckBox} from "react-native-elements";
 import Textfield from "./Textfield";
 import Select2 from "./Select2";
+import Scald from "./Scald";
 
 export default class Paragraph extends React.Component {
 
@@ -19,6 +20,14 @@ export default class Paragraph extends React.Component {
       numberOfForms: 1
     };
 
+  }
+
+  enableSubmit() {
+    console.log('enable');
+  }
+
+  disableSubmit() {
+    console.log('disable');
   }
 
   addParagraph() {
@@ -176,6 +185,30 @@ export default class Paragraph extends React.Component {
 
   }
 
+  setParagraphValueScald(fieldName, sid, index = 0, subindex = 0) {
+    if (this.state.subformValues) {
+      // let paragraphFieldName = this.props.fieldName;
+      // let subformValues = this.state.subformValues;
+      //
+      // // Filter if we have options
+      // if (options !== null && (typeof options === 'array' || typeof options === 'object') && options.length > 0) {
+      //   let selectedOption = options.filter(function (option) {
+      //     return option.text === value;
+      //   });
+      //   let nid = value;
+      //   if (selectedOption !== undefined && selectedOption.length !== 0) {
+      //     nid = selectedOption[0].id;
+      //   }
+      //   value = nid;
+      // }
+      let lang = 'und';
+      let options = [];
+      let valueName = 'sid';
+      this.setParagraphValue(fieldName, sid, valueName, lang, options, index, subindex)
+    }
+
+  }
+
 
   createParagraphForm(index) {
     let paragraphForm = [];
@@ -210,6 +243,9 @@ export default class Paragraph extends React.Component {
       let fieldName;
       if (subfield['#field_name'] !== undefined) {
         fieldName = subfield['#field_name'];
+      }
+      else if(subfield['sid'] !== undefined && subfield['sid']['#field_name'] !== undefined) {
+        fieldName = subfield['sid']['#field_name'];
       }
 
       let fieldTitle = '';
@@ -248,7 +284,28 @@ export default class Paragraph extends React.Component {
       }
 
 
-      if (subfield !== undefined && subfield['#columns'] !== undefined) {
+     if(subfield['sid'] !== undefined) {
+
+        paragraphForm.push(
+          <Scald
+            formValues={currentFormValues}
+            fieldName={fieldName}
+            field={subfield}
+            key={fieldName}
+            setFormValue={this.setParagraphValueScald.bind(this)}
+            description={description}
+            // chosenImage={chosenImage}
+            cookie={this.props.screenProps.cookie}
+            token={this.props.screenProps.token}
+            url={this.props.screenProps.siteUrl}
+            cardinality={cardinality}
+            enableSubmit={this.enableSubmit}
+            disableSubmit={this.disableSubmit}
+          />
+        )
+
+      }
+      else if (subfield !== undefined && subfield['#columns'] !== undefined) {
         if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
           paragraphForm.push(<Select2
             index={index}
@@ -260,7 +317,8 @@ export default class Paragraph extends React.Component {
             cardinality={cardinality}
             description={description}
           />);
-        } else {
+        }
+         else {
 
           paragraphForm.push(<Textfield
             index={index}

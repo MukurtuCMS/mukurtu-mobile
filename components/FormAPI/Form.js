@@ -935,6 +935,7 @@ export default class FormComponent extends React.Component {
                       setFormValue={this.setFormValueParagraph.bind(this)}
                       addMoreText={addMoreText}
                       paragraphTitle={paragraphTitle}
+                      screenProps={this.props.screenProps}
                     />;
 
                     form[i].push(paragraph);
