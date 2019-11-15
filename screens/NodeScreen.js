@@ -51,7 +51,6 @@ class NodeScreen extends React.Component {
     const type = this.props.navigation.getParam('contentType');
 
 
-
     // Filter display modes by weight
     let displayModes = this.props.screenProps.displayModes[type];
     // let filteredDisplayModes = [];
@@ -62,11 +61,11 @@ class NodeScreen extends React.Component {
     //   }
     // }
 
-    let displayModesArray = Object.keys(displayModes).map(function(key) {
+    let displayModesArray = Object.keys(displayModes).map(function (key) {
       return [key, displayModes[key]];
     });
 
-    displayModesArray.sort((a, b) =>{
+    displayModesArray.sort((a, b) => {
       return a['weight'] - b['weight'];
     });
 
@@ -77,14 +76,14 @@ class NodeScreen extends React.Component {
 
 
     let filteredNodes = {};
-    for(let nid in this.props.screenProps.nodes) {
-      if(this.props.screenProps.nodes[nid].type === type) {
+    for (let nid in this.props.screenProps.nodes) {
+      if (this.props.screenProps.nodes[nid].type === type) {
         filteredNodes[nid] = this.props.screenProps.nodes[nid];
       }
     }
     this.setState({'nodes': filteredNodes});
 
-    if(typeof this.props.screenProps.viewableTypes[type] !== 'undefined' && this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
+    if (typeof this.props.screenProps.viewableTypes[type] !== 'undefined' && this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
       this.setState({'personalCollectionValid': true});
     }
 
@@ -109,7 +108,6 @@ class NodeScreen extends React.Component {
   }
 
 
-
   render() {
 
 
@@ -128,7 +126,7 @@ class NodeScreen extends React.Component {
 
     let renderedNode = [];
 
-    this.state.displayModes.forEach( (elem) => {
+    this.state.displayModes.forEach((elem) => {
       let fieldName = elem[0];
       let fieldObject = elem[1];
 
@@ -194,11 +192,12 @@ class NodeScreen extends React.Component {
         }
       }
       if (fieldObject.view_mode_properties.type === 'text_default') {
-        let tagsStyles = { p: { marginTop: 0 }};
+        let tagsStyles = {p: {marginTop: 0}};
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML tagsStyles={tagsStyles}  key={fieldName + i} html={node[fieldName][lang][i].safe_value}
+            renderedNode.push(<HTML tagsStyles={tagsStyles} key={fieldName + i}
+                                    html={node[fieldName][lang][i].safe_value}
                                     imagesMaxWidth={Dimensions.get('window').width}/>)
           }
         }
@@ -281,14 +280,47 @@ class NodeScreen extends React.Component {
 
       if (fieldObject.view_mode_properties.type === 'paragraphs_view') {
         let items = node[fieldName][lang];
-        for (i = 0; i < items.length; i++) {
-          let pid = items[i].value;
+        // items can include an entry for each revision, which we need to filter out, keeping the most recent revision
+        // (I have a suspicion this could be simplified.)
+        // first, create array of unique values
+        let uniqueVals = items.map((item) => {
+            return item.value;
+          }
+        );
+        uniqueVals = Array.from(new Set(uniqueVals));
+
+        // Now, for each unique value, get the key of the highest revision ID
+        let sortableArray = uniqueVals.map((val) => {
+          return items.filter((item) => {
+              return item.value === val;
+          })
+        });
+
+        // Now for each array within the sortable array, we need to get the highest revision ID
+        // Right now this probably doesn't matter but we need to sort by something
+        let keeperRevisionIds = sortableArray.map((subarray) => {
+          let revisionIds = subarray.map((item) => {
+            return item.revision_id;
+          });
+          // Get highest revision ID
+          return revisionIds.reduce(function(a, b) {
+            return Math.max(a, b);
+          });
+        });
+
+        // Now we filter our original array by keeper revision IDs
+        let uniqueItems = items.filter(item => keeperRevisionIds.indexOf(parseInt(item.revision_id, 10)) !== -1);
+
+
+        for (i = 0; i < uniqueItems.length; i++) {
+          let pid = uniqueItems[i].value;
           renderedNode.push(
             <ParagraphView
               paragraphData={this.props.screenProps.paragraphData}
               token={this.props.screenProps.token}
               cookie={this.props.screenProps.cookie}
               url={this.props.screenProps.siteUrl}
+              db={this.props.screenProps.db}
               pid={pid}
               viewableFields={this.props.screenProps.displayModes}
               fieldName={fieldName}
@@ -296,6 +328,7 @@ class NodeScreen extends React.Component {
               terms={this.props.screenProps.terms}
               key={i}
               contentType={this.props.navigation.getParam('contentType')}
+              documentDirectory={this.props.screenProps.documentDirectory}
             />
           );
         }
@@ -334,7 +367,8 @@ class NodeScreen extends React.Component {
                 item to Mukurtu Mobile.</Text>
           } else {
             renderedNode.push(
-              <Text>Collection only displays synced nodes; unsynced nodes will not display in collection even if they're in the collection on the desktop site.</Text>
+              <Text>Collection only displays synced nodes; unsynced nodes will not display in collection even if they're
+                in the collection on the desktop site.</Text>
             );
             for (i = 0; i < node[fieldName][lang].length; i++) {
               let nid = node[fieldName][lang][i].nid;
@@ -396,29 +430,29 @@ class NodeScreen extends React.Component {
       {/*Pass nodes to star so we can filter out personal collection*/
       }
       star =
-        <View  style={styles.star}>
-        <Star
+        <View style={styles.star}>
+          <Star
 
-        starred={false}
-        nid={node.nid}
-        nodes={this.props.screenProps.nodes}
-        db={this.props.screenProps.db}
-        isConnected={this.props.screenProps.isConnected}
-        token={this.props.screenProps.token}
-        cookie={this.props.screenProps.cookie}
-        url={this.props.screenProps.siteUrl}
-      />
+            starred={false}
+            nid={node.nid}
+            nodes={this.props.screenProps.nodes}
+            db={this.props.screenProps.db}
+            isConnected={this.props.screenProps.isConnected}
+            token={this.props.screenProps.token}
+            cookie={this.props.screenProps.cookie}
+            url={this.props.screenProps.siteUrl}
+          />
         </View>
     }
 
 
     return (<View style={{flex: 1}}>
-      <ScrollView style={styles.container}>
-        <Text>{this.state.media_text}</Text>
-        {star}
-        {renderedNode}
+        <ScrollView style={styles.container}>
+          <Text>{this.state.media_text}</Text>
+          {star}
+          {renderedNode}
 
-      </ScrollView>
+        </ScrollView>
       </View>
     );
   }
