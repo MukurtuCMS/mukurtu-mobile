@@ -38,7 +38,7 @@ export default class NodeTeaser extends React.Component {
     if (node.body !== undefined) {
       body = node.body[Object.keys(node.body)[0]];
       const regex = /(<([^>]+)>)/ig;
-      if (typeof body !== 'undefined') {
+      if (typeof body !== 'undefined' && typeof body[0] !== 'undefined' && typeof body[0]['safe_value'] !== undefined) {
         body = body[0]['safe_value'].replace(regex, '');
       }
     }
