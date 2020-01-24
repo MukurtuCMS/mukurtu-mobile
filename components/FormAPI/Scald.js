@@ -119,8 +119,13 @@ export default class Scald extends React.Component {
     this.setState({numberOfValues: currentIndex + 1}, () => {})
   }
 
-  _launchDocumentAsync = async (index) => {
-    let result = await DocumentPicker.getDocumentAsync({});
+  _launchDocumentAsync = async (index, mediaTypes) => {
+    const options = {type: '*/*'};
+    if (mediaTypes.includes('audio') && !mediaTypes.includes('file')) {
+      options.type = 'audio/*';
+    }
+
+    let result = await DocumentPicker.getDocumentAsync(options);
     if (result.type !== 'cancel') {
       this.setState({
         [index]: {
@@ -216,11 +221,22 @@ export default class Scald extends React.Component {
     }
   };
 
+  getAllowedMediaTypes = (field) => {
+    if (field['#attributes'] !== undefined && field['#attributes'].constructor === Object ) {
+      return field['#attributes']['data-types'].split(',');
+    }
+    else if(field.sid['#attributes'] !== undefined && field.sid['#attributes'].constructor === Object) {
+      return field.sid['#attributes']['data-types'].split(',');
+    }
+    return [];
+  };
+
   render() {
 
     let elements = []
     let fieldName = this.props.fieldName;
     const field = this.props.field;
+    const allowedMediaTypes = this.getAllowedMediaTypes(field);
     for (let i = 0; i < this.state.numberOfValues; i++) {
 
       // Check for existing media value, load it from drupal if it's there
@@ -309,7 +325,7 @@ export default class Scald extends React.Component {
       let removeFileText = "Remove image/video";
       let showRemoveFile = false;
       if (this.state[i] && this.state[i].chosenDocument) {
-        chosenDocumentText = "Select a different document";
+        chosenDocumentText = "Select a different audio/document";
       }
       if (this.state[i] && this.state[i].chosenImage) {
         chosenImageText = "Select a different image/video";
@@ -352,9 +368,14 @@ export default class Scald extends React.Component {
       let camerabutton;
       let permissionText;
       if (showButtons) {
-        docbutton = <Button title={chosenDocumentText} onPress={() => this._launchDocumentAsync(i)}/>;
-        photobutton = <Button title={chosenImageText} onPress={() => this._launchCameraRollAsync(i)}/>;
-        camerabutton = <Button title={takenImageText} onPress={() => this._launchCameraAsync(i)}/>;
+        if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
+          photobutton = <Button title={chosenImageText} onPress={() => this._launchCameraRollAsync(i)}/>;
+          camerabutton = <Button title={takenImageText} onPress={() => this._launchCameraAsync(i)}/>;
+        }
+        if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
+          docbutton = <Button title={chosenDocumentText} onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/>;
+        }
+
       }
       else if(!this.state.permission) {
         permissionText = <Text>To upload media, please give this app permission to access photos/camera in your device's settings.</Text>
