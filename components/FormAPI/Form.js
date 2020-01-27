@@ -1258,7 +1258,7 @@ const styles = StyleSheet.create({
     zIndex: 100
   },
   buttonContainer: {
-    flexWrap: 'wrap',
+    // flexWrap: 'wrap',
     flex: 1,
     flexDirection: 'column',
     height: 'auto',

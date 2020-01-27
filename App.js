@@ -5,7 +5,6 @@ import {
   StyleSheet,
   View,
   Text,
-  NetInfo,
   YellowBox,
   ScrollView,
   RefreshControl,
@@ -21,6 +20,7 @@ import configureStore from './store';
 import axios from "axios";
 import AppHeader from "./components/AppHeader";
 import * as FileSystem from "expo-file-system";
+import NetInfo from '@react-native-community/netinfo';
 
 
 const store = configureStore();
@@ -40,6 +40,7 @@ export default class App extends React.Component {
     this.saveTaxonomy = this.saveTaxonomy.bind(this);
     this.setNodeSyncMessage = this.setNodeSyncMessage.bind(this);
     this._onRefresh = this._onRefresh.bind(this);
+    this.netEventListener = null;
 
     this.state = {
       isLoadingComplete: false,
@@ -79,13 +80,25 @@ export default class App extends React.Component {
     // YellowBox.ignoreWarnings(['Network request failed']);
     // YellowBox.ignoreWarnings(['Each child in a list']);
     // YellowBox.ignoreWarnings(['Failed prop type']);
+    YellowBox.ignoreWarnings([
+      'Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
+      'Warning: componentWillMount has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.'
+    ]);
+    console.ignoredYellowBox = [
+      'Warning: componentWillReceiveProps',
+      'Warning: componentWillMount'
+    ];
+
     // console.disableYellowBox = true;
     //
     // var self = this;
 
     // First, create global tables if they don't exist.
     ManageTables.createGlobalTables();
-    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+    this.netEventListener = NetInfo.addEventListener(state => {
+      this.handleConnectivityChange(state.isConnected);
+    });
+    // NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
 
     // Check our login status
     this.checkLogin();
@@ -99,7 +112,8 @@ export default class App extends React.Component {
   }
 
   componentWillUnmount() {
-    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
+    // NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
+    this.netEventListener();
   }
 
   render() {
