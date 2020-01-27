@@ -9,7 +9,7 @@ import {
   View,
   Image,
   Alert,
-  TouchableHighlight, NetInfo,
+  TouchableHighlight,
 } from 'react-native';
 import SettingsList from 'react-native-settings-list';
 import {connect} from 'react-redux';

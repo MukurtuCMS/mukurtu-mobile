@@ -138,7 +138,8 @@ export default class NodeTeaser extends React.Component {
 
     let feather = null;
     let nid = this.props.node.nid;
-    if(this.props.editable[nid] === true || this.props.editable[nid] == '1') {
+    let editableContentTypes = Object.keys(this.props.editableContentTypes);
+    if(editableContentTypes.indexOf(this.props.node.type) > -1 && (this.props.editable[nid] === true || this.props.editable[nid] == '1')) {
       feather =(<View style={styles.nodeEditWrapper}>
         <Feather onPress={() => this.editNode()} name="edit" size={24} color="gray"/>
       </View>);

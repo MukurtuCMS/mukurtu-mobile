@@ -110,9 +110,18 @@ class NodeScreen extends React.Component {
 
   render() {
 
+    let emptyView = (
+      <View style={{flex: 1}}>
+        <ScrollView style={styles.container}>
+          <Text key={`empty`} style={styles.text}>There is no content attached
+            to this entry.</Text>
+        </ScrollView>
+      </View>
+    );
+
 
     if (!this.state.displayModes) {
-      return [];
+      return emptyView;
     }
     const node = this.props.navigation.getParam('node');
 
@@ -447,7 +456,7 @@ class NodeScreen extends React.Component {
     }
 
 
-    return (<View style={{flex: 1}}>
+    return renderedNode.length > 0 ? (<View style={{flex: 1}}>
         <ScrollView style={styles.container}>
           <Text>{this.state.media_text}</Text>
           {star}
@@ -455,7 +464,7 @@ class NodeScreen extends React.Component {
 
         </ScrollView>
       </View>
-    );
+    ) : emptyView;
   }
 }
 
