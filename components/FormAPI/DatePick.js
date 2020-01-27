@@ -5,6 +5,7 @@ import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import ErrorMessage from "./ErrorMessage";
+import { Appearance, useColorScheme } from 'react-native-appearance';
 
 export default class DatePick extends React.Component {
   constructor(props) {
@@ -67,7 +68,9 @@ export default class DatePick extends React.Component {
       errorTextStyle = styles.errorTextStyleError;
     }
 
-    let errorMarkup = <ErrorMessage error={error} />
+    let errorMarkup = <ErrorMessage error={error} />;
+
+    const colorScheme = Appearance.getColorScheme();
 
     return (
       <View style={styles.viewStyle}>
@@ -94,6 +97,12 @@ export default class DatePick extends React.Component {
             },
             dateInput: {
               marginLeft: 36
+            },
+            datePicker: {
+              backgroundColor: colorScheme === 'dark' ? '#222' : 'white'
+            },
+            datePickerCon: {
+              backgroundColor: colorScheme === 'dark' ? '#333' : 'white'
             }
             // ... You can check the source to find the other keys.
           }}

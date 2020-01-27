@@ -26,6 +26,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
+        "UIUserInterfaceStyle": "Light",
         "UIBackgroundModes": [
           "fetch"
         ]
