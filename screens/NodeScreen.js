@@ -138,7 +138,7 @@ class NodeScreen extends React.Component {
       // Hide title on scald fields per request
       if (fieldObject.label && fieldObject.view_mode_properties.label !== 'hidden' && fieldObject.view_mode_properties.type !== 'ma_colorbox') {
         renderedNode.push(
-          <Text key={fieldName} style={styles.label}>{fieldObject.label}</Text>
+          <Text key={`${fieldName}_label`} style={styles.label}>{fieldObject.label}</Text>
         )
       }
       let type = fieldObject.view_mode_properties.type;
@@ -188,7 +188,7 @@ class NodeScreen extends React.Component {
             }
           }
 
-          renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
+          renderedNode.push(<Text key={`${fieldName}_term_ref_${i}`} style={styles.text}>{fieldData}</Text>)
         }
       }
       if (fieldObject.view_mode_properties.type === 'text_default') {
@@ -196,7 +196,7 @@ class NodeScreen extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML tagsStyles={tagsStyles} key={fieldName + i}
+            renderedNode.push(<HTML tagsStyles={tagsStyles} key={`${fieldName}_html_${i}`}
                                     html={node[fieldName][lang][i].safe_value}
                                     imagesMaxWidth={Dimensions.get('window').width}/>)
           }
@@ -206,7 +206,7 @@ class NodeScreen extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<Text key={fieldName + i}>{node[fieldName][lang][0].value}</Text>)
+            renderedNode.push(<Text key={`${fieldName}_license_${i}`}>{node[fieldName][lang][0].value}</Text>)
           }
         }
       }
@@ -220,7 +220,7 @@ class NodeScreen extends React.Component {
                 latitude: Number(node[fieldName][lang][i].lat),
                 longitude: Number(node[fieldName][lang][i].lon),
               };
-              renderedNode.push(<MapView style={styles.map} key={fieldName + i}
+              renderedNode.push(<MapView style={styles.map} key={`${fieldName}_geo_${i}`}
                                          initialRegion={{
                                            latitude: Number(node[fieldName][lang][i].lat),
                                            longitude: Number(node[fieldName][lang][i].lon),
@@ -265,6 +265,7 @@ class NodeScreen extends React.Component {
           let nid = items[i].target_id;
           renderedNode.push(
             <EmbeddedNode
+              key={`${fieldName}_embedded_node_${i}`}
               nid={nid}
               fieldName={fieldName}
               fieldObject={fieldObject}
@@ -326,7 +327,7 @@ class NodeScreen extends React.Component {
               fieldName={fieldName}
               nodes={this.props.screenProps.nodes}
               terms={this.props.screenProps.terms}
-              key={i}
+              key={`${fieldName}_paragraph_${i}`}
               contentType={this.props.navigation.getParam('contentType')}
               documentDirectory={this.props.screenProps.documentDirectory}
             />
@@ -367,7 +368,7 @@ class NodeScreen extends React.Component {
                 item to Mukurtu Mobile.</Text>
           } else {
             renderedNode.push(
-              <Text>Collection only displays synced nodes; unsynced nodes will not display in collection even if they're
+              <Text key={`${fieldName}_notice`}>Collection only displays synced nodes; unsynced nodes will not display in collection even if they're
                 in the collection on the desktop site.</Text>
             );
             for (i = 0; i < node[fieldName][lang].length; i++) {
@@ -387,7 +388,7 @@ class NodeScreen extends React.Component {
                 if (this.props.screenProps.nodes[nid]) {
                   renderedNode.push(
                     <NodeTeaser
-                      key={i++}
+                      key={`${fieldName}_teaser_${i}`}
                       node={this.props.screenProps.nodes[nid]}
                       viewableFields={this.state.viewableFields}
                       token={this.props.screenProps.token}
@@ -419,7 +420,7 @@ class NodeScreen extends React.Component {
         if (isObject) {
           for (i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<Text
-              key={fieldName + i}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
+              key={`${fieldName}_date_${i}`}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
           }
         }
       }
