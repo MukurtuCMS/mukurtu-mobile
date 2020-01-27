@@ -1368,8 +1368,11 @@ export default class App extends React.Component {
 
         // Run the taxonomy stuff
         if (typeof responseJson.terms === 'object') {
-          subPromises.push(Object.keys(responseJson.terms).map((key, index) =>
-            this.saveTaxonomy(key, data)
+          subPromises.push(Object.keys(responseJson.terms).map((key, index) => {
+            if (key !== "") {
+              this.saveTaxonomy(key, data)
+            }
+          }
           ));
           // this.setState({'terms': responseJson.terms});
         }
