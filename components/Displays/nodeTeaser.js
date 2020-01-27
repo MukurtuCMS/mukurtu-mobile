@@ -18,7 +18,7 @@ export default class NodeTeaser extends React.Component {
   }
 
   viewNode() {
-    this.props.navigation.navigate('Node', {
+    this.props.navigation.push('Node', {
       contentType: this.props.node.type,
       contentTypeLabel: this.props.node.title,
       node: this.props.node,
