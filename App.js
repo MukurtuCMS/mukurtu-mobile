@@ -176,8 +176,8 @@ export default class App extends React.Component {
 
     return (
       <Provider store={store}>
-
         <View style={styles.container}>
+          <StatusBar barStyle="dark-content" />
           <ScrollView style={styles.container} contentContainerStyle={{flex: 1}}
 
           refreshControl={<RefreshControl
