@@ -20,6 +20,7 @@ const HomeStack = createStackNavigator({
   Home: { screen: HomeScreen },
   Node: { screen: NodeScreen},
   NodeListing: { screen: NodeListing},
+  EditContentForm: {screen: CreateContentFormScreen}
 });
 
 HomeStack.navigationOptions = {
