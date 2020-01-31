@@ -1,0 +1,19 @@
+
+export const getFieldLanguage = (field) => {
+
+  if (field) {
+    return Object.keys(field)[0];
+  }
+
+  return 'und';
+};
+
+export const getFirstFieldValue = (field) => {
+
+  if (field) {
+    const lang = getFieldLanguage(field);
+    return field[lang] !== undefined && field[lang][0] !== undefined ? field[lang][0] : null;
+  }
+
+  return null;
+};

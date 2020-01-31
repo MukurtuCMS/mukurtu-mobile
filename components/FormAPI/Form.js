@@ -35,7 +35,8 @@ export default class FormComponent extends React.Component {
       formSubmitted: false,
       formErrors: null,
       submitting: false,
-      enabled: true
+      enabled: true,
+      isNew: props.node === undefined
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.setFormValueSelect = this.setFormValueSelect.bind(this);
@@ -1108,6 +1109,7 @@ export default class FormComponent extends React.Component {
                   formErrors={this.state.formErrors}
                   required={required}
                   description={description}
+                  isNew={this.state.isNew}
                 />);
               } else if (fieldArray['#type'] === 'geofield_latlon') {
                 form[i].push(<Location
