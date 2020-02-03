@@ -3,6 +3,7 @@ import {Picker, View, Text, StyleSheet} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import Required from "./Required";
 import RNPickerSelect from "react-native-picker-select";
+import {getFieldValueCount} from "./formUtils";
 
 
 export default class Select extends React.Component {
@@ -10,8 +11,9 @@ export default class Select extends React.Component {
   componentDidMount() {
     const field = this.props.field;
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
+    const fieldValueCount = getFieldValueCount(this.props.formValues[this.props.fieldName]);
 
-    if (field['#default_value'].length > 0) {
+    if (fieldValueCount === 0 && field['#default_value'].length > 0) {
       this.props.setFormValue(this.props.fieldName, field['#default_value'][0], valueKey);
     }
   }
@@ -50,10 +52,15 @@ export default class Select extends React.Component {
 
     let selectedValue = '';
 
-    if (typeof this.props.formValues[this.props.fieldName] !== 'undefined' &&
-        typeof this.props.formValues[this.props.fieldName]['und'] !== 'undefined') {
-      selectedValue = this.props.formValues[this.props.fieldName]['und'][valueKey];
-      // Get the key for the selected values
+    const fieldValue = this.props.formValues[this.props.fieldName];
+
+    if (typeof fieldValue !== 'undefined' && typeof fieldValue['und'] !== 'undefined') {
+      if (fieldValue['und'][0] !== undefined) {
+        selectedValue = fieldValue['und'][0][valueKey];
+      }
+      else {
+        selectedValue = fieldValue['und'][valueKey];
+      }
     }
 
 
