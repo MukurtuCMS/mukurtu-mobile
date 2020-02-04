@@ -156,23 +156,39 @@ export default class FormComponent extends React.Component {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
 
+      // Default set to null. This format needed for Drupal to work.
+      let newFieldValue = {
+          "und": null
+      };
+
       // React uses true/false, but drupal needs 1/0 for booleans.
       if (newValue === true) {
-        newValue = 1;
-      } else {
-        newValue = 0;
+        newFieldValue.und = [{[valueKey]: 1}];
       }
-      let values = {
-        [newFieldName]: {
-          "und": {
-            "0": {[valueKey]: newValue}
-          }
-        }
-      };
-      Object.assign(formValues, values);
+
+      // } else {
+      //   newValue = 0;
+      // }
+      // let values = {
+      //   [newFieldName]: {
+      //     "und": [{[valueKey]: newValue}]
+      //   }
+
+
+        // [newFieldName]: {
+        //   "und": {
+        //     "0": {[valueKey]: newValue}
+        //   }
+        // }
+      // };
+      // Object.assign(formValues, values);
 
       // save value to state
-      this.setState({formValues: formValues});
+      this.setState((state) => {
+        state.formValues[newFieldName] = newFieldValue;
+        return state;
+      });
+      // this.setState({formValues: formValues});
     }
     if (error) {
       let newErrors = this.state.formErrors;

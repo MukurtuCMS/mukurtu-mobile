@@ -73,7 +73,7 @@ export default class Checkboxes extends React.Component {
           checked={this.determineCheckboxValue(this.props.fieldName, value, valueKey)}
           onPress={() => this.props.setFormValue(this.props.fieldName, value, valueKey, lang, formErrorString)}
           textStyle={styles.textStyle}
-        ></CheckBox>
+        />
       );
     }
 
