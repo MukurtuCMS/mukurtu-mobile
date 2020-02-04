@@ -200,6 +200,7 @@ class NodeScreen extends React.Component {
           renderedNode.push(<Text key={`${fieldName}_term_ref_${i}`} style={styles.text}>{fieldData}</Text>)
         }
       }
+
       if (fieldObject.view_mode_properties.type === 'text_default') {
         let tagsStyles = {p: {marginTop: 0}};
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
@@ -211,6 +212,7 @@ class NodeScreen extends React.Component {
           }
         }
       }
+
       if (fieldObject.view_mode_properties.type === 'license_formatter') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
@@ -245,6 +247,7 @@ class NodeScreen extends React.Component {
           }
         }
       }
+
       if (fieldObject.view_mode_properties.type === 'ma_colorbox') {
         // Scald item
         let items = node[fieldName][lang];
@@ -433,6 +436,32 @@ class NodeScreen extends React.Component {
           }
         }
       }
+
+      if(fieldObject.view_mode_properties.type === 'date_default') {
+
+        if (node[fieldName] != null && node[fieldName][lang]) {
+          for(let [k, v] of Object.entries(node[fieldName][lang])) {
+
+            if (v.hasOwnProperty('value')) {
+
+              let dateValue;
+              if (typeof v.value === "string") {
+                dateValue = new Date(v.value.replace(' ', 'T'));
+              }
+              else {
+                dateValue = new Date(v.value.date)
+              }
+
+              renderedNode.push(
+                <Text key={`${fieldName}_date_${k}`}>{dateValue.toLocaleDateString()}</Text>
+              );
+            }
+          }
+        }
+      }
+
+
+
     });
 
     let star = null;
