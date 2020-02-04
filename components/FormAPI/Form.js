@@ -772,72 +772,76 @@ export default class FormComponent extends React.Component {
   }
 
   postFieldCollection(data, nid) {
-    // Need to submit like this:
-    // {
-    //   "host_nid": "472",
-    //   "field_collection": {
-    //   "field_name": "field_lesson_days",
-    //     "field_day": {
-    //     "und": {
-    //       "0": {
-    //         "value": "day 1"
-    //       }
-    //     }
-    //   }
-    // }
+    if (typeof data !== "undefined") {
 
-    // Get our first key, which is the field_name
-    let fieldName = Object.keys(data)[0];
 
-    let body = {
-      'host_nid': nid,
-      'field_collection': {
-        'field_name': fieldName,
-      }
-    };
+      // Need to submit like this:
+      // {
+      //   "host_nid": "472",
+      //   "field_collection": {
+      //   "field_name": "field_lesson_days",
+      //     "field_day": {
+      //     "und": {
+      //       "0": {
+      //         "value": "day 1"
+      //       }
+      //     }
+      //   }
+      // }
 
-    let i = 0;
-    for(let fcKey in data[fieldName]) {
-      i++;
+      // Get our first key, which is the field_name
+      let fieldName = Object.keys(data)[0];
 
-      // Put our values in the right place in the object
-      let values = data[fieldName][fcKey]; // This 0 needs to be removed/addressed once we figure out multiple value submissions
-      for (let key in values) {
-        if (values.hasOwnProperty(key)) {
-          body.field_collection[key] = values[key];
+      let body = {
+        'host_nid': nid,
+        'field_collection': {
+          'field_name': fieldName,
         }
-      }
-
-      // Endpoint:  /app/field-collection (no parameters)
-      const token = this.props.screenProps.token;
-      const cookie = this.props.screenProps.cookie;
-      let submitData = {
-        method: 'POST',
-        mode: 'cors',
-        cache: 'no-cache',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': token,
-          'Cookie': cookie
-        },
-        redirect: 'follow',
-        referrer: 'no-referrer',
-        body: JSON.stringify(body)
       };
 
+      let i = 0;
+      for (let fcKey in data[fieldName]) {
+        i++;
 
-      // Looks like Drupal will throw a 500 error if these are sent right in a row, even if promises are done sequentially.
-      // So we add a half second timeout to ensure Drupal can handle it.
-      setTimeout(() => {
-        fetch(this.props.screenProps.siteUrl + '/app/field-collection/', submitData)
-          .then((response) => {
-            // console.log(response);
-          })
-          .catch((response) => {
-            console.log('field collection error');
-          });
-      }, i * 500);
+        // Put our values in the right place in the object
+        let values = data[fieldName][fcKey]; // This 0 needs to be removed/addressed once we figure out multiple value submissions
+        for (let key in values) {
+          if (values.hasOwnProperty(key)) {
+            body.field_collection[key] = values[key];
+          }
+        }
+
+        // Endpoint:  /app/field-collection (no parameters)
+        const token = this.props.screenProps.token;
+        const cookie = this.props.screenProps.cookie;
+        let submitData = {
+          method: 'POST',
+          mode: 'cors',
+          cache: 'no-cache',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': token,
+            'Cookie': cookie
+          },
+          redirect: 'follow',
+          referrer: 'no-referrer',
+          body: JSON.stringify(body)
+        };
+
+
+        // Looks like Drupal will throw a 500 error if these are sent right in a row, even if promises are done sequentially.
+        // So we add a half second timeout to ensure Drupal can handle it.
+        setTimeout(() => {
+          fetch(this.props.screenProps.siteUrl + '/app/field-collection/', submitData)
+            .then((response) => {
+              // console.log(response);
+            })
+            .catch((response) => {
+              console.log('field collection error');
+            });
+        }, i * 500);
+      }
     }
   }
 

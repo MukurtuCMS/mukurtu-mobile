@@ -12,7 +12,7 @@ export const getFirstFieldValue = (field) => {
 
   if (field) {
     const lang = getFieldLanguage(field);
-    return field[lang] !== undefined && field[lang][0] !== undefined ? field[lang][0] : null;
+    return field[lang] != null && field[lang][0] != null ? field[lang][0] : null;
   }
 
   return null;

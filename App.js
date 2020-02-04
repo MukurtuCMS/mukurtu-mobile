@@ -82,7 +82,8 @@ export default class App extends React.Component {
     // YellowBox.ignoreWarnings(['Failed prop type']);
     YellowBox.ignoreWarnings([
       'Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
-      'Warning: componentWillMount has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.'
+      'Warning: componentWillMount has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
+      'Remote debugger'
     ]);
     console.ignoredYellowBox = [
       'Warning: componentWillReceiveProps',
