@@ -395,12 +395,14 @@ export default class FormComponent extends React.Component {
   }
 
 
-  setFormValueConditionalSelect(newFieldName, val, parentVal) {
-
+  setFormValueConditionalSelect(newFieldName, val, index, valueKey) {
     if (this.state.formValues) {
       let formValues = this.state.formValues;
+      let lang = 'und';
+
 
       // Drupal needs this format for conditional select fields:
+      // OUTDATED?
 
       // "oggroup_fieldset": {
       //   "0": {
@@ -412,19 +414,28 @@ export default class FormComponent extends React.Component {
       //   }
       // },
 
-      let values = {
-        ['oggroup_fieldset']: {
-          "0": {
-            "dropdown_first": parentVal,
-            "dropdown_second": {
-              "target_id": val
-            }
-          }
+      // let values = {
+      //   ['oggroup_fieldset']: {
+      //     "0": {
+      //       "dropdown_first": parentVal,
+      //       "dropdown_second": {
+      //         "target_id": val
+      //       }
+      //     }
+      //
+      //   }
+      // };
+      // Object.assign(formValues, values);
 
+      const newValues = {
+        [index]: {
+          [valueKey]: val
         }
       };
-      Object.assign(formValues, values);
-      this.setState({formValues: formValues});
+      this.setState((state) => {
+        state.formValues[newFieldName] = { ...state.formValues[newFieldName], [lang]: newValues};
+        return state;
+      });
     }
   }
 

@@ -5,6 +5,7 @@ import Required from "./Required";
 import * as Colors from "../../constants/Colors";
 import RNPickerSelect from "react-native-picker-select";
 import {FontAwesome} from "@expo/vector-icons";
+import {getFirstFieldValue} from "./formUtils";
 
 export default class ConditionalSelect extends React.Component {
 
@@ -15,16 +16,16 @@ export default class ConditionalSelect extends React.Component {
     // See if we already have a child value
     let childValue = null;
     let parentValue = 0;
-    if (typeof props.formValues['oggroup_fieldset'] !== 'undefined' &&
-      typeof props.formValues['oggroup_fieldset'][0]['dropdown_second']['target_id'] !== 'undefined') {
-      childValue = this.props.formValues['oggroup_fieldset'][0]['dropdown_second']['target_id'];
-      // If we have a child value, set the appropriate parent parent value
-      for (let [key, value] of Object.entries(props.field['#options'])) {
-        if (value.hasOwnProperty(childValue)) {
-          parentValue = key;
-        }
-      }
-    }
+    // if (typeof props.formValues['oggroup_fieldset'] !== 'undefined' &&
+    //   typeof props.formValues['oggroup_fieldset'][0]['dropdown_second']['target_id'] !== 'undefined') {
+    //   childValue = this.props.formValues['oggroup_fieldset'][0]['dropdown_second']['target_id'];
+    //   // If we have a child value, set the appropriate parent parent value
+    //   for (let [key, value] of Object.entries(props.field['#options'])) {
+    //     if (value.hasOwnProperty(childValue)) {
+    //       parentValue = key;
+    //     }
+    //   }
+    // }
 
     this.state = {
       parentValue: parentValue,
@@ -46,6 +47,12 @@ export default class ConditionalSelect extends React.Component {
   render() {
 
     const field = this.props.field;
+    const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
+    const fieldVal = getFirstFieldValue(this.props.formValues[this.props.fieldName]);
+    const selectedVal = fieldVal != null && fieldVal[valueKey] != null ? fieldVal[valueKey] : fieldVal;
+
+    let childValue = null;
+    let parentValue = 0;
 
     let options = field['#options'];
     if (Object.keys(field['#options']).length === 0) {
@@ -62,6 +69,9 @@ export default class ConditionalSelect extends React.Component {
 
     for (let key in options) {
       if (options.hasOwnProperty(key)) {
+        if (selectedVal != null &&  options[key][selectedVal] != null) {
+          parentValue = key
+        }
         // Create the option for the parent picker
         parentPickerOptions.push({
             key: key,
@@ -72,10 +82,14 @@ export default class ConditionalSelect extends React.Component {
       }
     }
 
+    // if we have parent in state, use that
+    parentValue = this.state.parentValue != 0 ? this.state.parentValue : parentValue;
+
 
     let childPicker;
-    if (options[this.state.parentValue] !== undefined && options[this.state.parentValue] !== 0) {
-      let currentOptions = options[this.state.parentValue];
+    // if (options[this.state.parentValue] !== undefined && options[this.state.parentValue] !== 0) {
+    if (parentValue !== 0) {
+      let currentOptions = options[parentValue];
       let childPickerOptions = [];
       if (Object.keys(currentOptions).length > 0) {
 
@@ -99,17 +113,19 @@ export default class ConditionalSelect extends React.Component {
           // key={0}
           items={childPickerOptions}
           onValueChange={(itemValue, itemIndex, childKey) => {
-            this.setState({
-              childValue: itemValue
-            }, () => {
+            this.props.setFormValue(this.props.fieldName, itemValue, 0, valueKey);
+
+            // this.setState({
+            //   childValue: itemValue
+            // }, () => {
               // For this component we need the title as the parentValue state, but form submit needs the ID
-              let parentVal = this.getParentVid(this.state.parentValue);
-              this.props.setFormValue(this.props.fieldName, this.state.childValue, parentVal);
-            });
+              // let parentVal = this.getParentVid(this.state.parentValue);
+              // this.props.setFormValue(this.props.fieldName, this.state.childValue, parentVal);
+            // });
           }
           }
           style={pickerSelectStyles}
-          value={this.state.childValue}
+          value={selectedVal}
           Icon={() => {
             return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
           }}
@@ -134,7 +150,7 @@ export default class ConditionalSelect extends React.Component {
         }
         }
         style={pickerSelectStyles}
-        value={this.state.parentValue}
+        value={parentValue}
         Icon={() => {
           return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
         }}
