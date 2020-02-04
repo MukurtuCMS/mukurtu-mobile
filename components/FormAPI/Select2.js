@@ -1,23 +1,35 @@
 import React from 'react';
-import {StyleSheet, View, Text, TouchableOpacity, Button} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Button,
+  SafeAreaView,
+  TouchableHighlight
+} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import Autocomplete from 'react-native-autocomplete-input';
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import ErrorMessage from "./ErrorMessage";
+import {getFieldLanguage, getFieldValueCount} from "./formUtils";
 
 export default class Select2 extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
+      q: '',
       query: {},
       count: 1,
       heightReset: false,
       // Allows us to close autocomplete suggestions for each autocomplete field on selection
+      hideResults: true,
       autocompleteSelected: {
-        0: false
+        0: true
       }
     };
   }
@@ -45,6 +57,14 @@ export default class Select2 extends React.Component {
         }
     )
   }
+
+  onRemoveSelected = (index) => {
+    const valueKey = (this.props.field['#value_key']) ? this.props.field['#value_key'] : 'value';
+    const lang = getFieldLanguage(this.props.formValues[this.props.fieldName]);
+    this.props.setFormValue(this.props.fieldName, '', valueKey, lang, [], index);
+  };
+
+
 
   render() {
     let error = null;
@@ -82,8 +102,22 @@ export default class Select2 extends React.Component {
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
 
     let autocompleteFields = [];
-    let height = 40 * this.state.count;
-    for (let i = 0; i < this.state.count; i++) {
+    let selectedFields = [];
+
+    let fieldValuesCount = getFieldValueCount(this.props.formValues[this.props.fieldName]);
+    const nKey = fieldValuesCount;
+
+    // if (this.state.count > fieldValuesCount) {
+    //   fieldValuesCount = this.state.count;
+    // }
+
+    let height = 40 * fieldValuesCount;
+
+    // const selectedFields = getAllFieldValues(this.props.formValues[this.props.fieldName]);
+
+    const placeholder = 'Enter ' + field['#title'];
+
+    for (let i = 0; i < fieldValuesCount; i++) {
       const key = i;
       let query = '';
       if(this.state.query && this.state.query[i]) {
@@ -93,7 +127,9 @@ export default class Select2 extends React.Component {
         // set the language key as initial key
         if (lang !== undefined && typeof this.props.formValues[this.props.fieldName][lang][key] !== 'undefined') {
           // this is our lookup id, we need to find the text value for the id
-          const id = this.props.formValues[this.props.fieldName][lang][key];
+          const lookupId = this.props.formValues[this.props.fieldName][lang][key];
+          const id = typeof lookupId === "object" ? lookupId[valueKey] : lookupId;
+
           let term = '';
           for (let j = 0; j < options.length; j++) {
             if (options[j].id == id) {
@@ -108,6 +144,8 @@ export default class Select2 extends React.Component {
         }
       }
 
+
+
       // We store the option ID for Drupal purposes, but need to set value to the text for React Purposes
       let defaultValue = query;
       let selected = options.filter(function(option) {
@@ -117,43 +155,61 @@ export default class Select2 extends React.Component {
         defaultValue = selected[0].text;
       }
 
+      selectedFields.push(<View key={i} style={styles.selectedFields}>
+        <Text style={styles.selectedText}>{defaultValue}</Text>
+        <TouchableHighlight
+          onPress={() => {
+            this.onRemoveSelected(key, valueKey);
+          }}>
+          <Image
+            style={styles.removeSelected}
+            source={require('../../assets/images/close.png')}
+          />
+        </TouchableHighlight>
+      </View>
+      );
 
       const sortedOptions = this.findFilm(query, options);
       const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
       const placeholder = 'Enter ' + field['#title'];
 
-      height = (sortedOptions.length * 22) + (40 * this.state.count);
+      height = (sortedOptions.length * 22) + (40 * fieldValuesCount);
       if(this.state.heightReset === true) {
-        height = 40 * this.state.count;
+        height = 40 * fieldValuesCount;
       }
+
+      const hideResults = this.state.autocompleteSelected[key] !== undefined ? this.state.autocompleteSelected[key] : true;
 
       let index = this.props.index;
       autocompleteFields.push(<Autocomplete
-          key={i}
+          // flatListProps={{ nestedScrollEnabled: true, }}
+          key={`ac-${i}`}
           autoCapitalize="none"
           autoCorrect={false}
-          // containerStyle={styles.autocompleteContainers}
+          // listContainerStyle={styles.autocomplete_list_container}
           data={sortedOptions}
           defaultValue={defaultValue}
           // style={styles.autocompleteContainers}
           onChangeText={(text) => {
-            this.props.setFormValue(this.props.fieldName, text, valueKey, lang, options, i);
+            // this.props.setFormValue(this.props.fieldName, text, valueKey, lang, options, i);
             let currentQuery = this.state.query;
             currentQuery[i] = text;
+            this.updateAutocomplete(key, false);
             this.setState({
               'query': currentQuery,
               'heightReset': false
             })
           }}
           placeholder={placeholder}
-          hideResults={this.state.autocompleteSelected[key]}
+          keyExtractor={(item, index) => `list-item-${index}` }
+          hideResults={hideResults}
           renderItem={({item, i}) => (
               <TouchableOpacity
                   onPress={
                     () => {
-                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, key)
-                      this.updateAutocomplete(key, true)
-                      this.setState({'heightReset': true})
+                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, key);
+                      this.updateAutocomplete(key, true);
+                      this.setState({'heightReset': true});
                     }
 
                   }>
@@ -165,26 +221,62 @@ export default class Select2 extends React.Component {
       />);
     }
 
+    const sortedOptions = this.findFilm(this.state.q, options);
+
     let errorMarkup = <ErrorMessage error={error} />
 
     return (
-        <View style={styles.container}>
-          <Text style={titleTextStyle}>{field['#title']}</Text>
-          {errorMarkup}
-          <FieldDescription description={(field['#description']) ? field['#description'] : null} />
-          <Required required={this.props.required}/>
-          <View style={{'height': height}}>
-          {autocompleteFields}
-          </View>
-          <Button title={'Add another'} onPress={() => {
-            this.updateAutocomplete(this.state.count, false);
-            this.setState({count: this.state.count + 1,});
-          }
+      <View style={styles.container}>
+        <Text style={titleTextStyle}>{field['#title']}</Text>
+        {errorMarkup}
+        <FieldDescription
+          description={(field['#description']) ? field['#description'] : null}/>
+        <Required required={this.props.required}/>
 
-          }
+          <Autocomplete
+            autoCapitalize="none"
+            autoCorrect={false}
+            data={sortedOptions}
+            defaultValue={this.state.q}
+            // style={styles.autocompleteContainers}
+            onChangeText={(text) => {
+              // this.props.setFormValue(this.props.fieldName, text, valueKey, lang, options, i);
+              // let currentQuery = this.state.query;
+              // currentQuery[i] = text;
+              // this.updateAutocomplete(key, false);
+              this.setState({
+                q: text,
+                heightReset: false,
+                hideResults: false
+              })
+            }}
+            placeholder={placeholder}
+            keyExtractor={(item, index) => `list-item-${index}` }
+            hideResults={this.state.hideResults}
+            renderItem={({item, i}) => (
+              <TouchableOpacity
+                onPress={
+                  () => {
+                    this.setState({
+                      'heightReset': true,
+                      'hideResults': true,
+                      q: ''
+                    });
+                    this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, nKey);
+                  }
 
+                }>
+                <Text style={styles.itemText}>
+                  {item.text}
+                </Text>
+              </TouchableOpacity>
+            )}
           />
+
+        <View>
+          {selectedFields}
         </View>
+      </View>
     );
   }
 }
@@ -196,6 +288,10 @@ const styles = StyleSheet.create({
     marginBottom: 15
   },
   autocompleteContainer: {
+  },
+  autocomplete_list_container : {
+    height: '100%',
+    backgroundColor: '#fff',
   },
   autocompleteContainers: {
     flex: 1,
@@ -269,5 +365,21 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     borderColor: Colors.default.errorBackground,
     fontSize: 18
+  },
+  selectedFields: {
+    backgroundColor: "#ccc",
+    borderRadius: 5,
+    marginBottom: 2,
+    marginTop: 5,
+    flexDirection: 'row',
+    padding: 5,
+  },
+  selectedText: {
+    flex: 1
+  },
+  removeSelected: {
+    width: 20,
+    height: 20,
+
   }
 });
