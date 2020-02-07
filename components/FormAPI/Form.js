@@ -503,8 +503,47 @@ export default class FormComponent extends React.Component {
 
   }
 
+  setFormValueCheckboxes(newFieldName, newValue, valueKey, lang = 'und', isChecked = false, error = null) {
+    // need different function for checkbox so we can unset values
+    if (this.state.formValues) {
+      const formValues = this.state.formValues;
 
-  setFormValueCheckboxes(newFieldName, newValue, valueKey, lang = 'und', error = null) {
+      let newCheckedBoxes;
+      // Remove if the box was checked.
+      if (isChecked) {
+        newCheckedBoxes = this.state.formValues[newFieldName][lang].filter(element => {
+          return element[valueKey] !== newValue;
+        });
+      }
+      else {
+        newCheckedBoxes = [...this.state.formValues[newFieldName][lang], {[valueKey]: newValue}];
+      }
+
+      // // check if we are unchecking the box
+      // if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][valueKey]) {
+      //   Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: ''}}});
+      // } else {
+      //   Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: newValue}}});
+      // }
+      // save value to state
+      this.setState((state) => {
+        // formValues: formValues
+        state.formValues[newFieldName][lang] = newCheckedBoxes;
+        return state;
+      });
+    }
+    if (error) {
+      let newErrors = this.state.formErrors;
+      if (this.state.formErrors) {
+        if (this.state.formErrors[error]) {
+          delete newErrors[error];
+          this.setState({formErrors: newErrors});
+        }
+      }
+    }
+  }
+
+  setFormValueRadio(newFieldName, newValue, valueKey, lang = 'und', error = null) {
     // need different function for checkbox so we can unset values
     if (this.state.formValues) {
       const formValues = this.state.formValues;
@@ -1105,7 +1144,7 @@ export default class FormComponent extends React.Component {
                   fieldName={fieldName}
                   field={fieldArray}
                   key={fieldName}
-                  setFormValue={this.setFormValueCheckboxes.bind(this)}
+                  setFormValue={this.setFormValueRadio.bind(this)}
                   formErrors={this.state.formErrors}
                   required={required}
                   description={description}

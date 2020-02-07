@@ -70,7 +70,7 @@ export default class Radios extends React.Component {
                     onPress={() => this.props.setFormValue(this.props.fieldName, value, valueKey, lang, formErrorString)}
                     formError={error}
                     textStyle={styles.textStyle}
-                ></CheckBox>
+                />
             );
         }
 
