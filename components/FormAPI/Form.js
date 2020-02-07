@@ -50,7 +50,7 @@ export default class FormComponent extends React.Component {
 
   componentDidMount() {
     // this.update();
-    this.props.navigation.addListener('willFocus', this.componentActive)
+    this.props.navigation.addListener('willFocus', this.componentActive);
     this.preprocessNodeForSaving();
   }
 
@@ -150,7 +150,6 @@ export default class FormComponent extends React.Component {
       }
     }
   }
-
 
   setFormValueCheckbox(newFieldName, newValue, valueKey, error = null) {
     if (this.state.formValues) {
@@ -279,7 +278,6 @@ export default class FormComponent extends React.Component {
     }
   }
 
-
   setFormValueFieldCollection(fieldCollectionFieldName, fieldCollectionFormState) {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
@@ -294,7 +292,6 @@ export default class FormComponent extends React.Component {
       this.setState({formValues: formValues});
     }
   }
-
 
   setFormValueDate(newFieldName, newValue, type) {
     if (this.state.formValues) {
@@ -356,7 +353,6 @@ export default class FormComponent extends React.Component {
     }
   }
 
-
   setFormValueLocation(newFieldName, latitude, longitude) {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
@@ -393,7 +389,6 @@ export default class FormComponent extends React.Component {
     // save value to state
 
   }
-
 
   setFormValueConditionalSelect(newFieldName, val, index, valueKey) {
     if (this.state.formValues) {
@@ -438,7 +433,6 @@ export default class FormComponent extends React.Component {
       });
     }
   }
-
 
   setFormValueSelect2(newFieldName, newValue, valueKey, lang = 'und', options, key = '0') {
 
@@ -568,6 +562,7 @@ export default class FormComponent extends React.Component {
   }
 
 
+
   setFormValueScald(fieldName, value, index = '0', valueKey = 'sid', lang = 'und', error = null) {
     // Save the URI to form state so that we can pass as prop to the Scald form item
     // This allows us to persist the value so that we can tab within the form without losing it
@@ -655,31 +650,74 @@ export default class FormComponent extends React.Component {
         this.setState({'submitting': true});
 
         let formValues = this.state.formValues;
-        // This is ugly, but drupal sometimes returns array wrappers around objects, so we need to remove them
+
+        // Reference value keys
+        const refValueKeys = ['tid', 'nid', 'target_id'];
+        const skipFields = ['og_group_ref'];
+
         for(let key in formValues) {
-          if(formValues.hasOwnProperty(key)) {
-            if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['und'] !== 'undefined') {
-              if(Array.isArray(formValues[key]['und'])) {
-                let tempObject = formValues[key]['und'][0];
-                formValues[key]['und'] = tempObject;
-                console.log('array');
+          if(formValues.hasOwnProperty(key) && skipFields.indexOf(key) === -1) {
+
+            const fieldDefinition = this.props.screenProps.formFields[formValues.type][key];
+
+            if (fieldDefinition != null && fieldDefinition[fieldDefinition['#language']] != null) {
+              const lang = Object.keys(formValues[key]);
+              const valueKey = fieldDefinition[fieldDefinition['#language']]['#value_key'];
+
+              // Make sure radios are set to just one value
+              if (fieldDefinition[fieldDefinition['#language']]['#type'] === 'radios') {
+                formValues[key][lang] = formValues[key][lang][0];
+              }
+
+              // If this is a node/term reference, we need to remove that value key.
+              // Need to account for the occasions where that already happened.
+              else if(refValueKeys.indexOf(valueKey !== -1) &&
+                formValues[key][lang] != null &&
+                formValues[key][lang][0] != null &&
+                formValues[key][lang][0][valueKey] != null) {
+
+                const tempObject = [];
+                const iterateArray = typeof formValues[key][lang] === "object" ? Object.values(formValues[key][lang]) : formValues[key][lang];
+                iterateArray.forEach(entry => tempObject.push(entry[valueKey]));
+                formValues[key][lang] = tempObject;
               }
             }
           }
         }
 
+        // Unset the data array
+        formValues['data'] = null;
+
+
+
+        // This is ugly, but drupal sometimes returns array wrappers around objects, so we need to remove them
+        // for(let key in formValues) {
+        //   if(formValues.hasOwnProperty(key)) {
+        //     if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['und'] !== 'undefined') {
+        //       if(Array.isArray(formValues[key]['und'])) {
+        //         let tempObject = formValues[key]['und'][0];
+        //         formValues[key]['und'] = tempObject;
+        //         // console.log('array');
+        //       }
+        //     }
+        //   }
+        // }
+        //
         // Do it for 'en' key as well. This obviously needs to be fixed to pull the node language
-        for(let key in formValues) {
-          if(formValues.hasOwnProperty(key)) {
-            if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['en'] !== 'undefined') {
-              if(Array.isArray(formValues[key]['en'])) {
-                let tempObject = formValues[key]['en'][0];
-                formValues[key]['en'] = tempObject;
-                console.log('array');
-              }
-            }
-          }
-        }
+        // for(let key in formValues) {
+        //   if(formValues.hasOwnProperty(key)) {
+        //     if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['en'] !== 'undefined') {
+            //   if(Array.isArray(formValues[key]['en'])) {
+            //     let tempObject = formValues[key]['en'][0];
+            //     formValues[key]['en'] = tempObject;
+            //     console.log('array');
+            //   }
+            // }
+          // }
+        // }
+
+        // console.log(formValues);
+        // console.log(JSON.stringify(formValues));
 
 
         // I have to do this right now because I am getting errors trying to use the postData method
