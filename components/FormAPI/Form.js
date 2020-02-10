@@ -561,8 +561,6 @@ export default class FormComponent extends React.Component {
     }
   }
 
-
-
   setFormValueScald(fieldName, value, index = '0', valueKey = 'sid', lang = 'und', error = null) {
     // Save the URI to form state so that we can pass as prop to the Scald form item
     // This allows us to persist the value so that we can tab within the form without losing it
@@ -653,19 +651,25 @@ export default class FormComponent extends React.Component {
 
         // Reference value keys
         const refValueKeys = ['tid', 'nid', 'target_id'];
-        const skipFields = ['og_group_ref'];
+        const skipFields = {'og_group_ref': ['select']};
+        // const skipFields = ['og_group_ref'];
 
         for(let key in formValues) {
-          if(formValues.hasOwnProperty(key) && skipFields.indexOf(key) === -1) {
+          if(formValues.hasOwnProperty(key)) {
 
             const fieldDefinition = this.props.screenProps.formFields[formValues.type][key];
 
             if (fieldDefinition != null && fieldDefinition[fieldDefinition['#language']] != null) {
+              const fieldType = fieldDefinition[fieldDefinition['#language']]['#type'];
+
+              // Check for field/type combo to see which processing to skip
+              if (skipFields.hasOwnProperty(key) && skipFields[key].indexOf(fieldType) !== -1) { continue; }
+
               const lang = Object.keys(formValues[key]);
               const valueKey = fieldDefinition[fieldDefinition['#language']]['#value_key'];
 
               // Make sure radios are set to just one value
-              if (fieldDefinition[fieldDefinition['#language']]['#type'] === 'radios') {
+              if (fieldType === 'radios') {
                 formValues[key][lang] = formValues[key][lang][0];
               }
 
