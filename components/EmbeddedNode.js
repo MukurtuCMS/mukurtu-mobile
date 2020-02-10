@@ -6,6 +6,7 @@ import {ScaldItem} from "./ScaldItem";
 import {ParagraphView} from "./ParagraphView";
 import {Star} from "./Star";
 import {FieldCollection} from "./FieldCollection";
+import NodeTeaser from "./Displays/nodeTeaser";
 
 export class EmbeddedNode extends React.Component {
 
@@ -33,11 +34,10 @@ export class EmbeddedNode extends React.Component {
 
     let renderedNode = [];
 
-    renderedNode.push(
-      <Text style={styles.nodeTitle}>{node.title}</Text>
-    );
+    const embeddedFields = ((this.props.displayModes[0] || [])[1] || {}).fields || {};
 
-    for (const [fieldName, fieldObject] of Object.entries(this.props.displayModes['field_unit_lessons']['fields'])) {
+
+    for (const [fieldName, fieldObject] of Object.entries(embeddedFields)) {
       if (typeof node[fieldName] === 'undefined' || node[fieldName].length === 0) {
         continue;
       }
@@ -269,9 +269,14 @@ export class EmbeddedNode extends React.Component {
       }
     }
 
+    if (renderedNode.length < 1) {
+      renderedNode.push(<Text key={'empty-text'}>There is no content for this lesson.</Text>)
+    }
+
 
 
     return (<View style={{flex: 1}}>
+        <Text style={styles.nodeTitle}>{node.title}</Text>
           {renderedNode}
       </View>
     );
