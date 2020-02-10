@@ -83,11 +83,13 @@ export default class App extends React.Component {
     YellowBox.ignoreWarnings([
       'Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
       'Warning: componentWillMount has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
-      'Remote debugger'
+      'Remote debugger',
+      'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation'
     ]);
     console.ignoredYellowBox = [
       'Warning: componentWillReceiveProps',
-      'Warning: componentWillMount'
+      'Warning: componentWillMount',
+      'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation'
     ];
 
     // console.disableYellowBox = true;
