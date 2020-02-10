@@ -50,9 +50,10 @@ export default class NodeTeaser extends React.Component {
     if (node.body !== undefined) {
       body = node.body[Object.keys(node.body)[0]];
       const regex = /(<([^>]+)>)/ig;
-      if (typeof body !== 'undefined' && typeof body[0] !== 'undefined' && typeof body[0]['safe_value'] !== undefined) {
-        body = body[0]['safe_value'].replace(regex, '');
-      }
+      let bodyValue = ((body || {})[0] || {})['value'];
+      let bodySafeValue = ((body || {})[0] || {})['safe_value'];
+
+      body = bodySafeValue != null ? bodySafeValue.replace(regex, '') : (bodyValue != null ? bodyValue.replace(regex, '') : '');
     }
 
     // Get our fields from list of viewable fields
