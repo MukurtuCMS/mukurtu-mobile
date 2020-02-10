@@ -432,7 +432,15 @@ export default class App extends React.Component {
     }
   }
 
-  saveNode = (nid, data, editable) => {
+  saveNode = (nid, data, overwriteEditable) => {
+    let editable = false;
+    if (overwriteEditable != null) {
+      editable = overwriteEditable;
+    }
+    else if (this.state.editable[nid] != null) {
+      editable = this.state.editable[nid];
+    }
+
     let fetchurl = this.state.siteUrl + '/app/node/' + nid + '.json';
     return fetch(fetchurl, this.buildFetchData('GET'))
       .then((response) => {
@@ -454,14 +462,11 @@ export default class App extends React.Component {
           }
         );
 
-        let currentNodes = this.state.nodes;
-
-
-        currentNodes[node.nid] = node;
-        this.setState({'nodes': currentNodes});
-        let currentEditable = this.state.editable;
-        currentEditable[node.nid] = editable;
-        this.setState({'editable': currentEditable});
+        this.setState((state) => {
+          const newNodes = {...state.nodes};
+          newNodes[node.nid] = node;
+          return {'nodes': newNodes};
+        });
 
         return node;
       })
@@ -1259,8 +1264,8 @@ export default class App extends React.Component {
 
 
   /**
-   * Largely copied from Form.js postData method, but how we handle state is a bit different so we're going to live
-   * with the duplication for now.
+   * Largely copied from Form.js postData method, but how we handle state is a
+   * bit different so we're going to live with the duplication for now.
    * @param url
    * @param data
    * @param method
@@ -1337,8 +1342,12 @@ export default class App extends React.Component {
 
 
   newSyncEverything() {
-    this.setState({'initialized': true}); // just in case
-    this.setState({'syncText': 'Retrieving Synced Content'});
+    this.setState({
+      'initialized': true,
+      'syncText': 'Retrieving Synced Content',
+      'editable': {}
+    });
+
     let data = this.buildFetchData('GET');
     data.url = this.state.siteUrl + '/app/synced-entities/retrieve';
 
@@ -1362,9 +1371,17 @@ export default class App extends React.Component {
           }
           this.buildRemovalNids(nodes);
 
+          // Build the editable array once based on info from the API.
+          let editableNodes = Object.keys(nodes).reduce((acc, cur) => {
+            acc[cur] = nodes[cur].editable;
+            return acc;
+          }, {});
+          this.setState({'editable': editableNodes});
 
-          subPromises.push(Object.keys(nodes).map((key, index) =>
-            this.saveNode(key, data, nodes[key].editable)
+
+          subPromises.push(Object.keys(nodes).map((key, index) => {
+              this.saveNode(key, data);
+            }
           ));
         }
 
