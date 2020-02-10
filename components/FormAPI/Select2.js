@@ -4,18 +4,15 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
-  Button,
-  SafeAreaView,
   TouchableHighlight
 } from 'react-native';
-import {CheckBox} from "react-native-elements";
 import Autocomplete from 'react-native-autocomplete-input';
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import ErrorMessage from "./ErrorMessage";
 import {getFieldLanguage, getFieldValueCount} from "./formUtils";
+import {FontAwesome} from "@expo/vector-icons";
 
 export default class Select2 extends React.Component {
 
@@ -25,7 +22,7 @@ export default class Select2 extends React.Component {
       q: '',
       query: {},
       count: 1,
-      heightReset: false,
+      heightReset: true,
       // Allows us to close autocomplete suggestions for each autocomplete field on selection
       hideResults: true,
       autocompleteSelected: {
@@ -64,6 +61,21 @@ export default class Select2 extends React.Component {
     this.props.setFormValue(this.props.fieldName, '', valueKey, lang, [], index);
   };
 
+  getOptions = () => {
+    const field = this.props.field;
+    if (field['#select2']['data'] != null) {
+      return field['#select2']['data'];
+    }
+    else if(field['#options'] != null && typeof field['#options'] === "object" ) {
+      return Object.keys(field['#options']).reduce(function(newOptions, key) {
+        newOptions.push({id: key, text: field['#options'][key]});
+        return newOptions;
+      }, []);
+    }
+    else {
+      return [];
+    }
+  };
 
 
   render() {
@@ -95,7 +107,7 @@ export default class Select2 extends React.Component {
     }
 
     const field = this.props.field;
-    const options = field['#select2']['data'];
+    const options = this.getOptions();
     // we need to determine if this is normal select options or entity refs
     let defaultSelect = true;
     // set value key, defaulted to value
@@ -161,10 +173,7 @@ export default class Select2 extends React.Component {
           onPress={() => {
             this.onRemoveSelected(key, valueKey);
           }}>
-          <Image
-            style={styles.removeSelected}
-            source={require('../../assets/images/close.png')}
-          />
+          <FontAwesome name="close" size={20} style={styles.removeSelected}/>
         </TouchableHighlight>
       </View>
       );
@@ -173,10 +182,6 @@ export default class Select2 extends React.Component {
       const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
       const placeholder = 'Enter ' + field['#title'];
 
-      height = (sortedOptions.length * 22) + (40 * fieldValuesCount);
-      if(this.state.heightReset === true) {
-        height = 40 * fieldValuesCount;
-      }
 
       const hideResults = this.state.autocompleteSelected[key] !== undefined ? this.state.autocompleteSelected[key] : true;
 
@@ -222,8 +227,24 @@ export default class Select2 extends React.Component {
     }
 
     const sortedOptions = this.findFilm(this.state.q, options);
+    height = (sortedOptions.length * 26) + 40;
+    if(this.state.heightReset === true) {
+      height = 40;
+    }
 
-    let errorMarkup = <ErrorMessage error={error} />
+    let showForm = true;
+    if (this.props.field["#multiple"]) {
+      if (this.props.field['#select2']['maximumSelectionSize'] != null &&
+        this.props.field['#select2']['maximumSelectionSize'] <= selectedFields.length) {
+        showForm = false;
+      }
+    }
+    else {
+      showForm = selectedFields.length < 1;
+    }
+    // showForm = selectedFields.length < 0 this.props.field["#multiple"]
+
+    let errorMarkup = <ErrorMessage error={error} />;
 
     return (
       <View style={styles.container}>
@@ -232,12 +253,17 @@ export default class Select2 extends React.Component {
         <FieldDescription
           description={(field['#description']) ? field['#description'] : null}/>
         <Required required={this.props.required}/>
-
+        <View>
+          {selectedFields}
+        </View>
+        {showForm &&
+        <View style={{height: height}}>
           <Autocomplete
             autoCapitalize="none"
             autoCorrect={false}
             data={sortedOptions}
             defaultValue={this.state.q}
+            // listStyle={{height: 100}}
             // style={styles.autocompleteContainers}
             onChangeText={(text) => {
               // this.props.setFormValue(this.props.fieldName, text, valueKey, lang, options, i);
@@ -251,7 +277,7 @@ export default class Select2 extends React.Component {
               })
             }}
             placeholder={placeholder}
-            keyExtractor={(item, index) => `list-item-${index}` }
+            keyExtractor={(item, index) => `list-item-${index}`}
             hideResults={this.state.hideResults}
             renderItem={({item, i}) => (
               <TouchableOpacity
@@ -272,10 +298,8 @@ export default class Select2 extends React.Component {
               </TouchableOpacity>
             )}
           />
-
-        <View>
-          {selectedFields}
         </View>
+        }
       </View>
     );
   }
@@ -367,7 +391,7 @@ const styles = StyleSheet.create({
     fontSize: 18
   },
   selectedFields: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#e2e2e2",
     borderRadius: 5,
     marginBottom: 2,
     marginTop: 5,
