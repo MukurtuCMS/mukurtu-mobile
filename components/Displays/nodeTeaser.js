@@ -183,7 +183,8 @@ const styles = StyleSheet.create({
   nodeBody: {
     fontSize: 16,
     justifyContent: 'center',
-    flex: 1
+    flex: 1,
+    flexWrap: 'wrap'
   },
   nodeWrapper: {
     padding: 10,
@@ -192,8 +193,7 @@ const styles = StyleSheet.create({
   },
   nodeInnerWrapper: {
     flex: 1,
-    flexDirection: 'column',
-    flexWrap: 'wrap',
+    flexDirection: 'column'
   },
   nodeEditWrapper: {
     flexShrink: 0,
