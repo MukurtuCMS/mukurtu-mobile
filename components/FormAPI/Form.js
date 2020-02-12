@@ -1008,7 +1008,7 @@ export default class FormComponent extends React.Component {
                       screenProps={this.props.screenProps}
                     />;
 
-                    form[i].push(paragraph);
+                    // form[i].push(paragraph);
 
                   } else if (fieldArray['target_id'] !== undefined) {
                     fieldArray = fieldArray['target_id'];
@@ -1045,22 +1045,24 @@ export default class FormComponent extends React.Component {
                   cardinality = originalFieldArray['und']['#cardinality'];
                 }
 
-                form[i].push(<Scald
-                  formValues={this.state.formValues}
-                  fieldName={fieldName}
-                  field={fieldArray}
-                  key={fieldName}
-                  setFormValue={this.setFormValueScald.bind(this)}
-                  formErrors={this.state.formErrors}
-                  description={description}
-                  chosenImage={chosenImage}
-                  cookie={this.props.screenProps.cookie}
-                  token={this.props.screenProps.token}
-                  url={this.props.screenProps.siteUrl}
-                  cardinality={cardinality}
-                  enableSubmit={this.enableSubmit}
-                  disableSubmit={this.disableSubmit}
-                />);
+                // form[i].push(<Scald
+                //   formValues={this.state.formValues}
+                //   fieldName={fieldName}
+                //   field={fieldArray}
+                //   key={fieldName}
+                //   db={this.props.screenProps.db}
+                //   documentDirectory={this.props.screenProps.documentDirectory}
+                //   setFormValue={this.setFormValueScald.bind(this)}
+                //   formErrors={this.state.formErrors}
+                //   description={description}
+                //   chosenImage={chosenImage}
+                //   cookie={this.props.screenProps.cookie}
+                //   token={this.props.screenProps.token}
+                //   url={this.props.screenProps.siteUrl}
+                //   cardinality={cardinality}
+                //   enableSubmit={this.enableSubmit}
+                //   disableSubmit={this.disableSubmit}
+                // />);
               } else if (typeof fieldArray['field_collection_subfields'] === 'object') {
                 form[i].push(<FieldCollectionForm
                   formValues={this.state.formValues}

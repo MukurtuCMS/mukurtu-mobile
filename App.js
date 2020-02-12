@@ -486,8 +486,10 @@ export default class App extends React.Component {
                   promises.push(this.saveFieldCollection(fid, field, node.type));
                 }
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
-                let pid = node[field].und[0].value;
-                promises.push(this.saveParagraph(pid, field, node.type));
+                Object.keys(node[field].und).forEach((id) => {
+                  let pid = node[field].und[id].value;
+                  promises.push(this.saveParagraph(pid, field, node.type));
+                });
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['tid'] !== 'undefined') {
                 data = this.buildFetchData('GET');
                 promises.push(this.saveTaxonomy(node[field].und[0]['tid'], data));

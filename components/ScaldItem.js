@@ -171,7 +171,7 @@ componentDidMount() {
 
 
     return (
-      <View>
+      <View style={{marginBottom: 20}}>
         {renderedItem}
       </View>
     )
