@@ -963,7 +963,9 @@ export default class FormComponent extends React.Component {
               fieldArray = field['und'];
 
               if (typeof fieldArray['mukurtu_record'] === 'object') {
+
                 fieldArray = fieldArray['mukurtu_record']['terms_all'];
+                fieldArray['#value_key'] = field['und']['#columns'][0];
               }
 
 
@@ -1152,6 +1154,19 @@ export default class FormComponent extends React.Component {
                   required={required}
                   description={description}
                   nodes={this.props.screenProps.nodes}
+                />);
+
+              }
+              else if (fieldArray['#type'] === 'select' && fieldName === 'field_mukurtu_terms') {
+                form[i].push(<Select2
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueSelect2.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
 
               } else if (fieldArray['#type'] === 'select') {
