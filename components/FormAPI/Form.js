@@ -20,6 +20,7 @@ import * as Sync from "../MukurtuSync"
 import * as FileSystem from 'expo-file-system';
 import FieldCollectionForm from "./FieldCollectionForm";
 import Colors from "../../constants/Colors";
+import {sanitizeFormValues} from './formUtils';
 
 
 export default class FormComponent extends React.Component {
@@ -647,82 +648,7 @@ export default class FormComponent extends React.Component {
       if (this.state.formValues.nid) {
         this.setState({'submitting': true});
 
-        let formValues = this.state.formValues;
-
-        // Reference value keys
-        const refValueKeys = ['tid', 'nid', 'target_id'];
-        const skipFields = {'og_group_ref': ['select']};
-        // const skipFields = ['og_group_ref'];
-
-        for(let key in formValues) {
-          if(formValues.hasOwnProperty(key)) {
-
-            const fieldDefinition = this.props.screenProps.formFields[formValues.type][key];
-
-            if (fieldDefinition != null && fieldDefinition[fieldDefinition['#language']] != null) {
-              const fieldType = fieldDefinition[fieldDefinition['#language']]['#type'];
-
-              // Check for field/type combo to see which processing to skip
-              if (skipFields.hasOwnProperty(key) && skipFields[key].indexOf(fieldType) !== -1) { continue; }
-
-              const lang = Object.keys(formValues[key]);
-              const valueKey = fieldDefinition[fieldDefinition['#language']]['#value_key'];
-
-              // Make sure radios are set to just one value
-              if (fieldType === 'radios') {
-                formValues[key][lang] = formValues[key][lang][0];
-              }
-
-              // If this is a node/term reference, we need to remove that value key.
-              // Need to account for the occasions where that already happened.
-              else if(refValueKeys.indexOf(valueKey !== -1) &&
-                formValues[key][lang] != null &&
-                formValues[key][lang][0] != null &&
-                formValues[key][lang][0][valueKey] != null) {
-
-                const tempObject = [];
-                const iterateArray = typeof formValues[key][lang] === "object" ? Object.values(formValues[key][lang]) : formValues[key][lang];
-                iterateArray.forEach(entry => tempObject.push(entry[valueKey]));
-                formValues[key][lang] = tempObject;
-              }
-            }
-          }
-        }
-
-        // Unset the data array
-        formValues['data'] = null;
-
-
-
-        // This is ugly, but drupal sometimes returns array wrappers around objects, so we need to remove them
-        // for(let key in formValues) {
-        //   if(formValues.hasOwnProperty(key)) {
-        //     if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['und'] !== 'undefined') {
-        //       if(Array.isArray(formValues[key]['und'])) {
-        //         let tempObject = formValues[key]['und'][0];
-        //         formValues[key]['und'] = tempObject;
-        //         // console.log('array');
-        //       }
-        //     }
-        //   }
-        // }
-        //
-        // Do it for 'en' key as well. This obviously needs to be fixed to pull the node language
-        // for(let key in formValues) {
-        //   if(formValues.hasOwnProperty(key)) {
-        //     if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['en'] !== 'undefined') {
-            //   if(Array.isArray(formValues[key]['en'])) {
-            //     let tempObject = formValues[key]['en'][0];
-            //     formValues[key]['en'] = tempObject;
-            //     console.log('array');
-            //   }
-            // }
-          // }
-        // }
-
-        // console.log(formValues);
-        // console.log(JSON.stringify(formValues));
-
+        let formValues = sanitizeFormValues(this.state.formValues, this.props.screenProps);
 
         // I have to do this right now because I am getting errors trying to use the postData method
         const token = this.props.screenProps.token;
