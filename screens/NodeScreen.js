@@ -442,7 +442,7 @@ class NodeScreen extends React.Component {
         if (node[fieldName] != null && node[fieldName][lang]) {
           for(let [k, v] of Object.entries(node[fieldName][lang])) {
 
-            if (v.hasOwnProperty('value')) {
+            if (v.hasOwnProperty('value') && v.value != null) {
 
               let dateValue;
               if (typeof v.value === "string") {

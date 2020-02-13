@@ -85,18 +85,18 @@ class LoginScreen extends React.Component {
   }
 
 
-
-
   onClickListener = (viewId) => {
 
     if (this.state.name !== '') {
       var name = this.state.name.toLowerCase().trim();
-    } else {
+    }
+    else {
       this.setState({'nameEmpty': true});
     }
     if (this.state.password !== false) {
       var pass = this.state.password.toLowerCase().trim();
-    } else {
+    }
+    else {
       this.setState({'passwordEmpty': true});
     }
 
@@ -110,7 +110,8 @@ class LoginScreen extends React.Component {
     // Remove trailing slash from url
     url = url.replace(/\/$/, "");
 
-    // Set a component URL state for now, then once login is complete set the app-wide URL
+    // Set a component URL state for now, then once login is complete set the
+    // app-wide URL
     this.setState({
       url: url
     }, () => {
@@ -126,6 +127,7 @@ class LoginScreen extends React.Component {
 
           let data = {
             method: 'POST',
+            // cache: 'no-store',
             body: JSON.stringify({
               username: name,
               password: pass
@@ -141,54 +143,52 @@ class LoginScreen extends React.Component {
           };
 
           // Hit logout first to ensure we're not already logged in
-          fetch(this.state.url + '/app/user/logout', data)
+          return fetch(this.state.url + '/app/user/logout', data)
             .then((response) => {
+              return fetch(this.state.url + '/app/user/login.json', data)
+            })
+            .then((response) => response.json())
+            .then((responseJson) => {
 
-              fetch(this.state.url + '/app/user/login.json', data)
-                .then((response) => response.json())
-                .then((responseJson) => {
+              // this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+              // Pass the token from the user, not our initial token.
 
-                  // this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
-                  // Pass the token from the user, not our initial token.
+              // If we don't have a user ID in the response, treat it as an error
+              if(typeof responseJson.user !== 'object' || typeof responseJson.user.uid !== 'string') {
+                this.handleLoginError('Error logging in.');
+              }
 
-                  // If we don't have a user ID in the response, treat it as an error
-                  if(typeof responseJson.user !== 'object' || typeof responseJson.user.uid !== 'string') {
-                    this.handleLoginError('Error logging in.');
-                  }
-
-                  this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
-                  this.props.navigation.navigate('Home')
-                })
-
-
-                .catch((error) => {
-                  this.handleLoginError('Error logging in.');
-                  if (error.response) {
-                    // The request was made and the server responded with a status code
-                    // that falls out of the range of 2xx
-                    console.log(error.response.data);
-                    console.log(error.response.status);
-                    console.log(error.response.headers);
-                  } else if (error.request) {
-                    // The request was made but no response was received
-                    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-                    // http.ClientRequest in node.js
-                    console.log(error.request);
-                  } else {
-                    // Something happened in setting up the request that triggered an Error
-                    console.log('Error', error.message);
-                  }
-                  console.log(error.config);
-                });
+              this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
+              // this.props.navigation.navigate('Home')
+            })
+            .catch((error) => {
+              this.handleLoginError('Error logging in.');
+              if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                console.log(error.response.data);
+                console.log(error.response.status);
+                console.log(error.response.headers);
+              } else if (error.request) {
+                // The request was made but no response was received
+                // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                // http.ClientRequest in node.js
+                console.log(error.request);
+              } else {
+                // Something happened in setting up the request that triggered an Error
+                console.log('Error', error.message);
+              }
+              console.log(error.config);
             });
+
         })
         .catch((error) => {
           this.handleLoginError('Error logging in.');
-          // console.error(error);
+          console.error(error);
         });
 
     }, this);
-  }
+  };
 
   render() {
 

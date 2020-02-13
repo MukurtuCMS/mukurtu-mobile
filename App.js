@@ -92,15 +92,19 @@ export default class App extends React.Component {
       'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation'
     ];
 
+    this.netEventListener = NetInfo.addEventListener(state => {
+      this.handleConnectivityChange(state.isConnected);
+    });
+
+
     // console.disableYellowBox = true;
     //
     // var self = this;
 
     // First, create global tables if they don't exist.
-    ManageTables.createGlobalTables();
-    this.netEventListener = NetInfo.addEventListener(state => {
-      this.handleConnectivityChange(state.isConnected);
-    });
+    ManageTables.createGlobalTables()
+      .then(() => this.checkLogin());
+
     // NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
 
     // Check our login status
@@ -870,7 +874,7 @@ export default class App extends React.Component {
                   [],
                   (success, array) => {
                     console.log('content types retrieved');
-                    let contentTypesState = JSON.parse(array.rows._array[0].blob);
+                    let contentTypesState = array.rows._array[0] !== undefined ? JSON.parse(array.rows._array[0].blob) : {};
                     this.setState({'contentTypes': contentTypesState});
 
 
@@ -1611,8 +1615,10 @@ export default class App extends React.Component {
             })
             console.log(error);
           });
+      })
+      .catch((error) => {
+        console.log(error);
       });
-
 
   }
 
@@ -1621,6 +1627,7 @@ export default class App extends React.Component {
   // If we're offline, but we do have authorization token in the db, we'll set login state to false and authorized to true
   // If we have both, both are true.
   checkLogin() {
+    console.log('Check login');
 
     // First, get our global db info
     globalDB.transaction(
