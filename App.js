@@ -715,13 +715,15 @@ export default class App extends React.Component {
       })
       .then((atom) => {
 
+
+        const sanitizedFileName = atom.title.replace(/ /g,"_");
         FileSystem.downloadAsync(
           atom.file_url,
-          FileSystem.documentDirectory + atom.title
+          FileSystem.documentDirectory + sanitizedFileName
         )
           .then(( uri ) => {
             // If we have a video, just save it — we don't base 64 those
-            if(uri.headers['Content-Type'].indexOf('video') !== -1) {
+            if(uri.headers['Content-Type'].indexOf('video') !== -1 || uri.headers['Content-Type'].indexOf('application') !== -1) {
               return null;
             } else {
               let options = {encoding: FileSystem.EncodingType.Base64};
@@ -733,7 +735,7 @@ export default class App extends React.Component {
               return null;
             }
             let options = { encoding: FileSystem.EncodingType.Base64 };
-            return FileSystem.writeAsStringAsync(FileSystem.documentDirectory + atom.title, filestring, options)
+            return FileSystem.writeAsStringAsync(FileSystem.documentDirectory + sanitizedFileName, filestring, options)
           })
           .catch((error) =>{
             console.log(error);
