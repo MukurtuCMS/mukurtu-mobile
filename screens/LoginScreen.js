@@ -20,6 +20,7 @@ import Validator from 'validator';
 import * as Colors from "../constants/Colors";
 import axios from "axios";
 import {PleaseLogin} from "../components/PleaseLogin";
+import resolveAssetSource from "expo-asset/build/resolveAssetSource.web";
 
 
 // create a global db for database list and last known user
@@ -117,6 +118,8 @@ class LoginScreen extends React.Component {
     }, () => {
 
 
+      let cookie;
+      let user;
       // Fetch was caching the token, but axios seems to work
       axios.get(this.state.url + '/services/session/token')
         .then((response) => {
@@ -157,9 +160,28 @@ class LoginScreen extends React.Component {
               if(typeof responseJson.user !== 'object' || typeof responseJson.user.uid !== 'string') {
                 this.handleLoginError('Error logging in.');
               }
+              cookie = responseJson.session_name + '=' + responseJson.sessid;
+              user = JSON.stringify(responseJson);
 
-              this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
+              return axios(this.state.url + '/services/session/token', {
+                method: 'GET',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  // 'X-CSRF-Token': responseJson.token,
+                  'Cookie': cookie
+                }
+              });
+
+              // this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
               // this.props.navigation.navigate('Home')
+            })
+            // .then((response) => response.blob())
+            .then((response) => {
+
+              if (response.status === 200) {
+                this._handleLoginStatusUpdate(response.data, cookie, url, user);
+              }
             })
             .catch((error) => {
               this.handleLoginError('Error logging in.');
