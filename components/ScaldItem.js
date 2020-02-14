@@ -1,8 +1,16 @@
 import React from 'react';
-import {Image, StyleSheet, Text, View, Dimensions} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  TouchableOpacity
+} from 'react-native';
 import { WebView } from 'react-native-webview';
 import {SQLite} from "expo-sqlite";
 import * as FileSystem from "expo-file-system";
+import * as Sharing from 'expo-sharing';
 import { Video, Audio } from 'expo-av';
 import {FontAwesome} from "@expo/vector-icons";
 
@@ -19,7 +27,8 @@ export class ScaldItem extends React.Component {
       atom: null,
       video: null,
       audio: false,
-      vimeoUrl: null
+      vimeoUrl: null,
+      notSynced: false
     }
   }
 
@@ -86,22 +95,35 @@ componentDidMount() {
                 });
             }
           },
-          (success, error) => ''
+          (success, error) => {
+            this.setState({notSynced: true});
+          }
         );
       }
     );
 
   }
 
+  onShareClick = () => {
+    if (this.state.data && this.state.data.uri != null) {
+      Sharing.isAvailableAsync()
+        .then((available) => {
+          if (available) {
+            Sharing.shareAsync(this.state.data.uri);
+          }
+        })
+    }
+  };
+
 
   render() {
 
     let renderedItem;
 
-    if (this.state && this.state.atom) {
+    if (this.state && this.state.atom && !this.state.notSynced) {
 
       let calcWidth = 300;
-      let calcImageHeight = 200;
+      let calcImageHeight = 300;
       if(this.state.atom.base_entity) {
          let width = parseInt(this.state.atom.base_entity.width);
          let height = parseInt(this.state.atom.base_entity.height);
@@ -170,10 +192,13 @@ componentDidMount() {
         // </View>);
           // <WebView source={{uri: this.state.data}}/>;
         renderedItem = <View style={{alignItems: 'center'}}>
-          <FontAwesome name={'file-text-o'} size={25} />
-          <Text>
-          {this.state.title}
-        </Text></View>;
+          <TouchableOpacity onPress={this.onShareClick}>
+            <FontAwesome name={'file-text-o'} size={25} />
+            <Text>
+              {this.state.title}
+            </Text>
+          </TouchableOpacity>
+        </View>;
 
       } else if (typeof response.base_entity !== 'undefined') {
 
@@ -185,6 +210,9 @@ componentDidMount() {
             width: calcWidth
           }}/>;
       }
+    }
+    else if (this.state.notSynced) {
+      renderedItem = <Text>This media item is not synced to your device</Text>
     }
 
 

@@ -32,16 +32,16 @@ export class ScaldSwipe extends React.Component {
 
   render() {
     return (
-      <View style={{height: 200}}>
+      <View style={{height: 300}}>
         <Carousel
           // ref={(c) => { this._carousel = c; }}
           data={this.props.items}
           layout={'default'}
           renderItem={this._renderItem}
           sliderWidth={this.state.width - 20}
-          sliderHeight={200}
+          sliderHeight={300}
           itemWidth={this.state.width - 22}
-          itemHeight={200}
+          itemHeight={300}
           useScrollView={true}
           slideStyle={{}}
           containerCustomStyle={{
