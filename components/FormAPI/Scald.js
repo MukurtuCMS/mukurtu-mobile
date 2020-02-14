@@ -9,6 +9,9 @@ import * as FileSystem from "expo-file-system";
 import axios from "axios";
 import ProgressBar from 'react-native-progress/Bar';
 import * as VideoThumbnails from 'expo-video-thumbnails';
+import {getFieldValueCount} from './formUtils';
+import {FontAwesome} from "@expo/vector-icons";
+import NetInfo from '@react-native-community/netinfo';
 
 // To do on this if we have time:
 // 1. Ensure that if images are removed they're removed from drupal side.
@@ -20,103 +23,203 @@ export default class Scald extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      numberOfValues: 1,
-      permission: true
+      remoteProvider: ['scald_dailymotion', 'scald_vimeo', 'scald_youtube', 'scald_soundcloud'],
+      numberOfValues: 0,
+      permission: true,
+      existingElements: {},
+      add: 0,
+      uploadProgress: {},
+      placeholder: {},
+      updateExisting: false
     };
     this.handleUpload = this.handleUpload.bind(this);
   }
 
+  componentDidMount() {
+    this.loadLocalAtomData();
+  }
+
   componentDidUpdate(prevProps, prevState, snapshot) {
-    // Set the number of values state when we have it
-    if (this.props.formValues.field_media_asset && this.props.formValues.field_media_asset.und &&
-      (!prevProps.formValues.field_media_asset)) {
-      let count = this.props.formValues.field_media_asset.und.length;
-      if (count !== this.state.numberOfValues) {
-        this.setState({numberOfValues: count})
-      }
+    if ((!prevProps.nodeLoaded && this.props.nodeLoaded) || (!prevState.updateExisting && this.state.updateExisting)) {
+      this.loadLocalAtomData();
     }
   }
 
+  loadLocalAtomData = () => {
+    const {fieldName, formValues} = this.props;
+
+    if (formValues[fieldName] !== undefined && formValues[fieldName].und != null) {
+      const {db, documentDirectory} = this.props;
+      const existingSids = Object.keys(formValues[fieldName].und).map(key => formValues[fieldName].und[key].sid);
+
+      if (existingSids.length > 0) {
+
+        db.transaction(tx => {
+          const inClause = existingSids.join(',');
+          tx.executeSql(`select * from atom WHERE sid IN (${inClause})`,
+            '',
+            (success, atoms) => {
+              let elements = {};
+              atoms.rows._array.forEach((atom) => {
+                const atomEntity = JSON.parse(atom.entity);
+                // @todo: Check here if this is an offline atom
+                // Remote Provider
+                if (this.state.remoteProvider.includes(atomEntity.provider)) {
+                  const providerString = atomEntity.provider.split('_');
+                  elements[atom.sid] = {
+                    sid: atom.sid,
+                    title: `${providerString[1]}: ${atom.title}`,
+                    type: atomEntity.type,
+                    remote: true
+                  };
+                }
+                else {
+                  elements[atom.sid] = {
+                    sid: atom.sid,
+                    title: `${atom.title}`,
+                    remote: false,
+                    type: atomEntity.type,
+                    file: documentDirectory + atom.title
+                  };
+                }
+              });
+              this.setState({
+                numberOfValues: existingSids.length,
+                existingElements: elements,
+                updateExisting: false
+              });
+            });
+        })
+      }
+    }
+  };
+
 
   async handleUpload(fieldName, value, type, index = '0', lang = 'und', error = null,) {
-    this.props.disableSubmit();
 
-    let indexState = this.state[index];
-    indexState['overriden'] = true;
-    this.setState({
-      [index]: indexState
-    });
 
-    let filename = value.uri.split('/').pop();
-    let postUrl = this.props.url + '/app/file/create_raw';
-    var fd = new FormData();
-    fd.append("files", {
-      uri: Platform.OS === "android" ? value.uri : value.uri.replace("file:/", ""),
-      name: type === 'document' ? value.name : filename,
-      type: "multipart/form-data"
-    });
+    // @todo: Handle the offline status here
+    const online = await NetInfo.fetch().then(state => state.isConnected);
 
-    try {
-      const fileUpload = await axios({
-        method: 'post',
-        url: postUrl,
-        data: fd,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'multipart/form-data',
-          'X-CSRF-Token': this.props.token,
-          'Cookie': this.props.cookie
-        },
-        onUploadProgress: (progressEvent) => {
-          let percentCompleted = progressEvent.loaded / progressEvent.total;
-          let indexState = this.state[index];
-          indexState['percent'] = percentCompleted;
-          this.setState({
-            [index]: indexState
-          })
-        }
+    // let indexState = this.state[index];
+    // indexState['overriden'] = true;
+    // this.setState({
+    //   [index]: indexState
+    // });
+
+    if (online) {
+      this.props.disableSubmit();
+      let filename = type === 'document' ? value.name : value.uri.split('/').pop();
+      let postUrl = this.props.url + '/app/file/create_raw';
+      var fd = new FormData();
+      fd.append("files", {
+        uri: Platform.OS === "android" ? value.uri : value.uri.replace("file:/", ""),
+        name: filename,
+        type: "multipart/form-data"
       });
 
-      let fid = fileUpload.data[0].fid;
+      try {
+        const fileUpload = await axios({
+          method: 'post',
+          url: postUrl,
+          data: fd,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+            'X-CSRF-Token': this.props.token,
+            'Cookie': this.props.cookie
+          },
+          onUploadProgress: (progressEvent) => {
+            let percentCompleted = progressEvent.loaded / progressEvent.total;
+            // let indexState = this.state[index];
+            // indexState['percent'] = percentCompleted;
+            this.setState({
+              uploadProgress: {
+                [index]: percentCompleted
+              }
+            })
+          }
+        });
 
-      // Now we submit the file to create the atom
-      const data = {
-        method: 'post',
-        mode: 'cors',
-        cache: 'no-cache',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': this.props.token,
-          'Cookie': this.props.cookie
-        },
-        redirect: 'follow',
-        referrer: 'no-referrer',
-      };
+        let fid = fileUpload.data[0].fid;
 
-      let url = this.props.url;
+        // Now we submit the file to create the atom
+        const data = {
+          method: 'post',
+          mode: 'cors',
+          cache: 'no-cache',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': this.props.token,
+            'Cookie': this.props.cookie
+          },
+          redirect: 'follow',
+          referrer: 'no-referrer',
+        };
 
-      const fileAtom = await fetch(url + '/app/scald/create?id=' + fid, data)
-        .then((response) => response.json());
+        let url = this.props.url;
 
-      // Now we have the scald ID, and pass that to the form submission function
-      let sid = fileAtom.sid;
-      this.props.setFormValue(this.props.fieldName, sid, index);
+        const createdScald = await fetch(url + '/app/scald/create?id=' + fid, data)
+          .then((response) => response.json());
 
-      this.props.enableSubmit();
+        data.method = 'GET';
+        const scaldData = await fetch(url + '/app/scald/retrieve/' + createdScald.sid + '.json', data)
+          .then((response) => response.json());
+
+        let e=1;
+        const copyFile = await FileSystem.copyAsync({
+          from: value.uri,
+          to: this.props.documentDirectory + filename
+        });
+
+        const saveAtom = await this.saveAtom(scaldData);
+
+        this.props.setFormValue(this.props.fieldName, scaldData.sid, index);
+        this.props.enableSubmit();
+        this.setState((state) => {
+          return {
+            placeholder: {},
+            updateExisting: true,
+            add: state.add - 1
+          }
+        });
+          // .catch((error) => console.log(error));
+
+        // Now we have the scald ID, and pass that to the form submission function
+        // let sid = fileAtom.sid;
+
+      }
+      catch (e) {
+        console.error(e);
+        this.props.enableSubmit();
+      }
     }
-    catch (e) {
-      console.error(e);
-      this.props.enableSubmit();
-    }
 
+  }
+
+  async saveAtom(atom) {
+    let t = 1;
+    return new Promise((resolve, reject) => {
+      this.props.db.transaction(
+        tx => {
+          tx.executeSql('replace into atom (sid, title, entity) values (?, ?, ?)',
+            [atom.sid, atom.title, JSON.stringify(atom)],
+            (_, data) => {resolve(atom.sid)},
+            (_, error) => { reject(error);}
+          );
+        }
+      );
+    });
   }
 
 
   addItem() {
-    let currentIndex = this.state.numberOfValues;
+    // let currentIndex = this.state.numberOfValues;
 
-    this.setState({numberOfValues: currentIndex + 1}, () => {})
+    this.setState((state) => {
+      return {add: state.add + 1};
+    });
   }
 
   _launchDocumentAsync = async (index, mediaTypes) => {
@@ -127,11 +230,11 @@ export default class Scald extends React.Component {
 
     let result = await DocumentPicker.getDocumentAsync(options);
     if (result.type !== 'cancel') {
-      this.setState({
-        [index]: {
-          chosenDocument: result, chosenImage: null, takenImage: null
-        }
-      });
+      // this.setState({
+      //   [index]: {
+      //     chosenDocument: result, chosenImage: null, takenImage: null
+      //   }
+      // });
       this.handleUpload(this.props.fieldName, result, 'document', index);
     }
   }
@@ -149,17 +252,18 @@ export default class Scald extends React.Component {
         allowsEditing: false,
         mediaTypes: ImagePicker.MediaTypeOptions.All
       });
-      console.log(image);
 
       if (!image.cancelled) {
         const thumbnailUri = await this.getThumbnailUri(image);
-        this.setState({
-          [index]: {
-            chosenImage: image, takenImage: null, chosenDocument: null, thumbnailUri: thumbnailUri
-          }
-        });
 
-        this.handleUpload(this.props.fieldName, image, 'image', index);
+        this.setState({
+            placeholder: {
+              [index]: thumbnailUri
+            }
+          }, () => {
+            this.handleUpload(this.props.fieldName, image, 'image', index);
+          }
+        );
       }
 
     }
@@ -179,21 +283,23 @@ export default class Scald extends React.Component {
     if (!image.cancelled) {
       const thumbnailUri = await this.getThumbnailUri(image);
       this.setState({
-        [index]: {
-          takenImage: image, chosenImage: null, chosenDocument: null, thumbnailUri: thumbnailUri
+          placeholder: {
+            [index]: thumbnailUri
+          }
+        }, () => {
+          this.handleUpload(this.props.fieldName, image, 'camera', index);
         }
-      });
-      this.handleUpload(this.props.fieldName, image, 'camera', index);
+      );
     }
   }
 
   removeFile = (index) => {
-    this.setState(
-      {
-        [index]:
-          {chosenImage: null, takenImage: null, chosenDocument: null, overRidden: true, percent: null}
-      }
-    );
+    // this.setState(
+    //   {
+    //     [index]:
+    //       {chosenImage: null, takenImage: null, chosenDocument: null, overRidden: true, percent: null}
+    //   }
+    // );
 
     this.props.setFormValue(this.props.fieldName, null, index);
   };
@@ -231,7 +337,148 @@ export default class Scald extends React.Component {
     return [];
   };
 
+
   render() {
+    const {fieldName, field, formValues} = this.props;
+    const allowedMediaTypes = this.getAllowedMediaTypes(field);
+    let fieldCount = getFieldValueCount(formValues[fieldName]) + this.state.add;
+    fieldCount = fieldCount || 1;
+    let elements = [];
+    for (let i = 0; i < fieldCount; i++) {
+      const sid = (((formValues[fieldName] || {})['und'] || {})[i] || {})['sid'] || 0;
+      const {existingElements} = this.state;
+      if (sid && existingElements[sid] != null) {
+
+        let mediaIconType = 'file-text-o';
+        switch (existingElements[sid].type) {
+          case 'video':
+            mediaIconType = 'file-video-o';
+            break;
+
+          case 'audio':
+            mediaIconType = 'file-audio-o';
+            break;
+
+          case 'image':
+            mediaIconType = 'file-image-o';
+            break;
+        }
+        const mediaIcon = <FontAwesome name={mediaIconType} size={16} />;
+
+        const removeFileText = `Remove ${existingElements[sid].type}`;
+        const removeButton = <Button color="red" title={removeFileText} onPress={() => this.removeFile(i)}/>;
+
+        let mediaElement;
+
+        if (existingElements[sid].type === 'image') {
+          const uri = this.state.placeholder[i] != null ? this.state.placeholder[i] : existingElements[sid].file;
+          mediaElement = (
+            <Image
+              source={{uri: existingElements[sid].file}}
+              resizeMode={'contain'}
+              style={{
+                height: 300,
+                width: 350
+              }}/>
+          );
+        }
+        else if (existingElements[sid].type === 'video' && !existingElements[sid].remote) {
+
+        }
+
+        else {
+          mediaElement = <Text style={{textTransform: 'uppercase', fontSize: 16}}>{mediaIcon} {existingElements[sid].title}</Text>
+        }
+
+        const el =(
+          <View style={styles.element} key={i}>
+            {mediaElement}
+            {removeButton}
+          </View>);
+        elements.push(el);
+      }
+      else {
+        let preview;
+        if (this.state.placeholder[i] != null) {
+          preview = (<Image
+            source={{uri: this.state.placeholder[i]}}
+            resizeMode={'contain'}
+            style={{
+              height: 300,
+              width: 350
+            }}/>);
+        }
+
+        const buttons = [];
+        if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
+          buttons.push(<Button key={'roll-btn'} title={'Select photo/video'}
+                               onPress={() => this._launchCameraRollAsync(i)}/>);
+          buttons.push(<Button key={'camera-btn'} title={'Take photo/video'}
+                               onPress={() => this._launchCameraAsync(i)}/>);
+        }
+        if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
+          buttons.push(<Button key={'file-btn'} title={'Select audio/document'}
+                               onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/>);
+        }
+
+        let line;
+        let showButtons = true;
+        if (this.state.uploadProgress[i] && this.state.uploadProgress[i] > 0 && this.state.uploadProgress[i] < 1) {
+          showButtons = false;
+          line = (<View>
+            <Text>Uploading...</Text>
+            <ProgressBar progress={this.state.uploadProgress[i]} width={200}/>
+          </View>);
+        }
+        else if (this.state.uploadProgress[i] && this.state.uploadProgress[i] === 1) {
+          showButtons = false;
+          line = (<View>
+            <Text>Upload Complete</Text>
+          </View>);
+        }
+
+        elements.push(<View style={styles.element} key={`btn-group-${i}`}>
+          {preview}
+          {line}
+          {showButtons && buttons}
+        </View>);
+      }
+
+      if(!this.state.permission) {
+        elements.push(<Text key={'warning'}>To upload media, please give this app permission to access
+            photos/camera in your device's settings.</Text>);
+      }
+
+    }
+
+    let addMoreButton;
+    let addMoreText = 'Add Another'; // Default in case it's not passed in props
+    if (this.props.addMoreText) {
+      addMoreText = this.props.addMoreText;
+    }
+    // Check for cardinality
+    if (this.props.cardinality === '-1' && this.state.permission) {
+      addMoreButton = <Button
+        title={addMoreText}
+        onPress={this.addItem.bind(this)}
+      />
+    }
+
+
+    return (
+      <View>
+        <Text style={styles.titleTextStyle}>Media Assets</Text>
+        <Required required={this.props.required}/>
+        <View style={styles.container}>
+          {elements}
+        </View>
+        {addMoreButton}
+      </View>)
+      ;
+
+  }
+
+  _bob() {
 
     let elements = []
     let fieldName = this.props.fieldName;
@@ -439,7 +686,7 @@ export default class Scald extends React.Component {
         removefile = <Button color="red" title={removeFileText} onPress={() => this.removeFile(i)}/>;
       }
 
-      let element = <View key={i}>{doctext}{line}{image}{camerabutton}{photobutton}{takenImage}{docbutton}{removefile}{permissionText}</View>;
+      let element = <View style={styles.element} key={i}>{doctext}{line}{image}{camerabutton}{photobutton}{takenImage}{docbutton}{removefile}{permissionText}</View>;
       elements.push(element);
 
     }
@@ -460,29 +707,43 @@ export default class Scald extends React.Component {
 
 
     return (
-      <View style={styles.container}>
-        <Text>{field['#title']}</Text>
+      <View>
+        <Text style={styles.titleTextStyle}>Media Assets</Text>
         <Required required={this.props.required}/>
-        <View style={{
-          flexDirection: 'row'
-        }}>
+        <View style={styles.container}>
+          {elements}
         </View>
-        {elements}
         {addMoreButton}
       </View>
 
     );
   }
+
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: Constants.statusBarHeight,
+    // alignItems: 'center',
+    // justifyContent: 'center',
+    paddingTop: 0,
     backgroundColor: '#ecf0f1',
-    marginBottom: 15
+    marginBottom: 10,
+    // flexDirection: 'column'
+  },
+  titleTextStyle: {
+
+    color: '#000',
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  element: {
+    flex: 1,
+    alignItems: 'center',
+    paddingBottom: 10,
+    paddingTop: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: '#fff'
   },
   paragraph: {
     margin: 24,

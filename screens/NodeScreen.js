@@ -18,6 +18,7 @@ import axios from "axios";
 import * as Colors from "../constants/Colors";
 import {EmbeddedNode} from "../components/EmbeddedNode";
 import NodeTeaser from "../components/Displays/nodeTeaser";
+import {ScaldSwipe} from '../components/ScaldSwipe';
 
 
 // create a global db for database list and last known user
@@ -151,8 +152,9 @@ class NodeScreen extends React.Component {
         )
       }
       let type = fieldObject.view_mode_properties.type;
+      console.log(fieldObject.view_mode_properties.type);
 
-      if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link') {
+      if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link' || fieldObject.view_mode_properties.type === 'textformatter_list') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           let fieldData = '';
@@ -251,22 +253,28 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'ma_colorbox') {
         // Scald item
         let items = node[fieldName][lang];
-        for (i = 0; i < items.length; i++) {
-
-          let sid = items[i].sid;
-          renderedNode.push(
-            <ScaldItem
-              token={this.props.screenProps.token}
-              cookie={this.props.screenProps.cookie}
-              url={this.props.screenProps.siteUrl}
-              sid={sid}
-              db={this.props.screenProps.db}
-              key={sid}
-              documentDirectory={this.props.screenProps.documentDirectory}
-            />
-          );
-          // Current request is to just show one of these
-          break;
+        if (items.length > 1) {
+          renderedNode.push(<ScaldSwipe
+            items={items}
+            token={this.props.screenProps.token}
+            cookie={this.props.screenProps.cookie}
+            url={this.props.screenProps.siteUrl}
+            db={this.props.screenProps.db}
+            key={`scald-swipe-${fieldName}`}
+            documentDirectory={this.props.screenProps.documentDirectory}
+          />)
+        }
+        else if (items.length === 1) {
+          let sid = items[0].sid;
+          renderedNode.push(<ScaldItem
+            token={this.props.screenProps.token}
+            cookie={this.props.screenProps.cookie}
+            url={this.props.screenProps.siteUrl}
+            sid={sid}
+            db={this.props.screenProps.db}
+            key={sid}
+            documentDirectory={this.props.screenProps.documentDirectory}
+          />)
         }
       }
 
@@ -286,13 +294,14 @@ class NodeScreen extends React.Component {
               terms={this.props.screenProps.terms}
               contentType={this.props.navigation.getParam('contentType')}
               screenProps={this.props.screenProps}
+              navigation={this.props.navigation}
             />
           );
         }
       }
 
       if (fieldObject.view_mode_properties.type === 'paragraphs_view') {
-        let items = node[fieldName][lang];
+        let items = JSON.parse(JSON.stringify(node[fieldName][lang]));
         // items can include an entry for each revision, which we need to filter out, keeping the most recent revision
         // (I have a suspicion this could be simplified.)
         // first, create array of unique values
@@ -322,7 +331,8 @@ class NodeScreen extends React.Component {
         });
 
         // Now we filter our original array by keeper revision IDs
-        let uniqueItems = items.filter(item => keeperRevisionIds.indexOf(parseInt(item.revision_id, 10)) !== -1);
+        // let uniqueItems = items.filter(item => keeperRevisionIds.indexOf(parseInt(item.revision_id, 10)) !== -1);
+        let uniqueItems = items.filter(item => keeperRevisionIds.includes(item.revision_id));
 
 
         for (i = 0; i < uniqueItems.length; i++) {
@@ -368,7 +378,8 @@ class NodeScreen extends React.Component {
             }*/
 
 
-      if (fieldObject.view_mode_properties.type === 'node_reference_default' || fieldObject.view_mode_properties.type === 'entityreference_label') {
+      if (fieldObject.view_mode_properties.type === 'node_reference_default' ||
+        fieldObject.view_mode_properties.type === 'entityreference_label') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           let fieldData = '';

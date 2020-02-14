@@ -37,7 +37,9 @@ export default class FormComponent extends React.Component {
       formErrors: null,
       submitting: false,
       enabled: true,
-      isNew: props.node === undefined
+      isNew: props.node === undefined,
+      nodeLoaded: false,
+      tmpStore: {}
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.setFormValueSelect = this.setFormValueSelect.bind(this);
@@ -70,7 +72,7 @@ export default class FormComponent extends React.Component {
   preprocessNodeForSaving = () => {
     let node = this.props.node;
     if (node) {
-      this.setState({formValues: node});
+      this.setState({formValues: node, nodeLoaded: true});
     }
   }
 
@@ -565,47 +567,46 @@ export default class FormComponent extends React.Component {
   setFormValueScald(fieldName, value, index = '0', valueKey = 'sid', lang = 'und', error = null) {
     // Save the URI to form state so that we can pass as prop to the Scald form item
     // This allows us to persist the value so that we can tab within the form without losing it
-    this.setState({
-      [fieldName]: {
-        [index]: value
-      }
-    });
+    // this.setState({
+    //   [fieldName]: {
+    //     [index]: value
+    //   }
+    // });
     if (this.state.formValues) {
       let formValues = this.state.formValues;
-      let values;
+      // let values;
+      let newFormValues = JSON.parse(JSON.stringify(formValues));;
       // If we already have a form value for this field, this is a new index
       if (formValues[fieldName] !== undefined && Object.keys(formValues[fieldName]).length > 0) {
 
         // If null is the new value, remove this item.
         if (value == null) {
           // Second case here prevents an error removing images
-          if(typeof formValues[fieldName][lang].splice === 'function') {
-            formValues[fieldName][lang].splice(index, 1);
+          if(typeof newFormValues[fieldName][lang].splice === 'function') {
+            newFormValues[fieldName][lang].splice(index, 1);
           } else {
-            formValues[fieldName][lang][index] = null;
+            newFormValues[fieldName][lang][index] = null;
           }
         }
         else {
-          formValues[fieldName][lang][index] = {
+          newFormValues[fieldName][lang][index] = {
             ['sid']: value
           };
         }
-        let tempvalue = formValues[fieldName];
-        values = {[fieldName]: tempvalue}
-      } else {
-        values = {
-          [fieldName]: {
-            [lang]: {
-              [index]: {
-                ['sid']: value
-              }
+        // let tempvalue = formValues[fieldName];
+        // values = {[fieldName]: tempvalue}
+      }
+      else {
+        newFormValues[fieldName] = {
+          [lang]: {
+            [index]: {
+              [valueKey]: value
             }
           }
-        };
+        }
       }
-      Object.assign(formValues, values);
-      this.setState({formValues: formValues});
-
+      // Object.assign(formValues, values);
+      this.setState({formValues: newFormValues});
     }
   }
 
@@ -1045,24 +1046,25 @@ export default class FormComponent extends React.Component {
                   cardinality = originalFieldArray['und']['#cardinality'];
                 }
 
-                // form[i].push(<Scald
-                //   formValues={this.state.formValues}
-                //   fieldName={fieldName}
-                //   field={fieldArray}
-                //   key={fieldName}
-                //   db={this.props.screenProps.db}
-                //   documentDirectory={this.props.screenProps.documentDirectory}
-                //   setFormValue={this.setFormValueScald.bind(this)}
-                //   formErrors={this.state.formErrors}
-                //   description={description}
-                //   chosenImage={chosenImage}
-                //   cookie={this.props.screenProps.cookie}
-                //   token={this.props.screenProps.token}
-                //   url={this.props.screenProps.siteUrl}
-                //   cardinality={cardinality}
-                //   enableSubmit={this.enableSubmit}
-                //   disableSubmit={this.disableSubmit}
-                // />);
+                form[i].push(<Scald
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  db={this.props.screenProps.db}
+                  documentDirectory={this.props.screenProps.documentDirectory}
+                  setFormValue={this.setFormValueScald.bind(this)}
+                  formErrors={this.state.formErrors}
+                  description={description}
+                  chosenImage={chosenImage}
+                  cookie={this.props.screenProps.cookie}
+                  token={this.props.screenProps.token}
+                  url={this.props.screenProps.siteUrl}
+                  nodeLoaded={this.state.nodeLoaded}
+                  cardinality={cardinality}
+                  enableSubmit={this.enableSubmit}
+                  disableSubmit={this.disableSubmit}
+                />);
               } else if (typeof fieldArray['field_collection_subfields'] === 'object') {
                 form[i].push(<FieldCollectionForm
                   formValues={this.state.formValues}
