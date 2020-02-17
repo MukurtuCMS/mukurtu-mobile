@@ -25,6 +25,7 @@ export class ScaldSwipe extends React.Component {
           db={this.props.db}
           key={index}
           documentDirectory={this.props.documentDirectory}
+          inSlider={true}
         />
       </View>
     );
@@ -58,5 +59,7 @@ export class ScaldSwipe extends React.Component {
 
 
 const styles = StyleSheet.create({
-  slide: {}
+  slide: {
+    height: 300
+  }
 });
