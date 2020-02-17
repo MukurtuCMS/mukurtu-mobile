@@ -26,7 +26,8 @@ export class EmbeddedNode extends React.Component {
       return [];
     }
     if(!this.props.nodes[this.props.nid]) {
-      return;
+      return  <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+        item to Mukurtu Mobile.</Text>;
     }
     const node = this.props.nodes[this.props.nid];
 
@@ -102,7 +103,7 @@ export class EmbeddedNode extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<FieldCollection
+            renderedNode.push(<FieldCollection key={fieldName + i}
               fid={node[fieldName][lang][i]['value']}
               screenProps={this.props.screenProps}
 

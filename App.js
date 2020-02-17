@@ -84,12 +84,15 @@ export default class App extends React.Component {
       'Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
       'Warning: componentWillMount has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
       'Remote debugger',
-      'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation'
+      'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation',
+      'Warning: DatePicker'
     ]);
+
     console.ignoredYellowBox = [
       'Warning: componentWillReceiveProps',
       'Warning: componentWillMount',
-      'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation'
+      'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation',
+      'Warning: DatePicker'
     ];
 
     this.netEventListener = NetInfo.addEventListener(state => {
@@ -112,8 +115,7 @@ export default class App extends React.Component {
   }
 
   handleConnectivityChange = isConnected => {
-    console.log('connection change');
-    console.log(isConnected);
+    console.log('is connected:', isConnected);
 
     this.setState({'isConnected': isConnected});
   }

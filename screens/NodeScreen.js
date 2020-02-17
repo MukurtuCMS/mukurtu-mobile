@@ -4,8 +4,9 @@ import {
   Text,
   View,
   ScrollView,
-  Dimensions, WebView, Image
+  Dimensions, Image
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import * as SQLite from 'expo-sqlite';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
@@ -19,6 +20,7 @@ import * as Colors from "../constants/Colors";
 import {EmbeddedNode} from "../components/EmbeddedNode";
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import {ScaldSwipe} from '../components/ScaldSwipe';
+import {FieldCollection} from "../components/FieldCollection";
 
 
 // create a global db for database list and last known user
@@ -154,7 +156,8 @@ class NodeScreen extends React.Component {
       let type = fieldObject.view_mode_properties.type;
       console.log(fieldObject.view_mode_properties.type);
 
-      if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link' || fieldObject.view_mode_properties.type === 'textformatter_list') {
+      if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link' ||
+        fieldObject.view_mode_properties.type === 'textformatter_list') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           let fieldData = '';
@@ -471,7 +474,18 @@ class NodeScreen extends React.Component {
         }
       }
 
-
+      if(fieldObject.view_mode_properties.type === 'field_collection_view') {
+        if (node[fieldName] != null && node[fieldName][lang]) {
+          for (var i = 0; i < node[fieldName][lang].length; i++) {
+            renderedNode.push(
+              <FieldCollection
+                key={`${fieldName}_fc_${i}`}
+                fid={node[fieldName][lang][i]['value']}
+                screenProps={this.props.screenProps}
+              />);
+          }
+        }
+      }
 
     });
 
@@ -482,7 +496,6 @@ class NodeScreen extends React.Component {
       star =
         <View style={styles.star}>
           <Star
-
             starred={false}
             nid={node.nid}
             nodes={this.props.screenProps.nodes}
