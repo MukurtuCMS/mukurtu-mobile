@@ -21,6 +21,7 @@ import * as FileSystem from 'expo-file-system';
 import FieldCollectionForm from "./FieldCollectionForm";
 import Colors from "../../constants/Colors";
 import {sanitizeFormValues} from './formUtils';
+import _ from 'lodash';
 
 
 export default class FormComponent extends React.Component {
@@ -504,16 +505,17 @@ export default class FormComponent extends React.Component {
     // need different function for checkbox so we can unset values
     if (this.state.formValues) {
       const formValues = this.state.formValues;
+      const currentCheckboxes = _.get(this.state.formValues, [newFieldName, lang], []);
 
       let newCheckedBoxes;
       // Remove if the box was checked.
       if (isChecked) {
-        newCheckedBoxes = this.state.formValues[newFieldName][lang].filter(element => {
+        newCheckedBoxes = currentCheckboxes.filter(element => {
           return element[valueKey] !== newValue;
         });
       }
       else {
-        newCheckedBoxes = [...this.state.formValues[newFieldName][lang], {[valueKey]: newValue}];
+        newCheckedBoxes = [...currentCheckboxes, {[valueKey]: newValue}];
       }
 
       // // check if we are unchecking the box
@@ -525,7 +527,7 @@ export default class FormComponent extends React.Component {
       // save value to state
       this.setState((state) => {
         // formValues: formValues
-        state.formValues[newFieldName][lang] = newCheckedBoxes;
+        state.formValues[newFieldName] = {[lang]: newCheckedBoxes};
         return state;
       });
     }
@@ -564,7 +566,7 @@ export default class FormComponent extends React.Component {
     }
   }
 
-  setFormValueScald(fieldName, value, index = '0', valueKey = 'sid', lang = 'und', error = null) {
+  setFormValueScald(fieldName, value, index = '0', valueKey = 'sid', lang = 'und', error = null, offline = false) {
     // Save the URI to form state so that we can pass as prop to the Scald form item
     // This allows us to persist the value so that we can tab within the form without losing it
     // this.setState({
@@ -575,7 +577,7 @@ export default class FormComponent extends React.Component {
     if (this.state.formValues) {
       let formValues = this.state.formValues;
       // let values;
-      let newFormValues = JSON.parse(JSON.stringify(formValues));;
+      let newFormValues = JSON.parse(JSON.stringify(formValues));
       // If we already have a form value for this field, this is a new index
       if (formValues[fieldName] !== undefined && Object.keys(formValues[fieldName]).length > 0) {
 
@@ -603,6 +605,16 @@ export default class FormComponent extends React.Component {
               [valueKey]: value
             }
           }
+        }
+      }
+
+      if (offline) {
+        const ref = `${fieldName}.${index}`;
+        if (newFormValues['_tmp_atom'] != null && newFormValues['_tmp_atom'][ref] != null) {
+          newFormValues['_tmp_atom'][ref] = value;
+        }
+        else {
+          newFormValues['_tmp_atom'] = {[ref]: value};
         }
       }
       // Object.assign(formValues, values);
@@ -1009,7 +1021,7 @@ export default class FormComponent extends React.Component {
                       screenProps={this.props.screenProps}
                     />;
 
-                    // form[i].push(paragraph);
+                    form[i].push(paragraph);
 
                   } else if (fieldArray['target_id'] !== undefined) {
                     fieldArray = fieldArray['target_id'];

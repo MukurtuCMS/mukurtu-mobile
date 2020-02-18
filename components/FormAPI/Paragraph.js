@@ -4,6 +4,8 @@ import {Button, CheckBox} from "react-native-elements";
 import Textfield from "./Textfield";
 import Select2 from "./Select2";
 import Scald from "./Scald";
+import Textarea from "./Textarea";
+import _ from 'lodash';
 
 export default class Paragraph extends React.Component {
 
@@ -11,16 +13,44 @@ export default class Paragraph extends React.Component {
     super(props);
     this.state = {
       subformValues: {
-        'field_word_entry': {
-          [this.props.lang]: {
-            '0': {}
-          }
-        }
+        // 'field_word_entry': {
+        //   [this.props.lang]: {
+        //     '0': {}
+        //   }
+        // }
       },
-      numberOfForms: 1
+      numberOfForms: 1,
+      empty: true
     };
-
   }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const {fieldName, formValues, lang, screenProps} = this.props;
+    // Only run this once when we get the full node data.
+    if (prevProps.formValues[fieldName] === undefined && formValues[fieldName] != null && formValues[fieldName][lang] != null) {
+      const existingKeys = Object.keys(formValues[fieldName][lang]);
+      if (existingKeys.length > 0) {
+        // Get the existing data saved.
+        const existingValues = {[fieldName]: {[lang]: []}};
+        existingKeys.forEach((i) => {
+          if(formValues[fieldName][lang][i].value != null) {
+            const pData = (screenProps.paragraphData || {})[formValues[fieldName][lang][i].value] || {};
+            const thisExistingValue = Object.keys(pData).reduce((prev, curr) => {
+              if(curr.includes('field_')) {
+                prev[curr] = pData[curr];
+              }
+              return prev;
+            }, {});
+            existingValues[fieldName][lang].push(thisExistingValue);
+          }
+        });
+
+
+        this.setState({numberOfForms: existingKeys.length, empty: false, subformValues: existingValues});
+      }
+    }
+  }
+
 
   enableSubmit() {
     console.log('enable');
@@ -38,7 +68,7 @@ export default class Paragraph extends React.Component {
     })
   }
 
-  removeParagraph() {
+  removeParagraph(index) {
     let currentIndex = this.state.numberOfForms;
 
     // Unset the values for this subform
@@ -57,7 +87,12 @@ export default class Paragraph extends React.Component {
   setParagraphValue(fieldName, value, valueName, lang, options = [], index = 0, subindex = 0) {
     if (this.state.subformValues) {
       let paragraphFieldName = this.props.fieldName;
-      let subformValues = this.state.subformValues;
+      let subformValues = JSON.parse(JSON.stringify(this.state.subformValues));
+
+      // If this is a new form, make sure we have an empty value to start with.
+      if (!_.has(subformValues, [paragraphFieldName, this.props.lang])) {
+        subformValues[paragraphFieldName] = { [this.props.lang]: {}};
+      }
 
       // Format Drupal needs for subform values:
       //   "field_word_entry": {
@@ -113,9 +148,11 @@ export default class Paragraph extends React.Component {
 
       let subformvalue = {};
       // If this field already has a value, just overwrite this subindex
-      if (typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined' &&
-        typeof subformValues[paragraphFieldName][this.props.lang][index][fieldName] !== 'undefined'
-      ) {
+      // if (typeof subformValues[paragraphFieldName][this.props.lang] !== 'undefined' &&
+      //   typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined' &&
+      //   typeof subformValues[paragraphFieldName][this.props.lang][index][fieldName] !== 'undefined'
+      // ) {
+      if (_.has(subformValues, [paragraphFieldName, this.props.lang, index, fieldName])) {
         let currentSubIndexForm = subformValues[paragraphFieldName][this.props.lang][index][fieldName][this.props.lang];
         let newValue = {
           [subindex]: {
@@ -130,9 +167,8 @@ export default class Paragraph extends React.Component {
           }
         };
 
-      } else {
-
-
+      }
+      else {
         subformvalue = {
           [fieldName]: {
             [this.props.lang]: {
@@ -147,7 +183,8 @@ export default class Paragraph extends React.Component {
 
 
       let currentIndexSubForm = {};
-      if (typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined') {
+      // if (typeof subformValues[paragraphFieldName][this.props.lang][index] !== 'undefined') {
+      if (_.has(subformValues, [paragraphFieldName, this.props.lang, index])) {
         currentIndexSubForm = subformValues[paragraphFieldName][this.props.lang][index];
       }
       Object.assign(currentIndexSubForm, subformvalue);
@@ -215,6 +252,14 @@ export default class Paragraph extends React.Component {
     let fields = this.props.field;
     let parentField = this.props.fieldName;
 
+    // If there are parent form values, we need to get subform values from there.
+    // Otherwise subform values won't be saved if you tab between secstions
+    let currentFormValues = this.state.subformValues;
+    if (typeof this.props.formValues['paragraphs'] !== 'undefined') {
+      currentFormValues = this.props.formValues['paragraphs'];
+    }
+
+
     // First put the relevant field values into an array so we can sort them by weight
     // For full nodes this is done before the component function, but it seems tidier to isolate all the paragraph functionality.
     let formFields = [];
@@ -241,11 +286,14 @@ export default class Paragraph extends React.Component {
       }
 
       let fieldName;
+      let scaldForm = {};
+
       if (subfield['#field_name'] !== undefined) {
         fieldName = subfield['#field_name'];
       }
       else if(subfield['sid'] !== undefined && subfield['sid']['#field_name'] !== undefined) {
         fieldName = subfield['sid']['#field_name'];
+        scaldForm = _.get(currentFormValues, [parentField, 'und', index], {});
       }
 
       let fieldTitle = '';
@@ -276,37 +324,32 @@ export default class Paragraph extends React.Component {
         description = originalSubField['und']['#description'];
       }
 
-      // If there are parent form values, we need to get subform values from there.
-      // Otherwise subform values won't be saved if you tab between secstions
-      let currentFormValues = this.state.subformValues;
-      if (typeof this.props.formValues['paragraphs'] !== 'undefined') {
-        currentFormValues = this.props.formValues['paragraphs'];
-      }
-
-
      if(subfield['sid'] !== undefined) {
 
-        paragraphForm.push(
-          <Scald
-            formValues={currentFormValues}
-            fieldName={fieldName}
-            field={subfield}
-            key={fieldName}
-            setFormValue={this.setParagraphValueScald.bind(this)}
-            description={description}
-            // chosenImage={chosenImage}
-            cookie={this.props.screenProps.cookie}
-            token={this.props.screenProps.token}
-            url={this.props.screenProps.siteUrl}
-            cardinality={cardinality}
-            enableSubmit={this.enableSubmit}
-            disableSubmit={this.disableSubmit}
-          />
-        )
+        // paragraphForm.push(
+        //   <Scald
+        //     formValues={scaldForm}
+        //     fieldName={fieldName}
+        //     field={subfield}
+        //     key={fieldName}
+        //     db={this.props.screenProps.db}
+        //     documentDirectory={this.props.screenProps.documentDirectory}
+        //     setFormValue={this.setParagraphValueScald.bind(this)}
+        //     description={description}
+        //     nodeLoaded={true}
+        //     // chosenImage={chosenImage}
+        //     cookie={this.props.screenProps.cookie}
+        //     token={this.props.screenProps.token}
+        //     url={this.props.screenProps.siteUrl}
+        //     cardinality={cardinality}
+        //     enableSubmit={this.enableSubmit}
+        //     disableSubmit={this.disableSubmit}
+        //   />
+        // )
 
       }
       else if (subfield !== undefined && subfield['#columns'] !== undefined) {
-        if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
+        if (subfield['#columns']['0'] !== undefined && (subfield['#columns']['0'] === 'tid' || subfield['#columns']['0'] === 'target_id')) {
           paragraphForm.push(<Select2
             index={index}
             formValues={currentFormValues}
@@ -339,14 +382,15 @@ export default class Paragraph extends React.Component {
     }, this);
 
     // Add remove button if this isn't the first one
-    if (index > 0) {
+
       let removeButton = <Button
+        key={`remove-btn-${index}`}
         index={index}
         title="Remove"
         onPress={this.removeParagraph.bind(this)}
       />;
       paragraphForm.push(removeButton);
-    }
+
 
     return paragraphForm;
   }
@@ -356,11 +400,25 @@ export default class Paragraph extends React.Component {
 
     let paragraphForms = [];
 
-    let paragraphTitle = <Text>{this.props.paragraphTitle}</Text>;
+    let paragraphTitle = <Text key={'p-title'} style={styles.title}>{this.props.paragraphTitle}</Text>;
+
+    const {field, fieldName, formValues} = this.props;
+
+
+    let lang = 'und';
+    if (formValues[fieldName]) {
+      lang = Object.keys(formValues[fieldName])[0];
+    }
+
 
     for (let i = 0; i < this.state.numberOfForms; i++) {
+    // for (let i in Object.keys(formValues[fieldName][lang]) {
       let paragraphForm = this.createParagraphForm(i);
-      paragraphForms.push(paragraphForm);
+      const num = i +1;
+      paragraphForms.push(<View style={styles.pItem} key={`p-item-${i}`}>
+        <Text key={`p-item-title${i}`}>{this.props.paragraphTitle} #{num}</Text>
+        {paragraphForm}
+      </View>);
     }
 
 
@@ -368,6 +426,7 @@ export default class Paragraph extends React.Component {
     let paragraphFormButton;
     if (this.props.field['actions'] !== undefined) {
       paragraphFormButton = <Button
+        key={'p-buttons'}
         title={this.props.addMoreText}
         onPress={this.addParagraph.bind(this)}
       />
@@ -375,7 +434,9 @@ export default class Paragraph extends React.Component {
 
     return <View style={styles.viewStyle}>
       {paragraphTitle}
-      {paragraphForms}
+      <View key={'p-container'} style={styles.pContainer}>
+        {paragraphForms}
+      </View>
       {paragraphFormButton}
     </View>;
   }
@@ -384,5 +445,20 @@ export default class Paragraph extends React.Component {
 const styles = StyleSheet.create({
   viewStyle: {
     marginBottom: 15,
-  }
+  },
+  pContainer: {
+    // borderColor: '#ccc',
+    // borderWidth: 1,
+    // padding: 10,
+    // paddingBottom: 0
+  },
+  pItem: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 15,
+  },
+  title: {
+    fontSize: 20
+  },
 });

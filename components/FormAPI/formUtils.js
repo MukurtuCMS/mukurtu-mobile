@@ -1,3 +1,4 @@
+import _ from 'lodash';
 
 export const getFieldLanguage = (field) => {
 
@@ -82,6 +83,13 @@ export const sanitizeFormValues = (data, screenProps) => {
           const iterateArray = typeof formValues[key][lang] === "object" ? Object.values(formValues[key][lang]) : formValues[key][lang];
           iterateArray.forEach(entry => tempObject.push(entry[valueKey]));
           formValues[key][lang] = tempObject;
+        }
+        // Sanitzie geo fields
+        else if(_.has(formValues,[key, lang, 0, 'geom'])) {
+          formValues[key][lang] = [{
+            lat: formValues[key][lang][0].lat,
+            lon: formValues[key][lang][0].lon
+          }];
         }
 
         // For certain fields we have to hardcode the language key.

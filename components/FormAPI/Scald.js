@@ -12,6 +12,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import {getFieldValueCount} from './formUtils';
 import {FontAwesome} from "@expo/vector-icons";
 import NetInfo from '@react-native-community/netinfo';
+import {Video} from "expo-av";
 
 // To do on this if we have time:
 // 1. Ensure that if images are removed they're removed from drupal side.
@@ -97,10 +98,9 @@ export default class Scald extends React.Component {
 
   async handleUpload(fieldName, value, type, index = '0', lang = 'und', error = null,) {
 
-
-    // @todo: Handle the offline status here
+    this.props.disableSubmit();
     const online = await NetInfo.fetch().then(state => state.isConnected);
-
+    let filename = type === 'document' ? value.name : value.uri.split('/').pop();
     // let indexState = this.state[index];
     // indexState['overriden'] = true;
     // this.setState({
@@ -108,8 +108,6 @@ export default class Scald extends React.Component {
     // });
 
     if (online) {
-      this.props.disableSubmit();
-      let filename = type === 'document' ? value.name : value.uri.split('/').pop();
       let postUrl = this.props.url + '/app/file/create_raw';
       var fd = new FormData();
       fd.append("files", {
@@ -195,11 +193,36 @@ export default class Scald extends React.Component {
         this.props.enableSubmit();
       }
     }
+    else {
+
+      const copyFile = await FileSystem.copyAsync({
+        from: value.uri,
+        to: this.props.documentDirectory + filename
+      });
+
+      const tmpSid = Math.floor(Math.random() * 100000000);
+
+      const atom = {
+        sid: parseInt(`919191${tmpSid}`),
+        type: type,
+        title: filename
+      };
+
+      const saveAtom = await this.saveAtom(atom);
+      this.props.setFormValue(this.props.fieldName, atom.sid, index, 'sid', 'und', null, true);
+      this.props.enableSubmit();
+      this.setState((state) => {
+        return {
+          placeholder: {},
+          updateExisting: true,
+          add: state.add - 1
+        }
+      });
+    }
 
   }
 
   async saveAtom(atom) {
-    let t = 1;
     return new Promise((resolve, reject) => {
       this.props.db.transaction(
         tx => {
@@ -293,7 +316,7 @@ export default class Scald extends React.Component {
     }
   }
 
-  removeFile = (index) => {
+  removeFile = async (index) => {
     // this.setState(
     //   {
     //     [index]:
@@ -301,7 +324,8 @@ export default class Scald extends React.Component {
     //   }
     // );
 
-    this.props.setFormValue(this.props.fieldName, null, index);
+    const online = await NetInfo.fetch().then(state => state.isConnected);
+    this.props.setFormValue(this.props.fieldName, null, index, 'sid', 'und', null, !online);
   };
 
   getThumbnailUri = async (mediaObject) => {
@@ -374,7 +398,7 @@ export default class Scald extends React.Component {
           const uri = this.state.placeholder[i] != null ? this.state.placeholder[i] : existingElements[sid].file;
           mediaElement = (
             <Image
-              source={{uri: existingElements[sid].file}}
+              source={{uri: uri}}
               resizeMode={'contain'}
               style={{
                 height: 300,
@@ -383,7 +407,23 @@ export default class Scald extends React.Component {
           );
         }
         else if (existingElements[sid].type === 'video' && !existingElements[sid].remote) {
-
+          const thumbnail = this.state.placeholder[i] != null ? this.state.placeholder[i] : false;
+          mediaElement = thumbnail ? (<Image
+                source={{uri: thumbnail}}
+                resizeMode={'contain'}
+                style={{
+                  height: 300,
+                  width: 350
+                }}/>) :
+            (<Video
+              source={{uri: existingElements[sid].file}}
+              rate={1.0}
+              volume={1.0}
+              isMuted={true}
+              resizeMode={Video.RESIZE_MODE_CONTAIN}
+              useNativeControls={true}
+              style={{width: 350, height: 300}}
+            />);
         }
 
         else {

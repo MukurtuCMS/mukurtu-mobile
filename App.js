@@ -21,6 +21,7 @@ import axios from "axios";
 import AppHeader from "./components/AppHeader";
 import * as FileSystem from "expo-file-system";
 import NetInfo from '@react-native-community/netinfo';
+import {sanitizeFormValues} from "./components/FormAPI/formUtils";
 
 
 const store = configureStore();
@@ -355,9 +356,9 @@ export default class App extends React.Component {
     // Remove auth from site database
     if (this.state.db) {
       this.state.db.transaction(tx => {
-        tx.executeSql(
-          'delete from auth;',
-        );
+        tx.executeSql('delete from auth;');
+        // Clear the queue
+        tx.executeSql('delete from saved_offline;');
       });
     }
 
@@ -1136,6 +1137,196 @@ export default class App extends React.Component {
   }
 
 
+  pushOfflineAtoms = async (formValues) => {
+    console.log('Checking for offline media');
+    const formData = JSON.parse(JSON.stringify(formValues));
+    if (formData._tmp_atom == null) {
+      return formData;
+    }
+    for (let key of Object.keys(formData._tmp_atom)) {
+      console.log(`Offline item ${formData.title}: ${key}`);
+      const keyParts = key.split('.');
+
+      // const test = await this.queryDB('select * from atom', '');
+
+      const tmpAtoms = await this.queryDB('select * from atom WHERE sid = ?', [formData._tmp_atom[key]]);
+      const atom = tmpAtoms[0];
+      if (atom != null) {
+        console.log('Found offline media');
+        const uri = FileSystem.documentDirectory + atom.title;
+        var fd = new FormData();
+        fd.append("files", {
+          uri: Platform.OS === "android" ? uri : uri.replace("file:/", ""),
+          name: atom.title,
+          type: "multipart/form-data"
+        });
+        try {
+          const fileUpload = await axios({
+            method: 'post',
+            url: this.state.siteUrl + '/app/file/create_raw',
+            data: fd,
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'multipart/form-data',
+              'X-CSRF-Token': this.state.token,
+              'Cookie': this.state.cookie
+            }
+          });
+          let fid = fileUpload.data[0].fid;
+
+          // Now we submit the file to create the atom
+          const data = {
+            method: 'post',
+            mode: 'cors',
+            cache: 'no-cache',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': this.state.token,
+              'Cookie': this.state.cookie
+            },
+            redirect: 'follow',
+            referrer: 'no-referrer',
+          };
+
+          let url = this.state.siteUrl;
+
+          const createdScald = await fetch(url + '/app/scald/create?id=' + fid, data)
+            .then((response) => response.json())
+            .catch(e => console.log('Issue uploading the file:', e));
+
+          data.method = 'GET';
+          const scaldData = await fetch(url + '/app/scald/retrieve/' + createdScald.sid + '.json', data)
+            .then((response) => response.json())
+            .catch(e => console.log('Issue creating the scald:', e));
+
+          await this.queryDB(
+            'replace into atom (sid, title, entity) values (?, ?, ?)',
+            [scaldData.sid, scaldData.title, JSON.stringify(scaldData)])
+            .then(() => console.log('Replaced local DB'))
+            .catch((e) => console.log('Issue writing the DB', e));
+
+          await this.queryDB(
+            'DELETE FROM atom WHERE sid = ?',
+            [formData._tmp_atom[key]])
+            .then(() =>  console.log('Removed temp entry'))
+            .catch((e) => console.log('Issue writing the DB', e));
+
+          if (formData[keyParts[0]].und != null) {
+            formData[keyParts[0]].und[keyParts[1]].sid = scaldData.sid;
+          }
+          else if (formData[keyParts[0]][keyParts[0]] != null) {
+            formData[keyParts[0]][keyParts[1]].sid = scaldData.sid;
+          }
+        }
+        catch (e) {
+          console.log('Error trying to upload offline media:', e);
+        }
+      }
+      else {
+        console.log('No local entry found');
+      }
+
+
+      // await this.state.db.transaction(tx => {
+      //   tx.executeSql(`select * from atom WHERE sid = ?`, formData._tmp_atom[key],
+      //     async (trx, atoms) => {
+      //       const atom = atoms.rows._array[0];
+      //       if (atom != null) {
+      //         console.log('Found offline media');
+      //         const uri = this.state.documentDirectory + atom.title;
+      //         var fd = new FormData();
+      //         fd.append("files", {
+      //           uri: Platform.OS === "android" ? uri : uri.replace("file:/", ""),
+      //           name: filename,
+      //           type: "multipart/form-data"
+      //         });
+      //         try {
+      //           const fileUpload = await axios({
+      //             method: 'post',
+      //             url: this.state.url + '/app/file/create_raw',
+      //             data: fd,
+      //             headers: {
+      //               'Accept': 'application/json',
+      //               'Content-Type': 'multipart/form-data',
+      //               'X-CSRF-Token': this.state.token,
+      //               'Cookie': this.state.cookie
+      //             }
+      //           });
+      //           let fid = fileUpload.data[0].fid;
+      //
+      //           // Now we submit the file to create the atom
+      //           const data = {
+      //             method: 'post',
+      //             mode: 'cors',
+      //             cache: 'no-cache',
+      //             headers: {
+      //               'Accept': 'application/json',
+      //               'Content-Type': 'application/json',
+      //               'X-CSRF-Token': this.props.token,
+      //               'Cookie': this.props.cookie
+      //             },
+      //             redirect: 'follow',
+      //             referrer: 'no-referrer',
+      //           };
+      //
+      //           let url = this.state.url;
+      //
+      //           const createdScald = await fetch(url + '/app/scald/create?id=' + fid, data)
+      //             .then((response) => response.json())
+      //             .catch(e => console.log('Issue uploading the file:', e));
+      //
+      //           data.method = 'GET';
+      //           const scaldData = await fetch(url + '/app/scald/retrieve/' + createdScald.sid + '.json', data)
+      //             .then((response) => response.json())
+      //           .catch(e => console.log('Issue creating the scald:', e));
+      //
+      //           tx.executeSql(
+      //             'replace into atom (sid, title, entity) values (?, ?, ?)',
+      //             [scaldData.sid, scaldData.title, JSON.stringify(scaldData)],
+      //             (_, success) => console.log('Replaced local DB'),
+      //             (_, error) => console.log('Issue writing the DB', error)
+      //           );
+      //           tx.executeSql(
+      //             'DELETE FROM atom WHERE sid = ?',
+      //             formData._tmp_atom[key],
+      //             (_, success) => console.log('Removed temp entry'),
+      //             (_, error) => console.log('Issue writing the DB', error)
+      //           );
+      //
+      //           if (formData[keyParts[0]].und != null) {
+      //             formData[keyParts[0]].und[keyParts[1]] = scaldData.sid;
+      //           }
+      //           else if (formData[keyParts[0]][keyParts[0]] != null) {
+      //             formData[keyParts[0]][keyParts[1]] = scaldData.sid;
+      //           }
+      //         }
+      //         catch (e) {
+      //           console.log('Error trying to upload offline media:', e);
+      //         }
+      //       }
+      //       else {
+      //         console.log('No local entry found');
+      //       }
+      //     });
+      // });
+    }
+    return formData;
+  };
+
+  queryDB = (query, args) => {
+    return new Promise((resolve, reject) => {
+      this.state.db.transaction(tx => {
+       tx.executeSql(
+         query,
+         args,
+         (_, result) => resolve(result.rows._array),
+         (_, error) => reject(error)
+        );
+      });
+    });
+  };
+
   pushSavedOffline() {
 
     return new Promise((resolve, reject) => {
@@ -1143,118 +1334,134 @@ export default class App extends React.Component {
       if (!this.state.isConnected) {
         resolve();
       }
-
       this.state.db.transaction(
         tx => {
           tx.executeSql('select * from saved_offline',
             [],
             (success, array) => {
               console.log('pushing saved nodes');
-              if(array.rows._array.length === 0) {
+              if (array.rows._array.length === 0) {
                 resolve();
               }
+              const promises = [];
               for (let i = 0; i < array.rows._array.length; i++) {
                 console.log('iterating through');
                 let formValuesString = array.rows._array[i].blob;
-                let formValues = JSON.parse(array.rows._array[i].blob);
+                promises.push(this.pushOfflineAtoms(JSON.parse(formValuesString))
+                  .then((formValues) => {
+                    //  START
+                    let currentId = array.rows._array[i].id;
 
-                let currentId = array.rows._array[i].id;
+                    // Largely copied from Form.js method for updating existing
+                    // nodes, but our state setting is different here
+                    if (formValues.nid) {
+                      const sanitizedValues = sanitizeFormValues(formValues, {formFields: this.state.formFields});
+                      console.log('here');
+                      const token = this.state.token;
+                      const cookie = this.state.cookie;
+                      const data = {
+                        method: 'PUT',
+                        mode: 'cors',
+                        cache: 'no-cache',
+                        headers: {
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json',
+                          'X-CSRF-Token': token,
+                          'Cookie': cookie
+                        },
+                        redirect: 'follow',
+                        referrer: 'no-referrer',
+                        body: JSON.stringify(sanitizedValues)
+                      };
 
-                // Largely copied from Form.js method for updating existing nodes, but our state setting is different here
-                if (formValues.nid) {
-                  console.log('here');
-                  const token = this.state.token;
-                  const cookie = this.state.cookie;
-                  const data = {
-                    method: 'PUT',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    headers: {
-                      'Accept': 'application/json',
-                      'Content-Type': 'application/json',
-                      'X-CSRF-Token': token,
-                      'Cookie': cookie
-                    },
-                    redirect: 'follow',
-                    referrer: 'no-referrer',
-                    body: formValuesString
-                  };
+                      fetch(this.state.siteUrl + '/app/node/' + formValues.nid + '.json', data)
+                        .then((response) => response.json())
+                        .then((responseJson) => {
 
-                  fetch(this.state.siteUrl + '/app/node/' + formValues.nid + '.json', data)
-                    .then((response) => response.json())
-                    .then((responseJson) => {
+                          if (typeof responseJson.form_errors === 'object') {
+                            let error = '';
+                            for (let key in responseJson.form_errors) {
+                              error = error + responseJson.form_errors[key] + ' ';
+                            }
+                            this.setNodeSyncMessage('error', currentId, error)
+                          }
+                          else {
+                            this.deleteFromQueue(currentId);
+                          }
+                          // resolve();
+                          return true;
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                          // resolve();
+                          return false;
+                        });
+                    }
+                    else {
+                      console.log('there');
+                      fetch(this.state.siteUrl + '/app/node.json', {
+                        method: 'POST',
+                        mode: 'cors',
+                        cache: 'no-cache',
+                        // credentials: 'same-origin',
+                        headers: {
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json',
+                          'X-CSRF-Token': this.state.token,
+                          'Cookie': this.state.cookie
+                        },
+                        redirect: 'follow',
+                        referrer: 'no-referrer',
+                        body: formValuesString,
+                      })
+                        .then((response) => {
 
+                          // Just skip the rest if we get a bad response
+                          if (response.ok === false) {
+                            this.setNodeSyncMessage('error', currentId, 'Node submission failed. Please try again.')
+                          }
+                          return response.json();
+                        })
+                        .then((responseJson) => {
+                          console.log('ok');
 
-                      if (typeof responseJson.form_errors === 'object') {
-                        let error = '';
-                        for (let key in responseJson.form_errors) {
-                          error = error + responseJson.form_errors[key] + ' ';
-                        }
-                        this.setNodeSyncMessage('error', currentId, error)
-                      } else {
-                        this.deleteFromQueue(currentId);
-                      }
-                      resolve();
-                    })
-                    .catch((error) => {
-                      resolve();
-                    });
-                } else {
-                  console.log('there');
-                  fetch(this.state.siteUrl + '/app/node.json', {
-                    method: 'POST',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    // credentials: 'same-origin',
-                    headers: {
-                      'Accept': 'application/json',
-                      'Content-Type': 'application/json',
-                      'X-CSRF-Token': this.state.token,
-                      'Cookie': this.state.cookie
-                    },
-                    redirect: 'follow',
-                    referrer: 'no-referrer',
-                    body: formValuesString,
+                          if (responseJson.hasOwnProperty('nid')) {
+                            this.updateSyncedNids(responseJson.nid);
+                            // If we have a nid, we remove this from the queued
+                            // nodes
+                            this.deleteFromQueue(currentId);
+                          }
+
+                          if (typeof responseJson.form_errors === 'object') {
+
+                            let error = '';
+                            for (let key in responseJson.form_errors) {
+                              error = error + responseJson.form_errors[key] + ' ';
+                            }
+                            this.setNodeSyncMessage('error', currentId, error)
+
+                          }
+                          else {
+
+                          }
+
+                          // resolve();
+                          return true;
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                          // resolve();
+                          return false;
+                        });
+                    }
+
+                    //  FINISH
                   })
-                    .then((response) => {
+                );
 
-                      // Just skip the rest if we get a bad response
-                      if (response.ok === false) {
-                        this.setNodeSyncMessage('error', currentId, 'Node submission failed. Please try again.')
-                      }
-                      return response.json();
-                    })
-                    .then((responseJson) => {
-                      console.log('ok');
-
-                      if (responseJson.hasOwnProperty('nid')) {
-                        this.updateSyncedNids(responseJson.nid);
-                        // If we have a nid, we remove this from the queued nodes
-                        this.deleteFromQueue(currentId);
-                      }
-
-                      if (typeof responseJson.form_errors === 'object') {
-
-                        let error = '';
-                        for (let key in responseJson.form_errors) {
-                          error = error + responseJson.form_errors[key] + ' ';
-                        }
-                        this.setNodeSyncMessage('error', currentId, error)
-
-                      } else {
-
-                      }
-
-                      resolve();
-
-                    })
-                    .catch((error) => {
-                      console.log(error);
-                      resolve();
-                    });
-                }
 
               }
+              Promise.all(promises).then(res => resolve());
 
             },
             (success, error) => {
@@ -1267,7 +1474,6 @@ export default class App extends React.Component {
 
 
     });
-
 
 
   }
