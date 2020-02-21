@@ -23,18 +23,30 @@ export default class Paragraph extends React.Component {
       empty: true
     };
   }
+  componentDidMount() {
+    this.loadParagraphData();
+  }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     const {fieldName, formValues, lang, screenProps} = this.props;
-    // Only run this once when we get the full node data.
-    if (prevProps.formValues[fieldName] === undefined && formValues[fieldName] != null && formValues[fieldName][lang] != null) {
+    // Run again if on mount there was no node data.
+    if (prevProps.formValues[fieldName] === undefined && _.has(formValues, [fieldName, lang])) {
+      this.loadParagraphData();
+    }
+  }
+
+  loadParagraphData = () => {
+    const {fieldName, formValues, lang, screenProps} = this.props;
+    if (_.has(formValues, [fieldName, lang])) {
       const existingKeys = Object.keys(formValues[fieldName][lang]);
       if (existingKeys.length > 0) {
         // Get the existing data saved.
         const existingValues = {[fieldName]: {[lang]: []}};
         existingKeys.forEach((i) => {
           if(formValues[fieldName][lang][i].value != null) {
-            const pData = (screenProps.paragraphData || {})[formValues[fieldName][lang][i].value] || {};
+
+            const pData = _.get(screenProps.paragraphData, [formValues[fieldName][lang][i].value], {});
+            // const pData = (screenProps.paragraphData || {})[formValues[fieldName][lang][i].value] || {};
             const thisExistingValue = Object.keys(pData).reduce((prev, curr) => {
               if(curr.includes('field_')) {
                 prev[curr] = pData[curr];
@@ -45,11 +57,10 @@ export default class Paragraph extends React.Component {
           }
         });
 
-
         this.setState({numberOfForms: existingKeys.length, empty: false, subformValues: existingValues});
       }
     }
-  }
+  };
 
 
   enableSubmit() {
@@ -250,10 +261,11 @@ export default class Paragraph extends React.Component {
   createParagraphForm(index) {
     let paragraphForm = [];
     let fields = this.props.field;
+    let lang = this.props.lang;
     let parentField = this.props.fieldName;
 
     // If there are parent form values, we need to get subform values from there.
-    // Otherwise subform values won't be saved if you tab between secstions
+    // Otherwise subform values won't be saved if you tab between sections
     let currentFormValues = this.state.subformValues;
     if (typeof this.props.formValues['paragraphs'] !== 'undefined') {
       currentFormValues = this.props.formValues['paragraphs'];
@@ -350,9 +362,11 @@ export default class Paragraph extends React.Component {
       }
       else if (subfield !== undefined && subfield['#columns'] !== undefined) {
         if (subfield['#columns']['0'] !== undefined && (subfield['#columns']['0'] === 'tid' || subfield['#columns']['0'] === 'target_id')) {
+          // Need to go one level deeper for select items
+          const selectFormValues = _.get(currentFormValues, [parentField, lang, index], {});
           paragraphForm.push(<Select2
             index={index}
-            formValues={currentFormValues}
+            formValues={selectFormValues}
             fieldName={fieldName}
             field={subfield}
             key={fieldName}
@@ -400,7 +414,7 @@ export default class Paragraph extends React.Component {
 
     let paragraphForms = [];
 
-    let paragraphTitle = <Text key={'p-title'} style={styles.title}>{this.props.paragraphTitle}</Text>;
+    let paragraphTitle = <Text key={'p-title'} style={styles.title}>{this.props.paragraphTitle} [VIEW ONLY]</Text>;
 
     const {field, fieldName, formValues} = this.props;
 
@@ -432,7 +446,7 @@ export default class Paragraph extends React.Component {
       />
     }
 
-    return <View style={styles.viewStyle}>
+    return <View pointerEvents={'none'} style={styles.viewStyle}>
       {paragraphTitle}
       <View key={'p-container'} style={styles.pContainer}>
         {paragraphForms}
@@ -445,6 +459,8 @@ export default class Paragraph extends React.Component {
 const styles = StyleSheet.create({
   viewStyle: {
     marginBottom: 15,
+    paddingVertical: 5,
+    backgroundColor: '#FFE9DD'
   },
   pContainer: {
     // borderColor: '#ccc',
