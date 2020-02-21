@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, TextInput} from 'react-native';
 import {Button, CheckBox} from "react-native-elements";
 import Textfield from "./Textfield";
 import Select2 from "./Select2";
@@ -375,7 +375,17 @@ export default class Paragraph extends React.Component {
             description={description}
           />);
         }
-         else {
+        else if (subfield['#type'] != null && (subfield['#type'] === 'text_format' || subfield['#type'] === 'textarea')) {
+          const selectFormValues = _.get(currentFormValues, [parentField, lang, index], {});
+          paragraphForm.push(<Textarea
+            formValues={selectFormValues}
+            fieldName={fieldName}
+            field={subfield}
+            key={fieldName}
+            description={description}
+          />);
+        }
+        else {
 
           paragraphForm.push(<Textfield
             index={index}
