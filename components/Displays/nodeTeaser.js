@@ -5,6 +5,7 @@ import {ScaldItem} from "../ScaldItem";
 import {ParagraphView} from "../ParagraphView";
 import Colors from "../../constants/Colors";
 import { NavigationActions } from 'react-navigation';
+import _ from 'lodash';
 
 export default class NodeTeaser extends React.Component {
 
@@ -50,10 +51,17 @@ export default class NodeTeaser extends React.Component {
     if (node.body !== undefined) {
       body = node.body[Object.keys(node.body)[0]];
       const regex = /(<([^>]+)>)/ig;
-      let bodyValue = ((body || {})[0] || {})['value'];
-      let bodySafeValue = ((body || {})[0] || {})['safe_value'];
+      // let bodyValue = ((body || {})[0] || {})['value'];
+      let bodyValue = _.get(body, [0, 'value'], '');
+      let bodySafeValue = _.get(body, [0, 'safe_value'], '');
+      // let bodySafeValue = ((body || {})[0] || {})['safe_value'];
 
-      body = bodySafeValue != null ? bodySafeValue.replace(regex, '') : (bodyValue != null ? bodyValue.replace(regex, '') : '');
+      if (bodySafeValue.length !== 0) {
+        body = bodySafeValue.replace(regex, '');
+      }
+      else if (bodyValue.length !== 0) {
+        body = bodyValue.replace(regex, '');
+      }
     }
 
     // Get our fields from list of viewable fields

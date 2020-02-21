@@ -633,11 +633,12 @@ export default class FormComponent extends React.Component {
       } else if (this.props.did) {
         id = this.props.did;
       }
+      let formValues = sanitizeFormValues(this.state.formValues, this.props.screenProps);
       this.props.screenProps.db.transaction(
         tx => {
           tx.executeSql('replace into saved_offline (blob, id, saved) values (?, ?, 0)',
 
-            [JSON.stringify(this.state.formValues), id],
+            [JSON.stringify(formValues), id],
             (success) => {
               this.setState({
                 formSubmitted: true,
@@ -726,7 +727,8 @@ export default class FormComponent extends React.Component {
           });
 
       } else {
-        this.postData(this.props.screenProps.siteUrl + '/app/node.json', this.state.formValues);
+        let formValues = sanitizeFormValues(this.state.formValues, this.props.screenProps);
+        this.postData(this.props.screenProps.siteUrl + '/app/node.json', formValues);
 
       }
 
@@ -1318,7 +1320,7 @@ export default class FormComponent extends React.Component {
         let formErrorsArray = [];
         for (let key in this.state.formErrors) {
           if(this.state.formErrors.hasOwnProperty(key)) {
-            formErrorsArray.push(<Text style={styles.errorTextStyleError}>{this.state.formErrors[key]}</Text>);
+            formErrorsArray.push(<Text key={`error-${key}`} style={styles.errorTextStyleError}>{this.state.formErrors[key]}</Text>);
           }
         }
 

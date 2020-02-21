@@ -93,7 +93,7 @@ export default class App extends React.Component {
       'Warning: componentWillReceiveProps',
       'Warning: componentWillMount',
       'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation',
-      'Warning: DatePicker'
+      'Warning: DatePickerIOS'
     ];
 
     this.netEventListener = NetInfo.addEventListener(state => {
