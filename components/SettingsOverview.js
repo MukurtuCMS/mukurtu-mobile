@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
 import {SQLite} from "expo-sqlite";
+import Textarea from "./FormAPI/Textarea";
 
 
 class SettingsOverview extends React.Component {
@@ -99,8 +100,9 @@ class SettingsOverview extends React.Component {
               title='Queue'
               onPress={() => this.props.navigation.navigate('Offline')}
             />
-            {lastUpdatedText}
           </SettingsList>
+          {/*{lastUpdatedText}*/}
+          <Text style={{textAlign:"center", color: "#ccc", fontStyle: 'italic'}}>Version: {this.props.screenProps.appVersion}</Text>
         </View>
       </View>
 
