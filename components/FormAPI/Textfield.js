@@ -30,7 +30,8 @@ export default class Textfield extends React.Component {
   getValueCount = () => {
     const {formValues, fieldName} = this.props;
     const values = _.get(formValues, [fieldName, 'und'], []);
-    this.setState({numberOfValues: values.length})
+    const count = values.length || 1;
+    this.setState({numberOfValues: count})
   };
 
   addItem() {

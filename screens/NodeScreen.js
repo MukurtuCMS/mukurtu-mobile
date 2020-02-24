@@ -21,6 +21,7 @@ import {EmbeddedNode} from "../components/EmbeddedNode";
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import {ScaldSwipe} from '../components/ScaldSwipe';
 import {FieldCollection} from "../components/FieldCollection";
+import _ from 'lodash';
 
 
 // create a global db for database list and last known user
@@ -46,13 +47,25 @@ class NodeScreen extends React.Component {
       db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
       displayModes: false,
       terms: this.props.screenProps.terms,
-      nodes: null
+      nodes: null,
+      thisNode: null
     }
   }
 
   componentDidMount() {
     const type = this.props.navigation.getParam('contentType');
 
+    const node = this.props.navigation.getParam('node');
+    this.props.screenProps.db.transaction(tx => {
+      tx.executeSql('select * from nodes WHERE nid = ?', [node.nid],
+        (success, array) => {
+          const entity = _.get(array, ['rows', '_array', 0], null);
+          if (entity != null) {
+            this.setState({thisNode: JSON.parse(entity.entity)})
+          }
+        }
+      )
+    });
 
     // Filter display modes by weight
     let displayModes = this.props.screenProps.displayModes[type];
@@ -113,7 +126,7 @@ class NodeScreen extends React.Component {
 
   render() {
 
-    let emptyView = (
+    const emptyView = (
       <View style={{flex: 1}}>
         <ScrollView style={styles.container}>
           <Text key={`empty`} style={styles.text}>There is no content attached
@@ -122,11 +135,24 @@ class NodeScreen extends React.Component {
       </View>
     );
 
+    const loadingView = (
+      <View style={{flex: 1}}>
+        <ScrollView style={styles.container}>
+          <Text key={`empty`} style={styles.text}>Loading content...</Text>
+        </ScrollView>
+      </View>
+    );
+
+    if (this.state.thisNode === null) {
+      return loadingView;
+    }
+
 
     if (!this.state.displayModes) {
       return emptyView;
     }
-    const node = this.props.navigation.getParam('node');
+    // const node = this.props.navigation.getParam('node');
+    const node = this.state.thisNode;
 
     let showStar = false;
     if (this.state.personalCollectionValid === true) {

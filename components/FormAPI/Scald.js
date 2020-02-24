@@ -166,9 +166,10 @@ export default class Scald extends React.Component {
           .then((response) => response.json());
 
         let e=1;
+        const sanitiziedName = filename.replace(/ /g,"_");
         const copyFile = await FileSystem.copyAsync({
           from: value.uri,
-          to: this.props.documentDirectory + filename
+          to: this.props.documentDirectory + sanitiziedName
         });
 
         const saveAtom = await this.saveAtom(scaldData);
@@ -476,7 +477,7 @@ export default class Scald extends React.Component {
         else if (this.state.uploadProgress[i] && this.state.uploadProgress[i] === 1) {
           showButtons = false;
           line = (<View>
-            <Text>Upload Complete</Text>
+            <Text>Upload Complete. Syncing data. Please wait...</Text>
           </View>);
         }
 
