@@ -164,10 +164,47 @@ class NodeScreen extends React.Component {
 
     let renderedNode = [];
 
+    const relatedContent = _.get(node, ['field_related_content', 'und'], []);
+
     this.state.displayModes.forEach((elem) => {
       let fieldName = elem[0];
       let fieldObject = elem[1];
 
+
+      let extractedField = fieldName.includes('extracted_') && relatedContent.length > 0;
+      // Extract out of related content field
+      if (extractedField) {
+        const {nodes} = this.props.screenProps;
+        let relatedNodes = [];
+        relatedContent.forEach((rc) => {
+          if (nodes[rc.target_id] !== undefined && nodes[rc.target_id].type == fieldObject.extracted_type) {
+            relatedNodes.push(
+              <NodeTeaser
+                key={`${fieldName}_teaser_${rc.target_id}`}
+                node={this.props.screenProps.nodes[rc.target_id]}
+                viewableFields={this.state.viewableFields}
+                token={this.props.screenProps.token}
+                cookie={this.props.screenProps.cookie}
+                url={this.props.screenProps.siteUrl}
+                db={this.props.screenProps.db}
+                terms={this.props.screenProps.terms}
+                allNodes={this.props.screenProps.nodes}
+                navigation={this.props.navigation}
+                editable={false}
+              />
+            );
+          }
+        });
+
+        if (relatedNodes.length > 0) {
+          renderedNode.push(<View key={`${fieldName}_container`}>
+            <Text key={`${fieldName}_label`} style={styles.label}>{fieldObject.label}</Text>
+            {relatedNodes}
+          </View>);
+        }
+
+        return;
+      }
 
       if (typeof node[fieldName] === 'undefined' || node[fieldName].length === 0) {
         return;
@@ -179,8 +216,7 @@ class NodeScreen extends React.Component {
           <Text key={`${fieldName}_label`} style={styles.label}>{fieldObject.label}</Text>
         )
       }
-      let type = fieldObject.view_mode_properties.type;
-      console.log(fieldObject.view_mode_properties.type);
+      // let type = fieldObject.view_mode_properties.type;
 
       if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link' ||
         fieldObject.view_mode_properties.type === 'textformatter_list') {
