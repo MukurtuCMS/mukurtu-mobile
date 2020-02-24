@@ -26,15 +26,19 @@ export class ParagraphView extends React.Component {
         // Text values
         if (fieldKeys.includes('value')) {
           let tagsStyles = {p: {marginTop: 0}};
+          let textLines = [];
+          thisParagraphData[key]['und'].forEach((line, index) => {
+            textLines.push(<HTML
+              tagsStyles={tagsStyles}
+              key={`${key}-${index}`}
+              html={line.value}
+              imagesMaxWidth={Dimensions.get('window').width}
+            />);
+          });
           renderedItem.push(
             <View key={`text-${key}`}>
               <Text style={styles.titleTextStyle}>{value.label}</Text>
-              <HTML
-                tagsStyles={tagsStyles}
-                key={key}
-                html={thisParagraphData[key]['und']['0']['value']}
-                imagesMaxWidth={Dimensions.get('window').width}
-              />
+              {textLines}
             </View>
           )
         }
