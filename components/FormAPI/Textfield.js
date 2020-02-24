@@ -5,6 +5,7 @@ import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import {Button} from "react-native-elements";
 import ErrorMessage from "./ErrorMessage";
+import _ from 'lodash';
 
 export default class Textfield extends React.Component {
   constructor(props) {
@@ -14,6 +15,23 @@ export default class Textfield extends React.Component {
       inputFocus: false
     };
   }
+
+  componentDidMount() {
+    this.getValueCount();
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const {formValues, fieldName} = this.props;
+    if (prevProps.formValues[fieldName] === undefined && formValues[fieldName] !== undefined) {
+      this.getValueCount();
+    }
+  }
+
+  getValueCount = () => {
+    const {formValues, fieldName} = this.props;
+    const values = _.get(formValues, [fieldName, 'und'], []);
+    this.setState({numberOfValues: values.length})
+  };
 
   addItem() {
     let currentIndex = this.state.numberOfValues;

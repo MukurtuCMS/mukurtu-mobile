@@ -55,10 +55,24 @@ export default class Select2 extends React.Component {
     )
   }
 
+  submitChanges = (value, index, options) => {
+    const {field, formValues, fieldName, setFormValue, parentIndex} = this.props;
+    const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
+    const lang = getFieldLanguage(formValues[fieldName]);
+
+    if (parentIndex !== undefined) {
+      setFormValue(fieldName, value, valueKey, lang, options, index, parentIndex);
+    }
+    else {
+      setFormValue(fieldName, value, valueKey, lang, options, index);
+    }
+  };
+
   onRemoveSelected = (index) => {
-    const valueKey = (this.props.field['#value_key']) ? this.props.field['#value_key'] : 'value';
-    const lang = getFieldLanguage(this.props.formValues[this.props.fieldName]);
-    this.props.setFormValue(this.props.fieldName, '', valueKey, lang, [], index);
+    // const valueKey = (this.props.field['#value_key']) ? this.props.field['#value_key'] : 'value';
+    // const lang = getFieldLanguage(this.props.formValues[this.props.fieldName]);
+    // this.props.setFormValue(this.props.fieldName, '', valueKey, lang, [], index);
+    this.submitChanges('', index, []);
   };
 
   getOptions = () => {
@@ -185,7 +199,6 @@ export default class Select2 extends React.Component {
 
       const hideResults = this.state.autocompleteSelected[key] !== undefined ? this.state.autocompleteSelected[key] : true;
 
-      let index = this.props.index;
       autocompleteFields.push(<Autocomplete
           // flatListProps={{ nestedScrollEnabled: true, }}
           key={`ac-${i}`}
@@ -212,7 +225,8 @@ export default class Select2 extends React.Component {
               <TouchableOpacity
                   onPress={
                     () => {
-                      this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, key);
+                      // this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, key);
+                      this.submitChanges(item.text, key, options);
                       this.updateAutocomplete(key, true);
                       this.setState({'heightReset': true});
                     }
@@ -288,7 +302,8 @@ export default class Select2 extends React.Component {
                       'hideResults': true,
                       q: ''
                     });
-                    this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, nKey);
+                    // this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, nKey);
+                    this.submitChanges(item.text, nKey, options);
                   }
 
                 }>

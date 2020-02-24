@@ -363,7 +363,7 @@ export default class Scald extends React.Component {
 
 
   render() {
-    const {fieldName, field, formValues} = this.props;
+    const {fieldName, field, formValues, thisKey} = this.props;
     const allowedMediaTypes = this.getAllowedMediaTypes(field);
     let fieldCount = getFieldValueCount(formValues[fieldName]) + this.state.add;
     fieldCount = fieldCount || 1;
@@ -436,6 +436,9 @@ export default class Scald extends React.Component {
             {removeButton}
           </View>);
         elements.push(el);
+      }
+      else if (sid && existingElements[sid] === undefined) {
+        elements.push(<Text key={sid}>Media Item not synced from server.</Text>)
       }
       else {
         let preview;

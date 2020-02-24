@@ -204,9 +204,9 @@ export default class FormComponent extends React.Component {
     }
   }
 
-  setFormValueParagraph(paragraphFieldName, paragraphFormState) {
+  setFormValueParagraph(paragraphFieldName, paragraphFormState, deleteIndex) {
     if (this.state.formValues) {
-      const formValues = this.state.formValues;
+      const formValues = JSON.parse(JSON.stringify(this.state.formValues));
       // See the paragraph component for how paragraph state is formatted.
       // let values = {
       //   "paragraphs": {
@@ -276,6 +276,9 @@ export default class FormComponent extends React.Component {
       // },
 
       Object.assign(formValues, values);
+      if (deleteIndex !== undefined) {
+        _.pullAt(formValues[paragraphFieldName].und, deleteIndex);
+      }
 
       // save value to state
       this.setState({formValues: formValues});
@@ -1020,6 +1023,7 @@ export default class FormComponent extends React.Component {
                       setFormValue={this.setFormValueParagraph.bind(this)}
                       addMoreText={addMoreText}
                       paragraphTitle={paragraphTitle}
+                      nodeLoaded={this.state.nodeLoaded}
                       screenProps={this.props.screenProps}
                     />;
 
