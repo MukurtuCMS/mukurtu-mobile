@@ -401,7 +401,12 @@ export default class FormComponent extends React.Component {
     if (this.state.formValues) {
       let formValues = JSON.parse(JSON.stringify(this.state.formValues));
       let lang = 'und';
-
+      // set an empty value in case it doesn't exist
+      if (formValues[newFieldName] === undefined) {
+        formValues[newFieldName] = {
+          [lang]: {}
+        }
+      }
 
       // Drupal needs this format for conditional select fields:
       // OUTDATED?

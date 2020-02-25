@@ -19,18 +19,14 @@ export default class ConditionalSelect extends React.Component {
       parentOptions: [],
       parentValues: {},
       childValues: [],
-      items: 1
+      addItem: 0
     }
-  }
-
-  componentDidMount() {
-    this.loadData();
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (!prevProps.nodeLoaded && this.props.nodeLoaded) {
-      this.loadData()
-    }
+    // if (!prevProps.nodeLoaded && this.props.nodeLoaded) {
+    //   this.loadData()
+    // }
   }
 
   loadData = () => {
@@ -46,12 +42,12 @@ export default class ConditionalSelect extends React.Component {
       );
     }
 
-    const fieldValues = getAllFieldValues(this.props.formValues[this.props.fieldName]);
+    // const fieldValues = getAllFieldValues(this.props.formValues[this.props.fieldName]);
 
-    this.setState({
-      parentOptions: parentPickerOptions,
-      items: fieldValues != null ? fieldValues.length : 1
-    });
+    // this.setState({
+    //   parentOptions: parentPickerOptions,
+    //   items: fieldValues != null ? fieldValues.length : 1
+    // });
   };
 
   getParentVid(name) {
@@ -64,25 +60,35 @@ export default class ConditionalSelect extends React.Component {
     }
   }
 
-  onAdd = () => {
-    this.setState((state) => {
-      return{items: state.items + 1}
-    });
+  onAdd = (i) => {
+    const {field, setFormValue, fieldName} = this.props;
+    const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
+    setFormValue(fieldName, null, i, valueKey);
   };
-
 
   render() {
 
     const field = this.props.field;
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
-    const fieldValues = getAllFieldValues(this.props.formValues[this.props.fieldName]);
+    // const fieldValues = getAllFieldValues(this.props.formValues[this.props.fieldName]);
+    const fieldValues = _.get(this.props.formValues, [this.props.fieldName, 'und'], []);
 
     let options = field['#options'];
     if (Object.keys(field['#options']).length === 0) {
       return null;
     }
 
-    let parentPickerOptions = this.state.parentOptions;
+    let parentPickerOptions = [];
+    for (let key in options) {
+      // Create the option for the parent picker
+      parentPickerOptions.push({
+          key: key,
+          label: key,
+          value: key
+        }
+      );
+    }
+
     let parentPlaceholder = {
       label: 'Select',
       value: '0',
@@ -92,7 +98,13 @@ export default class ConditionalSelect extends React.Component {
     let renderedPickers = [];
 
 
-    for (let i = 0; i < this.state.items; i++) {
+    let numItems = fieldValues != null ? Object.keys(fieldValues).length : 0;
+    let showButton = numItems > 0;
+    numItems = numItems > 0 ? numItems : 1;
+    // console.log({numItems});
+    // numItems = numItems + this.state.addItem;
+
+    for (let i = 0; i < numItems; i++) {
 
       const selectedVal = _.get(fieldValues, [i, valueKey], null);
       let parentVal = _.get(this.state.parentValues, [i], "0");
@@ -150,7 +162,7 @@ export default class ConditionalSelect extends React.Component {
             placeholder={parentPlaceholder}
             items={parentPickerOptions}
             onValueChange={(itemValue) => {
-              this.props.setFormValue(this.props.fieldName, 0, i, valueKey);
+              // this.props.setFormValue(this.props.fieldName, 0, i, valueKey);
               const newParentValues = {[i]: itemValue};
               this.setState({
                 parentValues: {
@@ -178,7 +190,7 @@ export default class ConditionalSelect extends React.Component {
 
       {renderedPickers}
 
-      {field['#multiple'] && <Button title={`Add ${field['#title']}`} onPress={this.onAdd}/>}
+      {field['#multiple'] && showButton && <Button title={`Add ${field['#title']}`} onPress={() => this.onAdd(numItems)}/>}
 
     </View>;
   }
