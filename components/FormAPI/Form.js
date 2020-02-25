@@ -399,7 +399,7 @@ export default class FormComponent extends React.Component {
 
   setFormValueConditionalSelect(newFieldName, val, index, valueKey) {
     if (this.state.formValues) {
-      let formValues = this.state.formValues;
+      let formValues = JSON.parse(JSON.stringify(this.state.formValues));
       let lang = 'und';
 
 
@@ -429,15 +429,15 @@ export default class FormComponent extends React.Component {
       // };
       // Object.assign(formValues, values);
 
-      const newValues = {
+      const newValue = {
         [index]: {
           [valueKey]: val
         }
       };
-      this.setState((state) => {
-        state.formValues[newFieldName] = { ...state.formValues[newFieldName], [lang]: newValues};
-        return state;
-      });
+      const fieldValues = {...formValues[newFieldName][lang], ...newValue};
+      formValues[newFieldName][lang] = fieldValues;
+
+      this.setState({formValues: formValues});
     }
   }
 
@@ -1176,6 +1176,7 @@ export default class FormComponent extends React.Component {
                   required={required}
                   description={description}
                   nodes={this.props.screenProps.nodes}
+                  nodeLoaded={this.state.nodeLoaded}
                 />);
 
               }
