@@ -50,6 +50,11 @@ export class ScaldItem extends React.Component {
           (success, atoms) => {
             const atom = atoms.rows._array[0];
 
+            if (atom === undefined) {
+              this.setState({notSynced: true});
+              return;
+            }
+
             this.setState({title: atom.title, atom: JSON.parse(atom.entity)});
             let type = JSON.parse(atom.entity).type;
             const sanitizedFileName = atom.title.replace(/ /g,"_");

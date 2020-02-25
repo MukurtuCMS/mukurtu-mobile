@@ -102,10 +102,20 @@ export const sanitizeFormValues = (data, screenProps) => {
         // Finally this is where we add some hardcoded field logic
         switch (key) {
           case 'field_mukurtu_terms':
+            let mukurtu_terms = formValues[key][lang];
+            if (_.isArray(formValues[key][lang])) {
+              mukurtu_terms = formValues[key][lang].reduce((acc, cur, idx) => {
+                if (cur.hasOwnProperty('target_id')) {
+                  acc[idx] = cur.target_id;
+                }
+                return acc;
+              }, {});
+            }
+
             formValues[key] = {
               "und": {
                 "mukurtu_record": {
-                  "terms_all": formValues[key][lang]
+                  "terms_all": mukurtu_terms
                 }
               }
             };
