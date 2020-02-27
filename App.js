@@ -358,8 +358,9 @@ export default class App extends React.Component {
     if (this.state.db) {
       this.state.db.transaction(tx => {
         tx.executeSql('delete from auth;');
-        // Clear the queue
+        // Clear the queue and all offline saved content, otherwise it will come back.
         tx.executeSql('delete from saved_offline;');
+        tx.executeSql('delete from nodes;');
       });
     }
 
