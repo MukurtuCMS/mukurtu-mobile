@@ -461,17 +461,23 @@ export default class Scald extends React.Component {
         const buttons = [];
         if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
 
-          buttons.push(<View style={styles.mediaButtonWrapper}><Button key={'roll-btn'} title={'Select photo/video'}
-                                                                       onPress={() => this._launchCameraRollAsync(i, allowedMediaTypes)}/></View>);
-          buttons.push(<View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} key={'camera-btn'}
-                                                                       title={'Take photo/video'}
-                                                                       onPress={() => this._launchCameraAsync(i, allowedMediaTypes)}/></View>);
+          buttons.push(<View key={'roll-btn'} style={styles.mediaButtonWrapper}>
+            <Button title={'Select photo/video'}
+                    onPress={() => this._launchCameraRollAsync(i, allowedMediaTypes)}/>
+          </View>);
+          buttons.push(<View key={'camera-btn'} style={styles.mediaButtonWrapper}>
+            <Button style={styles.mediaButton}
+                    title={'Take photo/video'}
+                    onPress={() => this._launchCameraAsync(i, allowedMediaTypes)}/>
+          </View>);
 
         }
         if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
-          buttons.push(<View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} key={'file-btn'}
-                                                                       title={'Select audio/document'}
-                                                                       onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/></View>);
+          buttons.push(<View key={'file-btn'} style={styles.mediaButtonWrapper}>
+            <Button style={styles.mediaButton}
+                    title={'Select audio/document'}
+                    onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/>
+          </View>);
         }
 
         let line;
@@ -513,7 +519,7 @@ export default class Scald extends React.Component {
       addMoreButton =
         <View style={styles.addMoreButtonWrapper}>
 
-          < Button
+          <Button
             title={addMoreText}
             onPress={this.addItem.bind(this)}
           />

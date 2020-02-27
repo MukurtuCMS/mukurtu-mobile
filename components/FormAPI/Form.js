@@ -720,6 +720,7 @@ export default class FormComponent extends React.Component {
               this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
               // Navigate back to main content screen
               this.setState({'submitting': false}, () => {
+                this.clearOfflineNode(this.state.formValues.nid);
                 this.props.navigation.navigate('NodeListing', {
                   contentType: this.props.contentType,
                   contentTypeLabel: 'Test Label'
@@ -742,6 +743,15 @@ export default class FormComponent extends React.Component {
 
     }
   }
+
+  clearOfflineNode = (id) => {
+    this.props.screenProps.db.transaction(tx => {
+      tx.executeSql(
+        'DELETE FROM saved_offline WHERE id = ?',
+        [id]
+      );
+    });
+  };
 
   resetForm() {
     this.setState({formSubmitted: false});
@@ -793,6 +803,12 @@ export default class FormComponent extends React.Component {
           }
 
         }
+
+        // If this was an offline submission, clear it out
+        if (this.props.did != null) {
+          this.clearOfflineNode(did);
+        }
+
         return responseJson;
       })
       .then((responseJson) => {
