@@ -463,7 +463,8 @@ export default class Scald extends React.Component {
           buttons.push(<View style={styles.mediaButtonWrapper}><Button key={'roll-btn'} title={'Select photo/video'}
                                                                        onPress={() => this._launchCameraRollAsync(i)}/></View>);
           buttons.push(<View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} key={'camera-btn'}
-                                                                       title={'Take photo/video'} onPress={() => this._launchCameraAsync(i)}/></View>);
+                                                                       title={'Take photo/video'}
+                                                                       onPress={() => this._launchCameraAsync(i)}/></View>);
         }
         if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
           buttons.push(<View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} key={'file-btn'}
@@ -507,10 +508,14 @@ export default class Scald extends React.Component {
     }
     // Check for cardinality
     if (this.props.cardinality === '-1' && this.state.permission) {
-      addMoreButton = <Button
-        title={addMoreText}
-        onPress={this.addItem.bind(this)}
-      />
+      addMoreButton =
+        <View style={styles.addMoreButtonWrapper}>
+
+          < Button
+            title={addMoreText}
+            onPress={this.addItem.bind(this)}
+          />
+        </View>
     }
 
     const titleText = field['#title'] != null && field['#title'].length > 0 ? field['#title'] : 'Media Assets';
@@ -667,13 +672,16 @@ export default class Scald extends React.Component {
       if (showButtons) {
         if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
           photobutton =
-            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={chosenImageText} onPress={() => this._launchCameraRollAsync(i)}/></View>;
+            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={chosenImageText}
+                                                            onPress={() => this._launchCameraRollAsync(i)}/></View>;
           camerabutton =
-            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={takenImageText} onPress={() => this._launchCameraAsync(i)}/></View>;
+            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={takenImageText}
+                                                            onPress={() => this._launchCameraAsync(i)}/></View>;
         }
         if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
-          docbutton = <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={chosenDocumentText}
-                                                                      onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/></View>;
+          docbutton =
+            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={chosenDocumentText}
+                                                            onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/></View>;
         }
 
       } else if (!this.state.permission) {
@@ -753,10 +761,13 @@ export default class Scald extends React.Component {
     }
     // Check for cardinality
     if (this.props.cardinality === '-1' && this.state.permission) {
-      addMoreButton = <Button
-        title={addMoreText}
-        onPress={this.addItem.bind(this)}
-      />
+      addMoreButton =
+        <View style={styles.addMoreButtonWrapper}>
+          <Button
+            title={addMoreText}
+            onPress={this.addItem.bind(this)}
+          />
+        </View>
     }
 
 
@@ -808,5 +819,8 @@ const styles = StyleSheet.create({
   },
   mediaButtonWrapper: {
     marginBottom: 10,
+  },
+  addMoreButtonWrapper: {
+    marginBottom: 35,
   },
 });
