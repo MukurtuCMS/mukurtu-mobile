@@ -174,7 +174,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2020-02-27_1045'
+      appVersion: '2020-02-27_1530'
     };
     // Not sure if this is necessary any longer, but leaving it just in case.
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
@@ -1119,10 +1119,10 @@ export default class App extends React.Component {
         tx.executeSql('delete from saved_offline where id = ?;',
           [id],
           (success, array) => {
-            console.log(success);
+            console.log('Node removed from offline queue');
           },
-          (error) => {
-            console.log(error);
+          (_, error) => {
+            console.log("Could not remove node from offline queue", error);
           });
       });
   }
@@ -1139,7 +1139,7 @@ export default class App extends React.Component {
   }
 
 
-  pushOfflineAtoms = async (formValues) => {
+  pushOfflineAtoms = async (formValues, offlineId) => {
     console.log('Checking for offline media');
     const formData = JSON.parse(JSON.stringify(formValues));
     if (formData._tmp_atom == null) {
@@ -1220,6 +1220,13 @@ export default class App extends React.Component {
           else if (formData[keyParts[0]][keyParts[0]] != null) {
             formData[keyParts[0]][keyParts[1]].sid = scaldData.sid;
           }
+
+          // Save the blob again in case the file was uploaded, but the node fails
+          await this.queryDB(
+          'replace into saved_offline (blob, id, saved) values (?, ?, 0)',
+            [JSON.stringify(formData), offlineId])
+            .then(() =>  console.log('Updated offline entry'))
+            .catch((e) => console.log('Issue writing the DB', e));
         }
         catch (e) {
           console.log('Error trying to upload offline media:', e);
@@ -1336,8 +1343,7 @@ export default class App extends React.Component {
       if (!this.state.isConnected) {
         resolve();
       }
-      this.state.db.transaction(
-        tx => {
+      this.state.db.transaction(tx => {
           tx.executeSql('select * from saved_offline',
             [],
             (success, array) => {
@@ -1349,15 +1355,16 @@ export default class App extends React.Component {
               for (let i = 0; i < array.rows._array.length; i++) {
                 console.log('iterating through');
                 let formValuesString = array.rows._array[i].blob;
-                promises.push(this.pushOfflineAtoms(JSON.parse(formValuesString))
+                let offlineId = array.rows._array[i].id;
+                promises.push(this.pushOfflineAtoms(JSON.parse(formValuesString), offlineId)
                   .then((formValues) => {
                     //  START
                     let currentId = array.rows._array[i].id;
 
                     // Largely copied from Form.js method for updating existing
                     // nodes, but our state setting is different here
+                    const sanitizedValues = sanitizeFormValues(formValues, {formFields: this.state.formFields});
                     if (formValues.nid) {
-                      const sanitizedValues = sanitizeFormValues(formValues, {formFields: this.state.formFields});
                       console.log('here');
                       const token = this.state.token;
                       const cookie = this.state.cookie;
@@ -1414,7 +1421,7 @@ export default class App extends React.Component {
                         },
                         redirect: 'follow',
                         referrer: 'no-referrer',
-                        body: formValuesString,
+                        body: JSON.stringify(sanitizedValues),
                       })
                         .then((response) => {
 
@@ -1429,9 +1436,6 @@ export default class App extends React.Component {
 
                           if (responseJson.hasOwnProperty('nid')) {
                             this.updateSyncedNids(responseJson.nid);
-                            // If we have a nid, we remove this from the queued
-                            // nodes
-                            this.deleteFromQueue(currentId);
                           }
 
                           if (typeof responseJson.form_errors === 'object') {
@@ -1444,7 +1448,7 @@ export default class App extends React.Component {
 
                           }
                           else {
-
+                            this.deleteFromQueue(currentId);
                           }
 
                           // resolve();

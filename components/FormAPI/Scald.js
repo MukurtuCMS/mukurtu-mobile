@@ -467,9 +467,9 @@ export default class Scald extends React.Component {
         const buttons = [];
         if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
           buttons.push(<Button key={'roll-btn'} title={'Select photo/video'}
-                               onPress={() => this._launchCameraRollAsync(i)}/>);
+                               onPress={() => this._launchCameraRollAsync(i, allowedMediaTypes)}/>);
           buttons.push(<Button key={'camera-btn'} title={'Take photo/video'}
-                               onPress={() => this._launchCameraAsync(i)}/>);
+                               onPress={() => this._launchCameraAsync(i, allowedMediaTypes)}/>);
         }
         if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
           buttons.push(<Button key={'file-btn'} title={'Select audio/document'}
