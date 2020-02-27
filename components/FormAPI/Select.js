@@ -3,18 +3,22 @@ import {Picker, View, Text, StyleSheet} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import Required from "./Required";
 import RNPickerSelect from "react-native-picker-select";
-import {getFieldValueCount} from "./formUtils";
+import {getFieldValueCount, getFieldLanguage} from "./formUtils";
+import _ from 'lodash';
 
 
 export default class Select extends React.Component {
 
   componentDidMount() {
-    const field = this.props.field;
+    console.log('CDM');
+    const {field, formValues, setFormValue, fieldName} = this.props;
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
-    const fieldValueCount = getFieldValueCount(this.props.formValues[this.props.fieldName]);
+    const lang = getFieldLanguage(formValues[fieldName]);
+    // const fieldValueCount = getFieldValueCount(this.props.formValues[this.props.fieldName]);
 
-    if (fieldValueCount === 0 && field['#default_value'].length > 0) {
-      this.props.setFormValue(this.props.fieldName, field['#default_value'][0], valueKey);
+    // if (fieldValueCount === 0 && field['#default_value'].length > 0) {
+    if (!_.has(formValues, [fieldName, lang]) && field['#default_value'].length > 0) {
+      setFormValue(fieldName, field['#default_value'][0], valueKey);
     }
   }
 
@@ -68,7 +72,7 @@ export default class Select extends React.Component {
       <Text>{field['#title']}</Text>
       <Required required={this.props.required}/>
       <Picker
-          style={{height: 250, width: 'auto'}}
+          style={{height: 216, width: 'auto', borderColor: '#ccc', borderWidth: 1}}
           onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey)}
           selectedValue={selectedValue}
       >
