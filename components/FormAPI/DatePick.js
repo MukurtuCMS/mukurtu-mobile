@@ -1,11 +1,12 @@
 import React from 'react';
 import DatePicker from 'react-native-datepicker'
-import {StyleSheet, Text, View} from "react-native";
+import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import ErrorMessage from "./ErrorMessage";
 import { Appearance, useColorScheme } from 'react-native-appearance';
+import {FontAwesome} from "@expo/vector-icons";
 import {getFirstFieldValue} from "./formUtils";
 
 export default class DatePick extends React.Component {
@@ -109,6 +110,20 @@ export default class DatePick extends React.Component {
     const colorScheme = Appearance.getColorScheme();
 
     let date = this.extractDateValue();
+
+    // THIS SHOULD BE IMPLEMENTED AT SOME POINT
+    // let unsetButton = (
+    //   <TouchableOpacity
+    //     style={{flex: 1, flexDirection: 'row', marginLeft: 35, width: 200}}
+    //     onPress={() => {
+    //       this.props.setFormValue(this.props.fieldName, '', this.props.fieldType, lang, error);
+    //     }}
+    //   >
+    //     <FontAwesome size={15} name={'close'} style={{paddingRight: 5}}/>
+    //     <Text>Clear date</Text>
+    //   </TouchableOpacity>
+    // );
+
 
     return (
       <View style={styles.viewStyle}>
