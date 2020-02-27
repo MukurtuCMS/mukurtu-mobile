@@ -553,7 +553,7 @@ export default class FormComponent extends React.Component {
   setFormValueRadio(newFieldName, newValue, valueKey, lang = 'und', error = null) {
     // need different function for checkbox so we can unset values
     if (this.state.formValues) {
-      const formValues = this.state.formValues;
+      const formValues = JSON.parse(JSON.stringify(this.state.formValues));
       // check if we are unchecking the box
       if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][valueKey]) {
         Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: ''}}});

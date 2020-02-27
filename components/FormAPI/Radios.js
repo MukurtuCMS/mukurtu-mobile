@@ -5,22 +5,49 @@ import * as Colors from "../../constants/Colors"
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import ErrorMessage from "./ErrorMessage";
+import _ from 'lodash';
+import {getFieldLanguage} from "./formUtils";
 
 export default class Radios extends React.Component {
 
-    determineCheckboxValue(fieldName, fieldValue, fieldKey) {
-        if (this.props.formValues[fieldName]) {
-            // set the language key as initial key
-            const lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
-
-            if (this.props.formValues[fieldName][lang][fieldKey] === fieldValue) {
-                return true;
-            } else if (typeof this.props.formValues[fieldName][lang][0] !== 'undefined'&& this.props.formValues[fieldName][lang][0][fieldKey] === fieldValue) {
-            return true;
-          }
-        }
-        return false;
+  componentDidMount() {
+    const {field, formValues, setFormValue, fieldName} = this.props;
+    const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
+    const lang = getFieldLanguage(formValues[fieldName]);
+    if (!_.has(formValues, [fieldName, lang]) && field['#default_value'] != null) {
+      setFormValue(fieldName, field['#default_value'], valueKey);
     }
+  }
+
+  determineCheckboxValue(fieldName, fieldValue, fieldKey) {
+
+    if (this.props.formValues[fieldName]) {
+      // set the language key as initial key
+      const lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
+
+      let checkValue = _.get(this.props.formValues, [fieldName, lang, 0, fieldKey]);
+      if (checkValue !== undefined && checkValue === fieldValue) {
+        return true;
+      }
+      checkValue = _.get(this.props.formValues, [fieldName, lang, fieldKey]);
+      if (checkValue !== undefined && checkValue === fieldValue) {
+        return true;
+      }
+
+      // if (this.props.formValues[fieldName][lang][fieldKey] === fieldValue) {
+      //     return true;
+      // } else if (typeof this.props.formValues[fieldName][lang][0] !==
+      // 'undefined'&& this.props.formValues[fieldName][lang][0][fieldKey] ===
+      // fieldValue) { return true; }
+    }
+    // else {
+      // Check for default value
+      // if (this.props.field['#default_value'] !== undefined && this.props.field['#default_value'] == fieldValue) {
+      //   return true;
+      // }
+    // }
+    return false;
+  }
 
     render() {
       if(this.props.field['#options'].length === 0) {
