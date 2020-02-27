@@ -110,14 +110,22 @@ export const sanitizeFormValues = (data, screenProps) => {
         }
 
         // For certain fields we have to hardcode the language key.
-        if (hardcodedLanguage.hasOwnProperty(key)) {
-          formValues[key] = {
-            [hardcodedLanguage[key]]: formValues[key][lang]
-          };
-        }
+        // if (hardcodedLanguage.hasOwnProperty(key)) {
+        //   formValues[key] = {
+        //     [hardcodedLanguage[key]]: formValues[key][lang]
+        //   };
+        // }
 
         // Finally this is where we add some hardcoded field logic
         switch (key) {
+          case 'field_tags':
+            // On edit, force EN as language, but not on create
+            if (formValues.nid) {
+              formValues[key] = {
+                'en': formValues[key][lang]
+              };
+            }
+            break;
           case 'field_mukurtu_terms':
             let mukurtu_terms = formValues[key][lang];
             if (_.isArray(formValues[key][lang])) {
