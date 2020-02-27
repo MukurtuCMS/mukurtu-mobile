@@ -180,7 +180,8 @@ export default class Scald extends React.Component {
           return {
             placeholder: {},
             updateExisting: true,
-            add: state.add - 1
+            add: state.add - 1,
+            uploadProgress: {}
           }
         });
           // .catch((error) => console.log(error));
