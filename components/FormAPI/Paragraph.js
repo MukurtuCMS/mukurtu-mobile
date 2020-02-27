@@ -187,7 +187,8 @@ export default class Paragraph extends React.Component {
       }
 
       if (_.has(subformValues, [paragraphFieldName, this.props.lang, index, fieldName])) {
-        let currentSubIndexForm = subformValues[paragraphFieldName][this.props.lang][index][fieldName][this.props.lang];
+        // let currentSubIndexForm = subformValues[paragraphFieldName][this.props.lang][index][fieldName][this.props.lang];
+        let currentSubIndexForm = _.get(subformValues, [paragraphFieldName, this.props.lang, index, fieldName, this.props.lang], {});
 
         // let newValue = {
         //   [subindex]: {
