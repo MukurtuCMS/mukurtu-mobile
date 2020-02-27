@@ -264,7 +264,12 @@ export default class Scald extends React.Component {
     }
   }
 
-  _launchCameraRollAsync = async (index) => {
+  _launchCameraRollAsync = async (index, mediaTypes) => {
+    let mediaType =  ImagePicker.MediaTypeOptions.Images;
+    if (mediaTypes.includes('video')) {
+      mediaType = ImagePicker.MediaTypeOptions.All;
+    }
+
     let {status} = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     if (status !== 'granted') {
       console.error('Camera not granted');
@@ -275,7 +280,7 @@ export default class Scald extends React.Component {
     try {
       let image = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: false,
-        mediaTypes: ImagePicker.MediaTypeOptions.All
+        mediaTypes: mediaType
       });
 
       if (!image.cancelled) {
@@ -297,14 +302,19 @@ export default class Scald extends React.Component {
     }
   }
 
-  _launchCameraAsync = async (index) => {
+  _launchCameraAsync = async (index, mediaTypes) => {
+    const options = {mediaTypes: ImagePicker.MediaTypeOptions.Images};
+    if (mediaTypes.includes('video')) {
+      options.mediaTypes = ImagePicker.MediaTypeOptions.All;
+    }
+
     let {status} = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL)
     if (status !== 'granted') {
       this.setState({'permission': false});
-      console.log("Camera permission Denied")
+      console.log("Camera permission Denied");
       return;
     }
-    let image = await ImagePicker.launchCameraAsync();
+    let image = await ImagePicker.launchCameraAsync(options);
     if (!image.cancelled) {
       const thumbnailUri = await this.getThumbnailUri(image);
       this.setState({
@@ -509,10 +519,11 @@ export default class Scald extends React.Component {
       />
     }
 
+    const titleText = field['#title'] != null && field['#title'].length > 0 ? field['#title'] : 'Media Assets';
 
     return (
       <View>
-        <Text style={styles.titleTextStyle}>Media Assets</Text>
+        <Text style={styles.titleTextStyle}>{titleText}</Text>
         <Required required={this.props.required}/>
         <View style={styles.container}>
           {elements}
