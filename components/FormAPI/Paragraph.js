@@ -38,7 +38,12 @@ export default class Paragraph extends React.Component {
 
   loadParagraphData = () => {
     const {fieldName, formValues, lang, screenProps} = this.props;
-    if (_.has(formValues, [fieldName, lang])) {
+    // if we already have paragraph data set, use that
+    if (formValues['paragraphs'] !== undefined) {
+      const length = Object.keys(formValues['paragraphs']).length;
+      this.setState({numberOfForms: length, empty: false, subformValues: formValues['paragraphs']});
+    }
+    else if (_.has(formValues, [fieldName, lang])) {
       const existingKeys = Object.keys(formValues[fieldName][lang]);
       if (existingKeys.length > 0) {
         // Get the existing data saved.
