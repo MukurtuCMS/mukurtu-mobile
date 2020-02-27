@@ -174,7 +174,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2020-02-25_1300'
+      appVersion: '2020-02-27_1045'
     };
     // Not sure if this is necessary any longer, but leaving it just in case.
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
