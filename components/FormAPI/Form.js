@@ -745,6 +745,7 @@ export default class FormComponent extends React.Component {
 
   resetForm() {
     this.setState({formSubmitted: false});
+    this.props.navigation.navigate('Links');
   }
 
 
