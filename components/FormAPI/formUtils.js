@@ -45,16 +45,23 @@ export const getFieldValueCount = (field) => {
 
 
 export const sanitizeFormValues = (data, screenProps) => {
-  let formValues = {...data};
+  let formValues = JSON.parse(JSON.stringify(data));
 
   // This section here holds all the logic for some custom field handling.
   const refValueKeys = ['tid', 'nid', 'target_id'];
   const skipFields = {'og_group_ref': ['select']};
+  const removeFields = ['group_group'];
   const hardcodedLanguage = {'field_tags': 'en'};
 
 
   for(let key in formValues) {
     if(formValues.hasOwnProperty(key)) {
+
+      // First check if we should remove the field
+      if (removeFields.indexOf(key) !== -1) {
+        _.unset(formValues, key);
+        continue;
+      }
 
       const fieldDefinition = screenProps.formFields[formValues.type][key];
 
@@ -67,9 +74,19 @@ export const sanitizeFormValues = (data, screenProps) => {
         const lang = Object.keys(formValues[key]);
         const valueKey = fieldDefinition[fieldDefinition['#language']]['#value_key'];
 
+        // Make sure that a single checkbox with value 0 is unset
+        if (fieldType === 'checkbox') {
+          const checkVal = _.get(formValues, [key, lang, 0, valueKey], -1);
+          if (checkVal == 0) {
+            formValues[key][lang] = null;
+          }
+        }
+
         // Make sure radios are set to just one value
         if (fieldType === 'radios') {
-          formValues[key][lang] = formValues[key][lang][0];
+          if (formValues[key][lang].hasOwnProperty(0)) {
+            formValues[key][lang] = formValues[key][lang][0];
+          }
         }
 
         // If this is a node/term reference, we need to remove that value key.
@@ -126,7 +143,7 @@ export const sanitizeFormValues = (data, screenProps) => {
   }
 
   // Unset the data array
-  formValues['data'] = null;
+  // formValues['data'] = null;
 
   return formValues;
 };
