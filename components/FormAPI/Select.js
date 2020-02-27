@@ -3,20 +3,16 @@ import {Picker, View, Text, StyleSheet} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import Required from "./Required";
 import RNPickerSelect from "react-native-picker-select";
-import {getFieldValueCount, getFieldLanguage} from "./formUtils";
+import {getFieldLanguage} from "./formUtils";
 import _ from 'lodash';
 
 
 export default class Select extends React.Component {
 
   componentDidMount() {
-    console.log('CDM');
     const {field, formValues, setFormValue, fieldName} = this.props;
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
     const lang = getFieldLanguage(formValues[fieldName]);
-    // const fieldValueCount = getFieldValueCount(this.props.formValues[this.props.fieldName]);
-
-    // if (fieldValueCount === 0 && field['#default_value'].length > 0) {
     if (!_.has(formValues, [fieldName, lang]) && field['#default_value'].length > 0) {
       setFormValue(fieldName, field['#default_value'][0], valueKey);
     }
