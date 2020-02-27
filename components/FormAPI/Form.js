@@ -641,7 +641,7 @@ export default class FormComponent extends React.Component {
       } else if (this.props.did) {
         id = this.props.did;
       }
-      let formValues = sanitizeFormValues(this.state.formValues, this.props.screenProps);
+      let formValues = this.state.formValues;
       this.props.screenProps.db.transaction(
         tx => {
           tx.executeSql('replace into saved_offline (blob, id, saved) values (?, ?, 0)',
