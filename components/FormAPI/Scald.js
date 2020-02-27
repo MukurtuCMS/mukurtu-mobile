@@ -73,8 +73,7 @@ export default class Scald extends React.Component {
                     type: atomEntity.type,
                     remote: true
                   };
-                }
-                else {
+                } else {
                   elements[atom.sid] = {
                     sid: atom.sid,
                     title: `${atom.title}`,
@@ -165,8 +164,8 @@ export default class Scald extends React.Component {
         const scaldData = await fetch(url + '/app/scald/retrieve/' + createdScald.sid + '.json', data)
           .then((response) => response.json());
 
-        let e=1;
-        const sanitiziedName = filename.replace(/ /g,"_");
+        let e = 1;
+        const sanitiziedName = filename.replace(/ /g, "_");
         const copyFile = await FileSystem.copyAsync({
           from: value.uri,
           to: this.props.documentDirectory + sanitiziedName
@@ -184,18 +183,16 @@ export default class Scald extends React.Component {
             uploadProgress: {}
           }
         });
-          // .catch((error) => console.log(error));
+        // .catch((error) => console.log(error));
 
         // Now we have the scald ID, and pass that to the form submission function
         // let sid = fileAtom.sid;
 
-      }
-      catch (e) {
+      } catch (e) {
         console.error(e);
         this.props.enableSubmit();
       }
-    }
-    else {
+    } else {
 
       const copyFile = await FileSystem.copyAsync({
         from: value.uri,
@@ -230,8 +227,12 @@ export default class Scald extends React.Component {
         tx => {
           tx.executeSql('replace into atom (sid, title, entity) values (?, ?, ?)',
             [atom.sid, atom.title, JSON.stringify(atom)],
-            (_, data) => {resolve(atom.sid)},
-            (_, error) => { reject(error);}
+            (_, data) => {
+              resolve(atom.sid)
+            },
+            (_, error) => {
+              reject(error);
+            }
           );
         }
       );
@@ -265,7 +266,7 @@ export default class Scald extends React.Component {
   }
 
   _launchCameraRollAsync = async (index, mediaTypes) => {
-    let mediaType =  ImagePicker.MediaTypeOptions.Images;
+    let mediaType = ImagePicker.MediaTypeOptions.Images;
     if (mediaTypes.includes('video')) {
       mediaType = ImagePicker.MediaTypeOptions.All;
     }
@@ -296,8 +297,7 @@ export default class Scald extends React.Component {
         );
       }
 
-    }
-    catch (e) {
+    } catch (e) {
       console.log(e);
     }
   }
@@ -347,27 +347,25 @@ export default class Scald extends React.Component {
 
     if (mediaObject.type == 'video') {
       try {
-        const { uri } = await VideoThumbnails.getThumbnailAsync(
+        const {uri} = await VideoThumbnails.getThumbnailAsync(
           mediaObject.uri,
           {
             time: 15000,
           }
         );
-        return  uri;
+        return uri;
       } catch (e) {
         console.warn('Could not create video thumbnail.', e);
       }
-    }
-    else {
+    } else {
       return mediaObject.uri
     }
   };
 
   getAllowedMediaTypes = (field) => {
-    if (field['#attributes'] !== undefined && field['#attributes'].constructor === Object ) {
+    if (field['#attributes'] !== undefined && field['#attributes'].constructor === Object) {
       return field['#attributes']['data-types'].split(',');
-    }
-    else if(field.sid['#attributes'] !== undefined && field.sid['#attributes'].constructor === Object) {
+    } else if (field.sid['#attributes'] !== undefined && field.sid['#attributes'].constructor === Object) {
       return field.sid['#attributes']['data-types'].split(',');
     }
     return [];
@@ -399,7 +397,7 @@ export default class Scald extends React.Component {
             mediaIconType = 'file-image-o';
             break;
         }
-        const mediaIcon = <FontAwesome name={mediaIconType} size={16} />;
+        const mediaIcon = <FontAwesome name={mediaIconType} size={16}/>;
 
         const removeFileText = `Remove ${existingElements[sid].type}`;
         const removeButton = <Button color="red" title={removeFileText} onPress={() => this.removeFile(i)}/>;
@@ -417,16 +415,15 @@ export default class Scald extends React.Component {
                 width: 350
               }}/>
           );
-        }
-        else if (existingElements[sid].type === 'video' && !existingElements[sid].remote) {
+        } else if (existingElements[sid].type === 'video' && !existingElements[sid].remote) {
           const thumbnail = this.state.placeholder[i] != null ? this.state.placeholder[i] : false;
           mediaElement = thumbnail ? (<Image
-                source={{uri: thumbnail}}
-                resizeMode={'contain'}
-                style={{
-                  height: 300,
-                  width: 350
-                }}/>) :
+              source={{uri: thumbnail}}
+              resizeMode={'contain'}
+              style={{
+                height: 300,
+                width: 350
+              }}/>) :
             (<Video
               source={{uri: existingElements[sid].file}}
               rate={1.0}
@@ -436,23 +433,20 @@ export default class Scald extends React.Component {
               useNativeControls={true}
               style={{width: 350, height: 300}}
             />);
+        } else {
+          mediaElement =
+            <Text style={{textTransform: 'uppercase', fontSize: 16}}>{mediaIcon} {existingElements[sid].title}</Text>
         }
 
-        else {
-          mediaElement = <Text style={{textTransform: 'uppercase', fontSize: 16}}>{mediaIcon} {existingElements[sid].title}</Text>
-        }
-
-        const el =(
+        const el = (
           <View style={styles.element} key={i}>
             {mediaElement}
             {removeButton}
           </View>);
         elements.push(el);
-      }
-      else if (sid && existingElements[sid] === undefined) {
+      } else if (sid && existingElements[sid] === undefined) {
         elements.push(<Text key={sid}>Media Item not synced from server.</Text>)
-      }
-      else {
+      } else {
         let preview;
         if (this.state.placeholder[i] != null) {
           preview = (<Image
@@ -466,14 +460,18 @@ export default class Scald extends React.Component {
 
         const buttons = [];
         if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
-          buttons.push(<Button key={'roll-btn'} title={'Select photo/video'}
-                               onPress={() => this._launchCameraRollAsync(i, allowedMediaTypes)}/>);
-          buttons.push(<Button key={'camera-btn'} title={'Take photo/video'}
-                               onPress={() => this._launchCameraAsync(i, allowedMediaTypes)}/>);
+
+          buttons.push(<View style={styles.mediaButtonWrapper}><Button key={'roll-btn'} title={'Select photo/video'}
+                                                                       onPress={() => this._launchCameraRollAsync(i, allowedMediaTypes)}/></View>);
+          buttons.push(<View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} key={'camera-btn'}
+                                                                       title={'Take photo/video'}
+                                                                       onPress={() => this._launchCameraAsync(i, allowedMediaTypes)}/></View>);
+
         }
         if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
-          buttons.push(<Button key={'file-btn'} title={'Select audio/document'}
-                               onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/>);
+          buttons.push(<View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} key={'file-btn'}
+                                                                       title={'Select audio/document'}
+                                                                       onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/></View>);
         }
 
         let line;
@@ -484,8 +482,7 @@ export default class Scald extends React.Component {
             <Text>Uploading...</Text>
             <ProgressBar progress={this.state.uploadProgress[i]} width={200}/>
           </View>);
-        }
-        else if (this.state.uploadProgress[i] && this.state.uploadProgress[i] === 1) {
+        } else if (this.state.uploadProgress[i] && this.state.uploadProgress[i] === 1) {
           showButtons = false;
           line = (<View>
             <Text>Upload Complete. Syncing data. Please wait...</Text>
@@ -499,9 +496,9 @@ export default class Scald extends React.Component {
         </View>);
       }
 
-      if(!this.state.permission) {
+      if (!this.state.permission) {
         elements.push(<Text key={'warning'}>To upload media, please give this app permission to access
-            photos/camera in your device's settings.</Text>);
+          photos/camera in your device's settings.</Text>);
       }
 
     }
@@ -513,10 +510,14 @@ export default class Scald extends React.Component {
     }
     // Check for cardinality
     if (this.props.cardinality === '-1' && this.state.permission) {
-      addMoreButton = <Button
-        title={addMoreText}
-        onPress={this.addItem.bind(this)}
-      />
+      addMoreButton =
+        <View style={styles.addMoreButtonWrapper}>
+
+          < Button
+            title={addMoreText}
+            onPress={this.addItem.bind(this)}
+          />
+        </View>
     }
 
     const titleText = field['#title'] != null && field['#title'].length > 0 ? field['#title'] : 'Media Assets';
@@ -672,16 +673,22 @@ export default class Scald extends React.Component {
       let permissionText;
       if (showButtons) {
         if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
-          photobutton = <Button title={chosenImageText} onPress={() => this._launchCameraRollAsync(i)}/>;
-          camerabutton = <Button title={takenImageText} onPress={() => this._launchCameraAsync(i)}/>;
+          photobutton =
+            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={chosenImageText}
+                                                            onPress={() => this._launchCameraRollAsync(i)}/></View>;
+          camerabutton =
+            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={takenImageText}
+                                                            onPress={() => this._launchCameraAsync(i)}/></View>;
         }
         if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
-          docbutton = <Button title={chosenDocumentText} onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/>;
+          docbutton =
+            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={chosenDocumentText}
+                                                            onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/></View>;
         }
 
-      }
-      else if(!this.state.permission) {
-        permissionText = <Text>To upload media, please give this app permission to access photos/camera in your device's settings.</Text>
+      } else if (!this.state.permission) {
+        permissionText = <Text>To upload media, please give this app permission to access photos/camera in your device's
+          settings.</Text>
       }
 
 
@@ -742,7 +749,8 @@ export default class Scald extends React.Component {
         removefile = <Button color="red" title={removeFileText} onPress={() => this.removeFile(i)}/>;
       }
 
-      let element = <View style={styles.element} key={i}>{doctext}{line}{image}{camerabutton}{photobutton}{takenImage}{docbutton}{removefile}{permissionText}</View>;
+      let element = <View style={styles.element}
+                          key={i}>{doctext}{line}{image}{camerabutton}{photobutton}{takenImage}{docbutton}{removefile}{permissionText}</View>;
       elements.push(element);
 
     }
@@ -755,10 +763,13 @@ export default class Scald extends React.Component {
     }
     // Check for cardinality
     if (this.props.cardinality === '-1' && this.state.permission) {
-      addMoreButton = <Button
-        title={addMoreText}
-        onPress={this.addItem.bind(this)}
-      />
+      addMoreButton =
+        <View style={styles.addMoreButtonWrapper}>
+          <Button
+            title={addMoreText}
+            onPress={this.addItem.bind(this)}
+          />
+        </View>
     }
 
 
@@ -807,5 +818,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#34495e',
-  }
+  },
+  mediaButtonWrapper: {
+    marginBottom: 10,
+  },
+  addMoreButtonWrapper: {
+    marginBottom: 35,
+  },
 });
