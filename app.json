@@ -24,6 +24,8 @@
       "**/*"
     ],
     "ios": {
+      "bundleIdentifier": "com.kanopi.mukurtu-mobile",
+      "buildNumber": "1.0.0",
       "supportsTablet": true,
       "infoPlist": {
         "UIUserInterfaceStyle": "Light",
@@ -31,6 +33,10 @@
           "fetch"
         ]
       }
+    },
+    "android": {
+      "package": "com.kanopi.mukurtu_mobile",
+      "versionCode": 1
     }
   }
 }
