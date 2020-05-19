@@ -4,12 +4,11 @@
     "description": "A very interesting project.",
     "slug": "mukurtu-mobile",
     "privacy": "public",
-    "sdkVersion": "35.0.0",
     "platforms": [
       "ios",
       "android"
     ],
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "splash": {
@@ -24,12 +23,19 @@
       "**/*"
     ],
     "ios": {
+      "bundleIdentifier": "com.kanopi.mukurtu-mobile",
+      "buildNumber": "1.0.2",
       "supportsTablet": true,
       "infoPlist": {
+        "UIUserInterfaceStyle": "Light",
         "UIBackgroundModes": [
           "fetch"
         ]
       }
+    },
+    "android": {
+      "package": "com.kanopi.mukurtu_mobile",
+      "versionCode": 1
     }
   }
 }

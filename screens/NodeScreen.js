@@ -4,8 +4,9 @@ import {
   Text,
   View,
   ScrollView,
-  Dimensions, WebView, Image
+  Dimensions, Image
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import * as SQLite from 'expo-sqlite';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
@@ -18,6 +19,9 @@ import axios from "axios";
 import * as Colors from "../constants/Colors";
 import {EmbeddedNode} from "../components/EmbeddedNode";
 import NodeTeaser from "../components/Displays/nodeTeaser";
+import {ScaldSwipe} from '../components/ScaldSwipe';
+import {FieldCollection} from "../components/FieldCollection";
+import _ from 'lodash';
 
 
 // create a global db for database list and last known user
@@ -43,13 +47,25 @@ class NodeScreen extends React.Component {
       db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
       displayModes: false,
       terms: this.props.screenProps.terms,
-      nodes: null
+      nodes: null,
+      thisNode: null
     }
   }
 
   componentDidMount() {
     const type = this.props.navigation.getParam('contentType');
 
+    const node = this.props.navigation.getParam('node');
+    this.props.screenProps.db.transaction(tx => {
+      tx.executeSql('select * from nodes WHERE nid = ?', [node.nid],
+        (success, array) => {
+          const entity = _.get(array, ['rows', '_array', 0], null);
+          if (entity != null) {
+            this.setState({thisNode: JSON.parse(entity.entity)})
+          }
+        }
+      )
+    });
 
     // Filter display modes by weight
     let displayModes = this.props.screenProps.displayModes[type];
@@ -110,11 +126,33 @@ class NodeScreen extends React.Component {
 
   render() {
 
+    const emptyView = (
+      <View style={{flex: 1}}>
+        <ScrollView style={styles.container}>
+          <Text key={`empty`} style={styles.text}>There is no content attached
+            to this entry.</Text>
+        </ScrollView>
+      </View>
+    );
+
+    const loadingView = (
+      <View style={{flex: 1}}>
+        <ScrollView style={styles.container}>
+          <Text key={`empty`} style={styles.text}>Loading content...</Text>
+        </ScrollView>
+      </View>
+    );
+
+    if (this.state.thisNode === null) {
+      return loadingView;
+    }
+
 
     if (!this.state.displayModes) {
-      return [];
+      return emptyView;
     }
-    const node = this.props.navigation.getParam('node');
+    // const node = this.props.navigation.getParam('node');
+    const node = this.state.thisNode;
 
     let showStar = false;
     if (this.state.personalCollectionValid === true) {
@@ -126,10 +164,47 @@ class NodeScreen extends React.Component {
 
     let renderedNode = [];
 
+    const relatedContent = _.get(node, ['field_related_content', 'und'], []);
+
     this.state.displayModes.forEach((elem) => {
       let fieldName = elem[0];
       let fieldObject = elem[1];
 
+
+      let extractedField = fieldName.includes('extracted_') && relatedContent.length > 0;
+      // Extract out of related content field
+      if (extractedField) {
+        const {nodes} = this.props.screenProps;
+        let relatedNodes = [];
+        relatedContent.forEach((rc) => {
+          if (nodes[rc.target_id] !== undefined && nodes[rc.target_id].type == fieldObject.extracted_type) {
+            relatedNodes.push(
+              <NodeTeaser
+                key={`${fieldName}_teaser_${rc.target_id}`}
+                node={this.props.screenProps.nodes[rc.target_id]}
+                viewableFields={this.state.viewableFields}
+                token={this.props.screenProps.token}
+                cookie={this.props.screenProps.cookie}
+                url={this.props.screenProps.siteUrl}
+                db={this.props.screenProps.db}
+                terms={this.props.screenProps.terms}
+                allNodes={this.props.screenProps.nodes}
+                navigation={this.props.navigation}
+                editable={false}
+              />
+            );
+          }
+        });
+
+        if (relatedNodes.length > 0) {
+          renderedNode.push(<View key={`${fieldName}_container`}>
+            <Text key={`${fieldName}_label`} style={styles.label}>{fieldObject.label}</Text>
+            {relatedNodes}
+          </View>);
+        }
+
+        return;
+      }
 
       if (typeof node[fieldName] === 'undefined' || node[fieldName].length === 0) {
         return;
@@ -138,12 +213,13 @@ class NodeScreen extends React.Component {
       // Hide title on scald fields per request
       if (fieldObject.label && fieldObject.view_mode_properties.label !== 'hidden' && fieldObject.view_mode_properties.type !== 'ma_colorbox') {
         renderedNode.push(
-          <Text key={fieldName} style={styles.label}>{fieldObject.label}</Text>
+          <Text key={`${fieldName}_label`} style={styles.label}>{fieldObject.label}</Text>
         )
       }
-      let type = fieldObject.view_mode_properties.type;
+      // let type = fieldObject.view_mode_properties.type;
 
-      if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link') {
+      if (fieldObject.view_mode_properties.type === 'taxonomy_term_reference_link' ||
+        fieldObject.view_mode_properties.type === 'textformatter_list') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           let fieldData = '';
@@ -188,25 +264,27 @@ class NodeScreen extends React.Component {
             }
           }
 
-          renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
+          renderedNode.push(<Text key={`${fieldName}_term_ref_${i}`} style={styles.text}>{fieldData}</Text>)
         }
       }
+
       if (fieldObject.view_mode_properties.type === 'text_default') {
         let tagsStyles = {p: {marginTop: 0}};
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML tagsStyles={tagsStyles} key={fieldName + i}
+            renderedNode.push(<HTML tagsStyles={tagsStyles} key={`${fieldName}_html_${i}`}
                                     html={node[fieldName][lang][i].safe_value}
                                     imagesMaxWidth={Dimensions.get('window').width}/>)
           }
         }
       }
+
       if (fieldObject.view_mode_properties.type === 'license_formatter') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<Text key={fieldName + i}>{node[fieldName][lang][0].value}</Text>)
+            renderedNode.push(<Text key={`${fieldName}_license_${i}`}>{node[fieldName][lang][0].value}</Text>)
           }
         }
       }
@@ -220,7 +298,7 @@ class NodeScreen extends React.Component {
                 latitude: Number(node[fieldName][lang][i].lat),
                 longitude: Number(node[fieldName][lang][i].lon),
               };
-              renderedNode.push(<MapView style={styles.map} key={fieldName + i}
+              renderedNode.push(<MapView style={styles.map} key={`${fieldName}_geo_${i}`}
                                          initialRegion={{
                                            latitude: Number(node[fieldName][lang][i].lat),
                                            longitude: Number(node[fieldName][lang][i].lon),
@@ -236,25 +314,32 @@ class NodeScreen extends React.Component {
           }
         }
       }
+
       if (fieldObject.view_mode_properties.type === 'ma_colorbox') {
         // Scald item
         let items = node[fieldName][lang];
-        for (i = 0; i < items.length; i++) {
-
-          let sid = items[i].sid;
-          renderedNode.push(
-            <ScaldItem
-              token={this.props.screenProps.token}
-              cookie={this.props.screenProps.cookie}
-              url={this.props.screenProps.siteUrl}
-              sid={sid}
-              db={this.props.screenProps.db}
-              key={sid}
-              documentDirectory={this.props.screenProps.documentDirectory}
-            />
-          );
-          // Current request is to just show one of these
-          break;
+        if (items.length > 1) {
+          renderedNode.push(<ScaldSwipe
+            items={items}
+            token={this.props.screenProps.token}
+            cookie={this.props.screenProps.cookie}
+            url={this.props.screenProps.siteUrl}
+            db={this.props.screenProps.db}
+            key={`scald-swipe-${fieldName}`}
+            documentDirectory={this.props.screenProps.documentDirectory}
+          />)
+        }
+        else if (items.length === 1) {
+          let sid = items[0].sid;
+          renderedNode.push(<ScaldItem
+            token={this.props.screenProps.token}
+            cookie={this.props.screenProps.cookie}
+            url={this.props.screenProps.siteUrl}
+            sid={sid}
+            db={this.props.screenProps.db}
+            key={sid}
+            documentDirectory={this.props.screenProps.documentDirectory}
+          />)
         }
       }
 
@@ -265,6 +350,7 @@ class NodeScreen extends React.Component {
           let nid = items[i].target_id;
           renderedNode.push(
             <EmbeddedNode
+              key={`${fieldName}_embedded_node_${i}`}
               nid={nid}
               fieldName={fieldName}
               fieldObject={fieldObject}
@@ -273,13 +359,14 @@ class NodeScreen extends React.Component {
               terms={this.props.screenProps.terms}
               contentType={this.props.navigation.getParam('contentType')}
               screenProps={this.props.screenProps}
+              navigation={this.props.navigation}
             />
           );
         }
       }
 
       if (fieldObject.view_mode_properties.type === 'paragraphs_view') {
-        let items = node[fieldName][lang];
+        let items = JSON.parse(JSON.stringify(node[fieldName][lang]));
         // items can include an entry for each revision, which we need to filter out, keeping the most recent revision
         // (I have a suspicion this could be simplified.)
         // first, create array of unique values
@@ -309,7 +396,8 @@ class NodeScreen extends React.Component {
         });
 
         // Now we filter our original array by keeper revision IDs
-        let uniqueItems = items.filter(item => keeperRevisionIds.indexOf(parseInt(item.revision_id, 10)) !== -1);
+        // let uniqueItems = items.filter(item => keeperRevisionIds.indexOf(parseInt(item.revision_id, 10)) !== -1);
+        let uniqueItems = items.filter(item => keeperRevisionIds.includes(item.revision_id));
 
 
         for (i = 0; i < uniqueItems.length; i++) {
@@ -326,7 +414,7 @@ class NodeScreen extends React.Component {
               fieldName={fieldName}
               nodes={this.props.screenProps.nodes}
               terms={this.props.screenProps.terms}
-              key={i}
+              key={`${fieldName}_paragraph_${i}`}
               contentType={this.props.navigation.getParam('contentType')}
               documentDirectory={this.props.screenProps.documentDirectory}
             />
@@ -355,7 +443,8 @@ class NodeScreen extends React.Component {
             }*/
 
 
-      if (fieldObject.view_mode_properties.type === 'node_reference_default' || fieldObject.view_mode_properties.type === 'entityreference_label') {
+      if (fieldObject.view_mode_properties.type === 'node_reference_default' ||
+        fieldObject.view_mode_properties.type === 'entityreference_label') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           let fieldData = '';
@@ -367,7 +456,7 @@ class NodeScreen extends React.Component {
                 item to Mukurtu Mobile.</Text>
           } else {
             renderedNode.push(
-              <Text>Collection only displays synced nodes; unsynced nodes will not display in collection even if they're
+              <Text key={`${fieldName}_notice`}>Collection only displays synced nodes; unsynced nodes will not display in collection even if they're
                 in the collection on the desktop site.</Text>
             );
             for (i = 0; i < node[fieldName][lang].length; i++) {
@@ -387,7 +476,7 @@ class NodeScreen extends React.Component {
                 if (this.props.screenProps.nodes[nid]) {
                   renderedNode.push(
                     <NodeTeaser
-                      key={i++}
+                      key={`${fieldName}_teaser_${i}`}
                       node={this.props.screenProps.nodes[nid]}
                       viewableFields={this.state.viewableFields}
                       token={this.props.screenProps.token}
@@ -419,10 +508,47 @@ class NodeScreen extends React.Component {
         if (isObject) {
           for (i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<Text
-              key={fieldName + i}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
+              key={`${fieldName}_date_${i}`}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
           }
         }
       }
+
+      if(fieldObject.view_mode_properties.type === 'date_default') {
+
+        if (node[fieldName] != null && node[fieldName][lang]) {
+          for(let [k, v] of Object.entries(node[fieldName][lang])) {
+
+            if (v.hasOwnProperty('value') && v.value != null) {
+
+              let dateValue;
+              if (typeof v.value === "string") {
+                dateValue = new Date(v.value.replace(' ', 'T'));
+              }
+              else {
+                dateValue = new Date(v.value.date)
+              }
+
+              renderedNode.push(
+                <Text key={`${fieldName}_date_${k}`}>{dateValue.toLocaleDateString()}</Text>
+              );
+            }
+          }
+        }
+      }
+
+      if(fieldObject.view_mode_properties.type === 'field_collection_view') {
+        if (node[fieldName] != null && node[fieldName][lang]) {
+          for (var i = 0; i < node[fieldName][lang].length; i++) {
+            renderedNode.push(
+              <FieldCollection
+                key={`${fieldName}_fc_${i}`}
+                fid={node[fieldName][lang][i]['value']}
+                screenProps={this.props.screenProps}
+              />);
+          }
+        }
+      }
+
     });
 
     let star = null;
@@ -432,7 +558,6 @@ class NodeScreen extends React.Component {
       star =
         <View style={styles.star}>
           <Star
-
             starred={false}
             nid={node.nid}
             nodes={this.props.screenProps.nodes}
@@ -446,7 +571,7 @@ class NodeScreen extends React.Component {
     }
 
 
-    return (<View style={{flex: 1}}>
+    return renderedNode.length > 0 ? (<View style={{flex: 1}}>
         <ScrollView style={styles.container}>
           <Text>{this.state.media_text}</Text>
           {star}
@@ -454,7 +579,7 @@ class NodeScreen extends React.Component {
 
         </ScrollView>
       </View>
-    );
+    ) : emptyView;
   }
 }
 

@@ -6,6 +6,7 @@ import {ScaldItem} from "./ScaldItem";
 import {ParagraphView} from "./ParagraphView";
 import {Star} from "./Star";
 import {FieldCollection} from "./FieldCollection";
+import NodeTeaser from "./Displays/nodeTeaser";
 
 export class EmbeddedNode extends React.Component {
 
@@ -25,7 +26,8 @@ export class EmbeddedNode extends React.Component {
       return [];
     }
     if(!this.props.nodes[this.props.nid]) {
-      return;
+      return  <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
+        item to Mukurtu Mobile.</Text>;
     }
     const node = this.props.nodes[this.props.nid];
 
@@ -33,11 +35,10 @@ export class EmbeddedNode extends React.Component {
 
     let renderedNode = [];
 
-    renderedNode.push(
-      <Text style={styles.nodeTitle}>{node.title}</Text>
-    );
+    const embeddedFields = ((this.props.displayModes[0] || [])[1] || {}).fields || {};
 
-    for (const [fieldName, fieldObject] of Object.entries(this.props.displayModes['field_unit_lessons']['fields'])) {
+
+    for (const [fieldName, fieldObject] of Object.entries(embeddedFields)) {
       if (typeof node[fieldName] === 'undefined' || node[fieldName].length === 0) {
         continue;
       }
@@ -102,7 +103,7 @@ export class EmbeddedNode extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<FieldCollection
+            renderedNode.push(<FieldCollection key={fieldName + i}
               fid={node[fieldName][lang][i]['value']}
               screenProps={this.props.screenProps}
 
@@ -269,9 +270,14 @@ export class EmbeddedNode extends React.Component {
       }
     }
 
+    if (renderedNode.length < 1) {
+      renderedNode.push(<Text key={'empty-text'}>There is no content for this lesson.</Text>)
+    }
+
 
 
     return (<View style={{flex: 1}}>
+        <Text style={styles.nodeTitle}>{node.title}</Text>
           {renderedNode}
       </View>
     );

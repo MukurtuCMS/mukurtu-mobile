@@ -13,6 +13,8 @@ export default class Textarea extends React.Component {
 
         const fieldName = this.props.fieldName;
 
+        const index = this.props.index || 0;
+
       let lang = 'und';
       if (this.props.formValues[this.props.fieldName] && typeof Object.keys(this.props.formValues[this.props.fieldName]) !== 'undefined') {
         lang = Object.keys(this.props.formValues[this.props.fieldName])[0];
@@ -60,7 +62,7 @@ export default class Textarea extends React.Component {
             <Required required={this.props.required}/>
             <TextInput
                 style={textfieldStyle}
-                onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString)}
+                onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, index)}
                 value={value}
                 defaultValue={field['#default_value']}
                 maxLength={field['#maxlength']}

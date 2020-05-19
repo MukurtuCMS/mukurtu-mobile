@@ -3,16 +3,18 @@ import {Picker, View, Text, StyleSheet} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import Required from "./Required";
 import RNPickerSelect from "react-native-picker-select";
+import {getFieldLanguage} from "./formUtils";
+import _ from 'lodash';
 
 
 export default class Select extends React.Component {
 
   componentDidMount() {
-    const field = this.props.field;
+    const {field, formValues, setFormValue, fieldName} = this.props;
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
-
-    if (field['#default_value'].length > 0) {
-      this.props.setFormValue(this.props.fieldName, field['#default_value'][0], valueKey);
+    const lang = getFieldLanguage(formValues[fieldName]);
+    if (!_.has(formValues, [fieldName, lang]) && field['#default_value'].length > 0) {
+      setFormValue(fieldName, field['#default_value'][0], valueKey);
     }
   }
 
@@ -50,10 +52,15 @@ export default class Select extends React.Component {
 
     let selectedValue = '';
 
-    if (typeof this.props.formValues[this.props.fieldName] !== 'undefined' &&
-        typeof this.props.formValues[this.props.fieldName]['und'] !== 'undefined') {
-      selectedValue = this.props.formValues[this.props.fieldName]['und'][valueKey];
-      // Get the key for the selected values
+    const fieldValue = this.props.formValues[this.props.fieldName];
+
+    if (typeof fieldValue !== 'undefined' && typeof fieldValue['und'] !== 'undefined') {
+      if (fieldValue['und'][0] !== undefined) {
+        selectedValue = fieldValue['und'][0][valueKey];
+      }
+      else {
+        selectedValue = fieldValue['und'][valueKey];
+      }
     }
 
 
@@ -61,7 +68,7 @@ export default class Select extends React.Component {
       <Text>{field['#title']}</Text>
       <Required required={this.props.required}/>
       <Picker
-          style={{height: 250, width: 'auto'}}
+          style={{height: 216, width: 'auto', borderColor: '#ccc', borderWidth: 1}}
           onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey)}
           selectedValue={selectedValue}
       >

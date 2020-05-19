@@ -9,7 +9,7 @@ import {
   View,
   Image,
   Alert,
-  TouchableHighlight, NetInfo,
+  TouchableHighlight,
 } from 'react-native';
 import SettingsList from 'react-native-settings-list';
 import {connect} from 'react-redux';
@@ -132,7 +132,7 @@ class CreateContentFormScreen extends React.Component {
       let sortedNodeForm = [];
       let sortGroups = [];
 
-      if (propsForm['#groups'].length === 0) {
+      if (propsForm['#groups'] == null || propsForm['#groups'].length === 0) {
         sortedNodeForm = Object.values(propsForm);
       } else {
         let groups = propsForm['#groups']['group_tabs'].children;

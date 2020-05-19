@@ -22,7 +22,7 @@ export default class LocationComponent extends React.Component {
   }
 
 
-  componentWillMount() {
+  componentDidMount() {
     this._getLocationAsync();
   }
 

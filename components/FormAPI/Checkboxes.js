@@ -15,6 +15,11 @@ export default class Checkboxes extends React.Component {
       // set the language key as initial key
       const lang = Object.keys(this.props.formValues[fieldName]);
 
+      return this.props.formValues[fieldName][lang].some(element => {
+        return element[fieldKey] === fieldValue;
+      });
+
+
       if (this.props.formValues[fieldName][lang][fieldKey] === fieldValue) {
         return true;
       }
@@ -62,6 +67,7 @@ export default class Checkboxes extends React.Component {
     const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
     let checkboxes = [];
     for (const [value, label] of Object.entries(field['#options'])) {
+      const isChecked = this.determineCheckboxValue(this.props.fieldName, value, valueKey);
       checkboxes.push(<CheckBox
           key={value}
           title={label}
@@ -70,10 +76,10 @@ export default class Checkboxes extends React.Component {
           checkedIcon='check-box'
           uncheckedIcon='check-box-outline-blank'
           checkedColor={Colors.default.gold}
-          checked={this.determineCheckboxValue(this.props.fieldName, value, valueKey)}
-          onPress={() => this.props.setFormValue(this.props.fieldName, value, valueKey, lang, formErrorString)}
+          checked={isChecked}
+          onPress={() => this.props.setFormValue(this.props.fieldName, value, valueKey, lang, isChecked, formErrorString)}
           textStyle={styles.textStyle}
-        ></CheckBox>
+        />
       );
     }
 

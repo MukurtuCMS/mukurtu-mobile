@@ -21,22 +21,26 @@ export const createUniqueTables = (db) => {
   createFieldCollectionsTable(db);
 };
 
-export const createGlobalTables = () => {
-  globalDB.transaction(tx => {
-    tx.executeSql(
-      'create table if not exists user (siteUrl primary key, user text);'
-    );
-  });
-  globalDB.transaction(tx => {
-    tx.executeSql(
-      'create table if not exists database (siteUrl primary key, databaseName text);'
-    );
-  });
-  globalDB.transaction(tx => {
-    tx.executeSql(
-      'create table if not exists savedinfo (url primary key, username text);'
-    );
-  });
+export const createGlobalTables = async () => {
+  console.log('create global tables');
+  return new Promise((resolve, reject) => globalDB.transaction(tx => {
+      tx.executeSql('create table if not exists user (siteUrl primary key, user text);');
+      tx.executeSql('create table if not exists database (siteUrl primary key, databaseName text);');
+      tx.executeSql('create table if not exists savedinfo (url primary key, username text);',
+        '', (_, result) => resolve, reject);
+    })
+  );
+
+  // globalDB.transaction(tx => {
+  //   tx.executeSql(
+  //     'create table if not exists database (siteUrl primary key, databaseName text);'
+  //   );
+  // });
+  // globalDB.transaction(tx => {
+  //   tx.executeSql(
+  //     'create table if not exists savedinfo (url primary key, username text);'
+  //   );
+  // });
 }
 
 // Below are functions not being exported

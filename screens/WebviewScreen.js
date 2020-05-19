@@ -7,9 +7,9 @@ import {
   StyleSheet,
   Text, TouchableHighlight,
   TouchableOpacity,
-  View,
-  WebView
+  View
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import Validator from 'validator';
 import {Overlay} from "react-native-elements";
 import {PleaseLogin} from "../components/PleaseLogin";

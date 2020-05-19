@@ -5,16 +5,28 @@ import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import ErrorMessage from "./ErrorMessage";
+import {getFirstFieldValue} from "./formUtils";
 
 export default class Checkbox extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      checked: this.props.field['#default_value'] === 1
-    };
+    // this.state = {
+    //   checked: this.props.field['#default_value'] === 1
+    // };
 
   }
+
+  determineCheckedState() {
+    const fieldVal = getFirstFieldValue(this.props.formValues[this.props.fieldName]);
+    if (fieldVal && fieldVal.value) {
+      return !!parseInt(fieldVal.value);
+    }
+    else {
+      return false;
+    }
+  }
+
 
   render() {
     let error = null;
@@ -46,13 +58,15 @@ export default class Checkbox extends React.Component {
 
     let errorMarkup = <ErrorMessage error={error} />;
 
+    const isChecked = this.determineCheckedState();
+
     return <View style={styles.viewStyle}>
       {errorMarkup}
       <FieldDescription description={(this.props.description) ? this.props.description : null} />
       <Required required={this.props.required}/>
       <CheckBox
           title={field['#title']}
-          checked={this.state.checked}
+          checked={isChecked}
           containerStyle={checkboxStyle}
           iconType='material'
           checkedIcon='check-box'
@@ -60,11 +74,13 @@ export default class Checkbox extends React.Component {
           checkedColor={Colors.default.gold}
           textStyle={styles.textStyle}
           onPress={() => {
-            this.setState({
-              checked: !this.state.checked
-            }, () => {
-              this.props.setFormValue(this.props.fieldName, this.state.checked, valueKey, formErrorString);
-            });
+            this.props.setFormValue(this.props.fieldName, !isChecked, valueKey, formErrorString);
+          //   this.setState({
+          //     checked: !this.state.checked
+          //
+          // }, () => {
+          //     this.props.setFormValue(this.props.fieldName, this.state.checked, valueKey, formErrorString);
+          //   });
           }
           }
       />

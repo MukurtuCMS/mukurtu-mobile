@@ -4,26 +4,39 @@ import {Feather} from '@expo/vector-icons';
 import {ScaldItem} from "../ScaldItem";
 import {ParagraphView} from "../ParagraphView";
 import Colors from "../../constants/Colors";
+import { NavigationActions } from 'react-navigation';
+import _ from 'lodash';
 
 export default class NodeTeaser extends React.Component {
 
   editNode(node) {
-    this.props.navigation.navigate('CreateContentForm', {
-      contentType: this.props.node.type,
-      contentTypeLabel: this.props.node.title,
-      node: this.props.node,
-      editWord: 'Edit',
-      customBackScreen: 'NodeListing'
-    })
+    const navigateAction = NavigationActions.navigate({
+      routeName: 'EditContentForm',
+      params: {
+        contentType: this.props.node.type,
+        contentTypeLabel: this.props.node.title,
+        node: this.props.node,
+        editWord: 'Edit',
+        // customBackScreen: 'NodeListing'
+      },
+      key: `node-edit-${this.props.node.nid}`
+    });
+    this.props.navigation.dispatch(navigateAction);
   }
 
   viewNode() {
-    this.props.navigation.navigate('Node', {
-      contentType: this.props.node.type,
-      contentTypeLabel: this.props.node.title,
-      node: this.props.node,
-      terms: this.props.terms
-    })
+    const navigateAction = NavigationActions.navigate({
+      routeName: 'Node',
+      params: {
+        contentType: this.props.node.type,
+        contentTypeLabel: this.props.node.title,
+        node: this.props.node,
+        terms: this.props.terms
+      },
+      key: `node-view-${this.props.node.nid}`
+    });
+    this.props.navigation.dispatch(navigateAction);
+
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -38,8 +51,16 @@ export default class NodeTeaser extends React.Component {
     if (node.body !== undefined) {
       body = node.body[Object.keys(node.body)[0]];
       const regex = /(<([^>]+)>)/ig;
-      if (typeof body !== 'undefined' && typeof body[0] !== 'undefined' && typeof body[0]['safe_value'] !== undefined) {
-        body = body[0]['safe_value'].replace(regex, '');
+      // let bodyValue = ((body || {})[0] || {})['value'];
+      let bodyValue = _.get(body, [0, 'value'], '');
+      let bodySafeValue = _.get(body, [0, 'safe_value'], '');
+      // let bodySafeValue = ((body || {})[0] || {})['safe_value'];
+
+      if (bodySafeValue.length !== 0) {
+        body = bodySafeValue.replace(regex, '');
+      }
+      else if (bodyValue.length !== 0) {
+        body = bodyValue.replace(regex, '');
       }
     }
 
@@ -138,7 +159,8 @@ export default class NodeTeaser extends React.Component {
 
     let feather = null;
     let nid = this.props.node.nid;
-    if(this.props.editable[nid] === true || this.props.editable[nid] == '1') {
+    let editableContentTypes = this.props.editableContentTypes !== undefined ? Object.keys(this.props.editableContentTypes) : [];
+    if(editableContentTypes.indexOf(this.props.node.type) > -1 && (this.props.editable[nid] === true || this.props.editable[nid] == '1')) {
       feather =(<View style={styles.nodeEditWrapper}>
         <Feather onPress={() => this.editNode()} name="edit" size={24} color="gray"/>
       </View>);
@@ -169,7 +191,8 @@ const styles = StyleSheet.create({
   nodeBody: {
     fontSize: 16,
     justifyContent: 'center',
-    flex: 1
+    flex: 1,
+    flexWrap: 'wrap'
   },
   nodeWrapper: {
     padding: 10,
@@ -178,8 +201,7 @@ const styles = StyleSheet.create({
   },
   nodeInnerWrapper: {
     flex: 1,
-    flexDirection: 'column',
-    flexWrap: 'wrap',
+    flexDirection: 'column'
   },
   nodeEditWrapper: {
     flexShrink: 0,

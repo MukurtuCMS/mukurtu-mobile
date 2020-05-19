@@ -20,6 +20,7 @@ import Validator from 'validator';
 import * as Colors from "../constants/Colors";
 import axios from "axios";
 import {PleaseLogin} from "../components/PleaseLogin";
+import resolveAssetSource from "expo-asset/build/resolveAssetSource.web";
 
 
 // create a global db for database list and last known user
@@ -85,18 +86,18 @@ class LoginScreen extends React.Component {
   }
 
 
-
-
   onClickListener = (viewId) => {
 
     if (this.state.name !== '') {
       var name = this.state.name.toLowerCase().trim();
-    } else {
+    }
+    else {
       this.setState({'nameEmpty': true});
     }
     if (this.state.password !== false) {
       var pass = this.state.password.toLowerCase().trim();
-    } else {
+    }
+    else {
       this.setState({'passwordEmpty': true});
     }
 
@@ -110,12 +111,15 @@ class LoginScreen extends React.Component {
     // Remove trailing slash from url
     url = url.replace(/\/$/, "");
 
-    // Set a component URL state for now, then once login is complete set the app-wide URL
+    // Set a component URL state for now, then once login is complete set the
+    // app-wide URL
     this.setState({
       url: url
     }, () => {
 
 
+      let cookie;
+      let user;
       // Fetch was caching the token, but axios seems to work
       axios.get(this.state.url + '/services/session/token')
         .then((response) => {
@@ -126,6 +130,7 @@ class LoginScreen extends React.Component {
 
           let data = {
             method: 'POST',
+            // cache: 'no-store',
             body: JSON.stringify({
               username: name,
               password: pass
@@ -141,54 +146,71 @@ class LoginScreen extends React.Component {
           };
 
           // Hit logout first to ensure we're not already logged in
-          fetch(this.state.url + '/app/user/logout', data)
+          return fetch(this.state.url + '/app/user/logout', data)
+            .then((response) => {
+              return fetch(this.state.url + '/app/user/login.json', data)
+            })
+            .then((response) => response.json())
+            .then((responseJson) => {
+
+              // this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
+              // Pass the token from the user, not our initial token.
+
+              // If we don't have a user ID in the response, treat it as an error
+              if(typeof responseJson.user !== 'object' || typeof responseJson.user.uid !== 'string') {
+                this.handleLoginError('Error logging in.');
+              }
+              cookie = responseJson.session_name + '=' + responseJson.sessid;
+              user = JSON.stringify(responseJson);
+
+              return axios(this.state.url + '/services/session/token', {
+                method: 'GET',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  // 'X-CSRF-Token': responseJson.token,
+                  'Cookie': cookie
+                }
+              });
+
+              // this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
+              // this.props.navigation.navigate('Home')
+            })
+            // .then((response) => response.blob())
             .then((response) => {
 
-              fetch(this.state.url + '/app/user/login.json', data)
-                .then((response) => response.json())
-                .then((responseJson) => {
-
-                  // this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
-                  // Pass the token from the user, not our initial token.
-
-                  // If we don't have a user ID in the response, treat it as an error
-                  if(typeof responseJson.user !== 'object' || typeof responseJson.user.uid !== 'string') {
-                    this.handleLoginError('Error logging in.');
-                  }
-
-                  this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
-                  this.props.navigation.navigate('Home')
-                })
-
-
-                .catch((error) => {
-                  this.handleLoginError('Error logging in.');
-                  if (error.response) {
-                    // The request was made and the server responded with a status code
-                    // that falls out of the range of 2xx
-                    console.log(error.response.data);
-                    console.log(error.response.status);
-                    console.log(error.response.headers);
-                  } else if (error.request) {
-                    // The request was made but no response was received
-                    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-                    // http.ClientRequest in node.js
-                    console.log(error.request);
-                  } else {
-                    // Something happened in setting up the request that triggered an Error
-                    console.log('Error', error.message);
-                  }
-                  console.log(error.config);
-                });
+              if (response.status === 200) {
+                this._handleLoginStatusUpdate(response.data, cookie, url, user);
+              }
+            })
+            .catch((error) => {
+              this.handleLoginError('Error logging in.');
+              if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                console.log(error.response.data);
+                console.log(error.response.status);
+                console.log(error.response.headers);
+              } else if (error.request) {
+                // The request was made but no response was received
+                // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                // http.ClientRequest in node.js
+                console.log(error.request);
+              } else {
+                // Something happened in setting up the request that triggered an Error
+                console.log('Error', error.message);
+              }
+              console.log(error.config);
             });
+
         })
         .catch((error) => {
           this.handleLoginError('Error logging in.');
-          // console.error(error);
+          console.error(error);
         });
 
     }, this);
-  }
+  };
 
   render() {
 

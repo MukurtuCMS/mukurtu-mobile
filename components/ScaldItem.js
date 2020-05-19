@@ -1,8 +1,20 @@
 import React from 'react';
-import {Image, StyleSheet, Text, View, WebView, Dimensions} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  TouchableOpacity,
+  Modal
+} from 'react-native';
+import { WebView } from 'react-native-webview';
 import {SQLite} from "expo-sqlite";
 import * as FileSystem from "expo-file-system";
+import * as Sharing from 'expo-sharing';
 import { Video, Audio } from 'expo-av';
+import {FontAwesome} from "@expo/vector-icons";
+import NetInfo from "@react-native-community/netinfo";
 
 export class ScaldItem extends React.Component {
   // A lot of overlap between this and the form scald components,
@@ -17,11 +29,19 @@ export class ScaldItem extends React.Component {
       atom: null,
       video: null,
       audio: false,
-      vimeoUrl: null
-    }
+      vimeoUrl: null,
+      notSynced: false,
+      lightbox: false,
+      online: true,
+    };
+
+    let netEventListener;
   }
 
-componentDidMount() {
+  componentDidMount() {
+  this.netEventListener = NetInfo.addEventListener(state => {
+    this.setState({online: state.isConnected});
+  });
 
     this.props.db.transaction(
       tx => {
@@ -30,8 +50,14 @@ componentDidMount() {
           (success, atoms) => {
             const atom = atoms.rows._array[0];
 
+            if (atom === undefined) {
+              this.setState({notSynced: true});
+              return;
+            }
+
             this.setState({title: atom.title, atom: JSON.parse(atom.entity)});
             let type = JSON.parse(atom.entity).type;
+            const sanitizedFileName = atom.title.replace(/ /g,"_");
             if(type === 'audio') {
               this.setState({'audio': true});
             }
@@ -50,7 +76,7 @@ componentDidMount() {
                 }));
             }else if(['video', 'audio'].includes(type)) {
               // Probably unnecessary to check this, but was having issues with file saving earlier so keeping it in case
-              FileSystem.getInfoAsync(this.props.documentDirectory + atom.title)
+              FileSystem.getInfoAsync(this.props.documentDirectory + sanitizedFileName)
                 .then((result) => {
                   if(result.exists) {
                     this.setState({'video': result.uri})
@@ -59,36 +85,71 @@ componentDidMount() {
                     console.log(result);
                   }
                 });
-
+            }
+            else if (['scald_file'].includes(provider)) {
+              FileSystem.getInfoAsync(this.props.documentDirectory + sanitizedFileName)
+                .then((result) => {
+                  if(result.exists) {
+                    this.setState({'data': result});
+                  } else {
+                    console.log('error retrieving scald')
+                    console.log(result);
+                  }
+                });
             }
             else {
               let options = {encoding: FileSystem.EncodingType.Base64};
-              FileSystem.readAsStringAsync(this.props.documentDirectory + atom.title, options)
+              FileSystem.readAsStringAsync(this.props.documentDirectory + sanitizedFileName, options)
                 .then((savedAtom) => {
                   this.setState({data: savedAtom});
                 })
                 .catch((error) => {
                   console.log('error getting scald item');
-                  console.log(this.props.documentDirectory + atom.title);
+                  console.log(this.props.documentDirectory + sanitizedFileName);
                 });
             }
           },
-          (success, error) => ''
+          (success, error) => {
+            this.setState({notSynced: true});
+          }
         );
       }
     );
 
   }
 
+  componentWillUnmount() {
+    this.netEventListener();
+  }
+
+  onShareClick = () => {
+    if (this.state.data && this.state.data.uri != null) {
+      Sharing.isAvailableAsync()
+        .then((available) => {
+          if (available) {
+            Sharing.shareAsync(this.state.data.uri);
+          }
+        })
+    }
+  };
+
+  setModalVisible = (visible) => {
+    this.setState({lightbox: visible});
+  };
+
 
   render() {
 
+    let addModal = false;
     let renderedItem;
+    let isYoutTube = false;
 
-    if (this.state && this.state.atom) {
+    const offlineText = (<Text>Content only available online</Text>);
+
+    if (this.state && this.state.atom && !this.state.notSynced) {
 
       let calcWidth = 300;
-      let calcImageHeight = 200;
+      let calcImageHeight = 300;
       if(this.state.atom.base_entity) {
          let width = parseInt(this.state.atom.base_entity.width);
          let height = parseInt(this.state.atom.base_entity.height);
@@ -123,20 +184,31 @@ componentDidMount() {
       }
       // Then check for youtube
       else if (response.base_id && response.provider === 'scald_youtube') {
+        isYoutTube = true;
+        const html = `<html>
+            <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+            <iframe src="https://www.youtube.com/embed/${response.base_id}?modestbranding=1&playsinline=1&showinfo=0&rel=0" frameborder="0" style="overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:100%;width:100%;position:absolute;top:0px;left:0px;right:0px;bottom:0px" height="100%" width="100%">
+            </iframe></html>`;
 
-        renderedItem = <WebView
+        renderedItem = this.state.online ? (<WebView
           style={{
-            height: calcImageHeight,
-            width: calcWidth
+            height: '100%',
+            width: 300,
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#000'
           }}
+          domStorageEnabled={true}
+          scalesPageToFit={true}
           javaScriptEnabled={true}
-          source={{uri: 'https://www.youtube.com/watch?v=' + response.base_id}}
-        />;
+          source={{html: html}}
+        />) : offlineText;
 
 
       }
       else if (this.state.vimeoUrl !== null) {
-        renderedItem =  <Video
+        renderedItem =  this.state.online ? (<Video
           source={{uri: this.state.vimeoUrl}}
           // navigator={this.props.navigator}
           fullscreen={true}
@@ -145,36 +217,88 @@ componentDidMount() {
           isMuted={false}
           resizeMode={Video.RESIZE_MODE_CONTAIN}
           useNativeControls={true}
-          style={{width: '100%', height: '80%'}}
-        />
+          // style={{flex: 1, flexGrow: 1}}
+          style={{width: '100%', height: '100%'}}
+        />) : offlineText;
       }
 
-      else if (response.base_id && response.provider === 'scald_file') {
-        renderedItem = <Text
-          style={{
-            height: calcImageHeight,
-            width: calcWidth
-          }}>
-          {this.state.data}
-        </Text>;
+      else if (response.base_id && response.provider === 'scald_file' && this.state.data != null) {
+        // renderedItem = (<View style={{flex: 1, justifyContent: "center"}}>
+        //   <FontAwesome name={'file-text-o'} size={25} />
+        //   {/*<Text>{this.state.title}</Text>*/}
+        // </View>);
+          // <WebView source={{uri: this.state.data}}/>;
+        renderedItem = <View style={{alignItems: 'center'}}>
+          <TouchableOpacity onPress={this.onShareClick}>
+            <FontAwesome name={'file-text-o'} size={25} style={{textAlign: 'center'}} />
+            <Text>
+              {this.state.title}
+            </Text>
+          </TouchableOpacity>
+        </View>;
 
       } else if (typeof response.base_entity !== 'undefined') {
 
-        renderedItem = <Image
+        renderedItem = <TouchableOpacity
+          onPress={() => this.setModalVisible(true)}>
+          <Image
           source={{uri: 'data:image/png;base64,' + this.state.data}}
+          resizeMode={'contain'}
           style={{
             height: calcImageHeight,
             width: calcWidth
-          }}/>;
+          }}/></TouchableOpacity>;
+        addModal = true;
       }
     }
+    else if (this.state.notSynced) {
+      renderedItem = <Text>This media item is not synced to your device</Text>
+    }
 
+    const useStyle = (this.props.inSlider || isYoutTube) ? styles.slider : styles.standard;
 
     return (
-      <View>
+      <View style={useStyle}>
+        {addModal && <Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.lightbox}>
+          <View style={{paddingTop: 50, backgroundColor: '#000', height: '100%'}}>
+
+              <Image
+                source={{uri: 'data:image/png;base64,' + this.state.data}}
+                resizeMode={'contain'}
+                style={{
+                  height: '80%',
+                  width: '100%',
+                }}/>
+
+              <TouchableOpacity
+                onPress={() => this.setModalVisible(false)}>
+
+                <FontAwesome name={'close'} size={26} style={{color: '#fff', textAlign: 'center'}}/>
+                <Text style={{color: '#fff', textAlign: 'center'}}>Close</Text>
+
+              </TouchableOpacity>
+
+          </View>
+        </Modal>
+        }
         {renderedItem}
       </View>
     )
   }
 }
+
+const styles = StyleSheet.create({
+  standard: {
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  slider: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 300
+  }
+});
 

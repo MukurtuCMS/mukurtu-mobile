@@ -20,6 +20,8 @@ import * as Sync from "../MukurtuSync"
 import * as FileSystem from 'expo-file-system';
 import FieldCollectionForm from "./FieldCollectionForm";
 import Colors from "../../constants/Colors";
+import {sanitizeFormValues} from './formUtils';
+import _ from 'lodash';
 
 
 export default class FormComponent extends React.Component {
@@ -35,7 +37,10 @@ export default class FormComponent extends React.Component {
       formSubmitted: false,
       formErrors: null,
       submitting: false,
-      enabled: true
+      enabled: true,
+      isNew: props.node === undefined,
+      nodeLoaded: false,
+      tmpStore: {}
     };
     this.setFormValue = this.setFormValue.bind(this);
     this.setFormValueSelect = this.setFormValueSelect.bind(this);
@@ -49,7 +54,7 @@ export default class FormComponent extends React.Component {
 
   componentDidMount() {
     // this.update();
-    this.props.navigation.addListener('willFocus', this.componentActive)
+    this.props.navigation.addListener('willFocus', this.componentActive);
     this.preprocessNodeForSaving();
   }
 
@@ -68,7 +73,7 @@ export default class FormComponent extends React.Component {
   preprocessNodeForSaving = () => {
     let node = this.props.node;
     if (node) {
-      this.setState({formValues: node});
+      this.setState({formValues: node, nodeLoaded: true});
     }
   }
 
@@ -150,28 +155,43 @@ export default class FormComponent extends React.Component {
     }
   }
 
-
   setFormValueCheckbox(newFieldName, newValue, valueKey, error = null) {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
 
+      // Default set to null. This format needed for Drupal to work.
+      let newFieldValue = {
+          "und": null
+      };
+
       // React uses true/false, but drupal needs 1/0 for booleans.
       if (newValue === true) {
-        newValue = 1;
-      } else {
-        newValue = 0;
+        newFieldValue.und = [{[valueKey]: 1}];
       }
-      let values = {
-        [newFieldName]: {
-          "und": {
-            "0": {[valueKey]: newValue}
-          }
-        }
-      };
-      Object.assign(formValues, values);
+
+      // } else {
+      //   newValue = 0;
+      // }
+      // let values = {
+      //   [newFieldName]: {
+      //     "und": [{[valueKey]: newValue}]
+      //   }
+
+
+        // [newFieldName]: {
+        //   "und": {
+        //     "0": {[valueKey]: newValue}
+        //   }
+        // }
+      // };
+      // Object.assign(formValues, values);
 
       // save value to state
-      this.setState({formValues: formValues});
+      this.setState((state) => {
+        state.formValues[newFieldName] = newFieldValue;
+        return state;
+      });
+      // this.setState({formValues: formValues});
     }
     if (error) {
       let newErrors = this.state.formErrors;
@@ -184,9 +204,9 @@ export default class FormComponent extends React.Component {
     }
   }
 
-  setFormValueParagraph(paragraphFieldName, paragraphFormState) {
+  setFormValueParagraph(paragraphFieldName, paragraphFormState, deleteIndex) {
     if (this.state.formValues) {
-      const formValues = this.state.formValues;
+      const formValues = JSON.parse(JSON.stringify(this.state.formValues));
       // See the paragraph component for how paragraph state is formatted.
       // let values = {
       //   "paragraphs": {
@@ -256,12 +276,14 @@ export default class FormComponent extends React.Component {
       // },
 
       Object.assign(formValues, values);
+      if (deleteIndex !== undefined) {
+        _.pullAt(formValues[paragraphFieldName].und, deleteIndex);
+      }
 
       // save value to state
       this.setState({formValues: formValues});
     }
   }
-
 
   setFormValueFieldCollection(fieldCollectionFieldName, fieldCollectionFormState) {
     if (this.state.formValues) {
@@ -277,7 +299,6 @@ export default class FormComponent extends React.Component {
       this.setState({formValues: formValues});
     }
   }
-
 
   setFormValueDate(newFieldName, newValue, type) {
     if (this.state.formValues) {
@@ -339,7 +360,6 @@ export default class FormComponent extends React.Component {
     }
   }
 
-
   setFormValueLocation(newFieldName, latitude, longitude) {
     if (this.state.formValues) {
       const formValues = this.state.formValues;
@@ -377,13 +397,19 @@ export default class FormComponent extends React.Component {
 
   }
 
-
-  setFormValueConditionalSelect(newFieldName, val, parentVal) {
-
+  setFormValueConditionalSelect(newFieldName, val, index, valueKey) {
     if (this.state.formValues) {
-      let formValues = this.state.formValues;
+      let formValues = JSON.parse(JSON.stringify(this.state.formValues));
+      let lang = 'und';
+      // set an empty value in case it doesn't exist
+      if (formValues[newFieldName] === undefined) {
+        formValues[newFieldName] = {
+          [lang]: {}
+        }
+      }
 
       // Drupal needs this format for conditional select fields:
+      // OUTDATED?
 
       // "oggroup_fieldset": {
       //   "0": {
@@ -395,22 +421,30 @@ export default class FormComponent extends React.Component {
       //   }
       // },
 
-      let values = {
-        ['oggroup_fieldset']: {
-          "0": {
-            "dropdown_first": parentVal,
-            "dropdown_second": {
-              "target_id": val
-            }
-          }
+      // let values = {
+      //   ['oggroup_fieldset']: {
+      //     "0": {
+      //       "dropdown_first": parentVal,
+      //       "dropdown_second": {
+      //         "target_id": val
+      //       }
+      //     }
+      //
+      //   }
+      // };
+      // Object.assign(formValues, values);
 
+      const newValue = {
+        [index]: {
+          [valueKey]: val
         }
       };
-      Object.assign(formValues, values);
+      const fieldValues = {...formValues[newFieldName][lang], ...newValue};
+      formValues[newFieldName][lang] = fieldValues;
+
       this.setState({formValues: formValues});
     }
   }
-
 
   setFormValueSelect2(newFieldName, newValue, valueKey, lang = 'und', options, key = '0') {
 
@@ -424,9 +458,22 @@ export default class FormComponent extends React.Component {
       //     }
       //   },
 
+      let newValues = {};
       if (!(formValues[newFieldName]) || formValues[newFieldName].length < 1) {
-        formValues[newFieldName] = {};
-        formValues[newFieldName][lang] = {};
+        newValues = {};
+      }
+      else {
+        newValues = Object.assign({}, formValues[newFieldName][lang]);
+      }
+
+
+      // Cleanup if we have data from the server
+      if (newValues[0] !== undefined && newValues[0][valueKey] !== undefined) {
+        let cleanValues = [];
+        for (let [k, v] of Object.entries(newValues)) {
+          cleanValues.push(v[valueKey]);
+        }
+        newValues = Object.assign({}, cleanValues);
       }
 
       // Convert text from react to id for Drupal. Inverse is done in select2.js
@@ -438,19 +485,75 @@ export default class FormComponent extends React.Component {
         nid = selectedOption[0].id;
       }
 
-      formValues[newFieldName][lang][key] = nid;
+      if (nid) {
+        newValues[key] = nid.toString();
+        // formValues[newFieldName][lang] = originalOptions;
+      }
+      else {
+        let remainingOptions = [];
+        for (let [k, v] of Object.entries(newValues)) {
+          if (k !== key.toString()) {
+            remainingOptions.push(v);
+          }
+        }
+        newValues = Object.assign({}, remainingOptions);
+      }
 
       // save value to state
-      this.setState({formValues: formValues});
+      // this.setState({formValues: formValues});
+      this.setState((state) => {
+        state.formValues[newFieldName] = { ...state.formValues[newFieldName], [lang]: newValues};
+        return state;
+      });
     }
 
   }
 
-
-  setFormValueCheckboxes(newFieldName, newValue, valueKey, lang = 'und', error = null) {
+  setFormValueCheckboxes(newFieldName, newValue, valueKey, lang = 'und', isChecked = false, error = null) {
     // need different function for checkbox so we can unset values
     if (this.state.formValues) {
       const formValues = this.state.formValues;
+      const currentCheckboxes = _.get(this.state.formValues, [newFieldName, lang], []);
+
+      let newCheckedBoxes;
+      // Remove if the box was checked.
+      if (isChecked) {
+        newCheckedBoxes = currentCheckboxes.filter(element => {
+          return element[valueKey] !== newValue;
+        });
+      }
+      else {
+        newCheckedBoxes = [...currentCheckboxes, {[valueKey]: newValue}];
+      }
+
+      // // check if we are unchecking the box
+      // if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][valueKey]) {
+      //   Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: ''}}});
+      // } else {
+      //   Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: newValue}}});
+      // }
+      // save value to state
+      this.setState((state) => {
+        // formValues: formValues
+        state.formValues[newFieldName] = {[lang]: newCheckedBoxes};
+        return state;
+      });
+    }
+    if (error) {
+      let newErrors = this.state.formErrors;
+      if (this.state.formErrors) {
+        if (this.state.formErrors[error]) {
+          delete newErrors[error];
+          this.setState({formErrors: newErrors});
+        }
+      }
+    }
+  }
+
+  setFormValueRadio(newFieldName, newValue, valueKey, lang = 'und', error = null) {
+    // need different function for checkbox so we can unset values
+    if (this.state.formValues) {
+      const formValues = JSON.parse(JSON.stringify(this.state.formValues));
       // check if we are unchecking the box
       if (this.state.formValues[newFieldName] && newValue === this.state.formValues[newFieldName][lang][valueKey]) {
         Object.assign(formValues, {[newFieldName]: {[lang]: {[valueKey]: ''}}});
@@ -471,51 +574,59 @@ export default class FormComponent extends React.Component {
     }
   }
 
-
-  setFormValueScald(fieldName, value, index = '0', valueKey = 'sid', lang = 'und', error = null) {
+  setFormValueScald(fieldName, value, index = '0', valueKey = 'sid', lang = 'und', error = null, offline = false) {
     // Save the URI to form state so that we can pass as prop to the Scald form item
     // This allows us to persist the value so that we can tab within the form without losing it
-    this.setState({
-      [fieldName]: {
-        [index]: value
-      }
-    });
+    // this.setState({
+    //   [fieldName]: {
+    //     [index]: value
+    //   }
+    // });
     if (this.state.formValues) {
       let formValues = this.state.formValues;
-      let values;
+      // let values;
+      let newFormValues = JSON.parse(JSON.stringify(formValues));
       // If we already have a form value for this field, this is a new index
       if (formValues[fieldName] !== undefined && Object.keys(formValues[fieldName]).length > 0) {
 
         // If null is the new value, remove this item.
         if (value == null) {
           // Second case here prevents an error removing images
-          if(typeof formValues[fieldName][lang].splice === 'function') {
-            formValues[fieldName][lang].splice(index, 1);
+          if(typeof newFormValues[fieldName][lang].splice === 'function') {
+            newFormValues[fieldName][lang].splice(index, 1);
           } else {
-            formValues[fieldName][lang][index] = null;
+            newFormValues[fieldName][lang][index] = null;
           }
         }
         else {
-          formValues[fieldName][lang][index] = {
+          newFormValues[fieldName][lang][index] = {
             ['sid']: value
           };
         }
-        let tempvalue = formValues[fieldName];
-        values = {[fieldName]: tempvalue}
-      } else {
-        values = {
-          [fieldName]: {
-            [lang]: {
-              [index]: {
-                ['sid']: value
-              }
+        // let tempvalue = formValues[fieldName];
+        // values = {[fieldName]: tempvalue}
+      }
+      else {
+        newFormValues[fieldName] = {
+          [lang]: {
+            [index]: {
+              [valueKey]: value
             }
           }
-        };
+        }
       }
-      Object.assign(formValues, values);
-      this.setState({formValues: formValues});
 
+      if (offline) {
+        const ref = `${fieldName}.${index}`;
+        if (newFormValues['_tmp_atom'] != null && newFormValues['_tmp_atom'][ref] != null) {
+          newFormValues['_tmp_atom'][ref] = value;
+        }
+        else {
+          newFormValues['_tmp_atom'] = {[ref]: value};
+        }
+      }
+      // Object.assign(formValues, values);
+      this.setState({formValues: newFormValues});
     }
   }
 
@@ -530,11 +641,12 @@ export default class FormComponent extends React.Component {
       } else if (this.props.did) {
         id = this.props.did;
       }
+      let formValues = this.state.formValues;
       this.props.screenProps.db.transaction(
         tx => {
           tx.executeSql('replace into saved_offline (blob, id, saved) values (?, ?, 0)',
 
-            [JSON.stringify(this.state.formValues), id],
+            [JSON.stringify(formValues), id],
             (success) => {
               this.setState({
                 formSubmitted: true,
@@ -558,33 +670,7 @@ export default class FormComponent extends React.Component {
       if (this.state.formValues.nid) {
         this.setState({'submitting': true});
 
-        let formValues = this.state.formValues;
-        // This is ugly, but drupal sometimes returns array wrappers around objects, so we need to remove them
-        for(let key in formValues) {
-          if(formValues.hasOwnProperty(key)) {
-            if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['und'] !== 'undefined') {
-              if(Array.isArray(formValues[key]['und'])) {
-                let tempObject = formValues[key]['und'][0];
-                formValues[key]['und'] = tempObject;
-                console.log('array');
-              }
-            }
-          }
-        }
-
-        // Do it for 'en' key as well. This obviously needs to be fixed to pull the node language
-        for(let key in formValues) {
-          if(formValues.hasOwnProperty(key)) {
-            if (formValues[key] !== null && typeof formValues[key] == 'object' && typeof formValues[key]['en'] !== 'undefined') {
-              if(Array.isArray(formValues[key]['en'])) {
-                let tempObject = formValues[key]['en'][0];
-                formValues[key]['en'] = tempObject;
-                console.log('array');
-              }
-            }
-          }
-        }
-
+        let formValues = sanitizeFormValues(this.state.formValues, this.props.screenProps);
 
         // I have to do this right now because I am getting errors trying to use the postData method
         const token = this.props.screenProps.token;
@@ -634,6 +720,7 @@ export default class FormComponent extends React.Component {
               this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
               // Navigate back to main content screen
               this.setState({'submitting': false}, () => {
+                this.clearOfflineNode(this.state.formValues.nid);
                 this.props.navigation.navigate('NodeListing', {
                   contentType: this.props.contentType,
                   contentTypeLabel: 'Test Label'
@@ -649,15 +736,26 @@ export default class FormComponent extends React.Component {
           });
 
       } else {
-        this.postData(this.props.screenProps.siteUrl + '/app/node.json', this.state.formValues);
+        let formValues = sanitizeFormValues(this.state.formValues, this.props.screenProps);
+        this.postData(this.props.screenProps.siteUrl + '/app/node.json', formValues);
 
       }
 
     }
   }
 
+  clearOfflineNode = (id) => {
+    this.props.screenProps.db.transaction(tx => {
+      tx.executeSql(
+        'DELETE FROM saved_offline WHERE id = ?',
+        [id]
+      );
+    });
+  };
+
   resetForm() {
     this.setState({formSubmitted: false});
+    this.props.navigation.navigate('Links');
   }
 
 
@@ -705,6 +803,12 @@ export default class FormComponent extends React.Component {
           }
 
         }
+
+        // If this was an offline submission, clear it out
+        if (this.props.did != null) {
+          this.clearOfflineNode(did);
+        }
+
         return responseJson;
       })
       .then((responseJson) => {
@@ -726,72 +830,76 @@ export default class FormComponent extends React.Component {
   }
 
   postFieldCollection(data, nid) {
-    // Need to submit like this:
-    // {
-    //   "host_nid": "472",
-    //   "field_collection": {
-    //   "field_name": "field_lesson_days",
-    //     "field_day": {
-    //     "und": {
-    //       "0": {
-    //         "value": "day 1"
-    //       }
-    //     }
-    //   }
-    // }
+    if (typeof data !== "undefined") {
 
-    // Get our first key, which is the field_name
-    let fieldName = Object.keys(data)[0];
 
-    let body = {
-      'host_nid': nid,
-      'field_collection': {
-        'field_name': fieldName,
-      }
-    };
+      // Need to submit like this:
+      // {
+      //   "host_nid": "472",
+      //   "field_collection": {
+      //   "field_name": "field_lesson_days",
+      //     "field_day": {
+      //     "und": {
+      //       "0": {
+      //         "value": "day 1"
+      //       }
+      //     }
+      //   }
+      // }
 
-    let i = 0;
-    for(let fcKey in data[fieldName]) {
-      i++;
+      // Get our first key, which is the field_name
+      let fieldName = Object.keys(data)[0];
 
-      // Put our values in the right place in the object
-      let values = data[fieldName][fcKey]; // This 0 needs to be removed/addressed once we figure out multiple value submissions
-      for (let key in values) {
-        if (values.hasOwnProperty(key)) {
-          body.field_collection[key] = values[key];
+      let body = {
+        'host_nid': nid,
+        'field_collection': {
+          'field_name': fieldName,
         }
-      }
-
-      // Endpoint:  /app/field-collection (no parameters)
-      const token = this.props.screenProps.token;
-      const cookie = this.props.screenProps.cookie;
-      let submitData = {
-        method: 'POST',
-        mode: 'cors',
-        cache: 'no-cache',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': token,
-          'Cookie': cookie
-        },
-        redirect: 'follow',
-        referrer: 'no-referrer',
-        body: JSON.stringify(body)
       };
 
+      let i = 0;
+      for (let fcKey in data[fieldName]) {
+        i++;
 
-      // Looks like Drupal will throw a 500 error if these are sent right in a row, even if promises are done sequentially.
-      // So we add a half second timeout to ensure Drupal can handle it.
-      setTimeout(() => {
-        fetch(this.props.screenProps.siteUrl + '/app/field-collection/', submitData)
-          .then((response) => {
-            // console.log(response);
-          })
-          .catch((response) => {
-            console.log('field collection error');
-          });
-      }, i * 500);
+        // Put our values in the right place in the object
+        let values = data[fieldName][fcKey]; // This 0 needs to be removed/addressed once we figure out multiple value submissions
+        for (let key in values) {
+          if (values.hasOwnProperty(key)) {
+            body.field_collection[key] = values[key];
+          }
+        }
+
+        // Endpoint:  /app/field-collection (no parameters)
+        const token = this.props.screenProps.token;
+        const cookie = this.props.screenProps.cookie;
+        let submitData = {
+          method: 'POST',
+          mode: 'cors',
+          cache: 'no-cache',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': token,
+            'Cookie': cookie
+          },
+          redirect: 'follow',
+          referrer: 'no-referrer',
+          body: JSON.stringify(body)
+        };
+
+
+        // Looks like Drupal will throw a 500 error if these are sent right in a row, even if promises are done sequentially.
+        // So we add a half second timeout to ensure Drupal can handle it.
+        setTimeout(() => {
+          fetch(this.props.screenProps.siteUrl + '/app/field-collection/', submitData)
+            .then((response) => {
+              // console.log(response);
+            })
+            .catch((response) => {
+              console.log('field collection error');
+            });
+        }, i * 500);
+      }
     }
   }
 
@@ -895,7 +1003,9 @@ export default class FormComponent extends React.Component {
               fieldArray = field['und'];
 
               if (typeof fieldArray['mukurtu_record'] === 'object') {
+
                 fieldArray = fieldArray['mukurtu_record']['terms_all'];
+                fieldArray['#value_key'] = field['und']['#columns'][0];
               }
 
 
@@ -935,6 +1045,7 @@ export default class FormComponent extends React.Component {
                       setFormValue={this.setFormValueParagraph.bind(this)}
                       addMoreText={addMoreText}
                       paragraphTitle={paragraphTitle}
+                      nodeLoaded={this.state.nodeLoaded}
                       screenProps={this.props.screenProps}
                     />;
 
@@ -980,6 +1091,8 @@ export default class FormComponent extends React.Component {
                   fieldName={fieldName}
                   field={fieldArray}
                   key={fieldName}
+                  db={this.props.screenProps.db}
+                  documentDirectory={this.props.screenProps.documentDirectory}
                   setFormValue={this.setFormValueScald.bind(this)}
                   formErrors={this.state.formErrors}
                   description={description}
@@ -987,6 +1100,7 @@ export default class FormComponent extends React.Component {
                   cookie={this.props.screenProps.cookie}
                   token={this.props.screenProps.token}
                   url={this.props.screenProps.siteUrl}
+                  nodeLoaded={this.state.nodeLoaded}
                   cardinality={cardinality}
                   enableSubmit={this.enableSubmit}
                   disableSubmit={this.disableSubmit}
@@ -1044,7 +1158,7 @@ export default class FormComponent extends React.Component {
                   fieldName={fieldName}
                   field={fieldArray}
                   key={fieldName}
-                  setFormValue={this.setFormValueCheckboxes.bind(this)}
+                  setFormValue={this.setFormValueRadio.bind(this)}
                   formErrors={this.state.formErrors}
                   required={required}
                   description={description}
@@ -1084,6 +1198,20 @@ export default class FormComponent extends React.Component {
                   required={required}
                   description={description}
                   nodes={this.props.screenProps.nodes}
+                  nodeLoaded={this.state.nodeLoaded}
+                />);
+
+              }
+              else if (fieldArray['#type'] === 'select' && fieldName === 'field_mukurtu_terms') {
+                form[i].push(<Select2
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  setFormValue={this.setFormValueSelect2.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
                 />);
 
               } else if (fieldArray['#type'] === 'select') {
@@ -1108,6 +1236,7 @@ export default class FormComponent extends React.Component {
                   formErrors={this.state.formErrors}
                   required={required}
                   description={description}
+                  isNew={this.state.isNew}
                 />);
               } else if (fieldArray['#type'] === 'geofield_latlon') {
                 form[i].push(<Location
@@ -1218,7 +1347,7 @@ export default class FormComponent extends React.Component {
         let formErrorsArray = [];
         for (let key in this.state.formErrors) {
           if(this.state.formErrors.hasOwnProperty(key)) {
-            formErrorsArray.push(<Text style={styles.errorTextStyleError}>{this.state.formErrors[key]}</Text>);
+            formErrorsArray.push(<Text key={`error-${key}`} style={styles.errorTextStyleError}>{this.state.formErrors[key]}</Text>);
           }
         }
 
@@ -1258,7 +1387,7 @@ const styles = StyleSheet.create({
     zIndex: 100
   },
   buttonContainer: {
-    flexWrap: 'wrap',
+    // flexWrap: 'wrap',
     flex: 1,
     flexDirection: 'column',
     height: 'auto',

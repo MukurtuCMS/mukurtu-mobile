@@ -5,6 +5,9 @@ import Required from "./Required";
 import * as Colors from "../../constants/Colors";
 import RNPickerSelect from "react-native-picker-select";
 import {FontAwesome} from "@expo/vector-icons";
+import {getAllFieldValues} from "./formUtils";
+import _ from "lodash";
+import {Button} from "react-native-elements";
 
 export default class ConditionalSelect extends React.Component {
 
@@ -12,25 +15,40 @@ export default class ConditionalSelect extends React.Component {
   constructor(props) {
     super(props);
 
-    // See if we already have a child value
-    let childValue = null;
-    let parentValue = 0;
-    if (typeof props.formValues['oggroup_fieldset'] !== 'undefined' &&
-      typeof props.formValues['oggroup_fieldset'][0]['dropdown_second']['target_id'] !== 'undefined') {
-      childValue = this.props.formValues['oggroup_fieldset'][0]['dropdown_second']['target_id'];
-      // If we have a child value, set the appropriate parent parent value
-      for (let [key, value] of Object.entries(props.field['#options'])) {
-        if (value.hasOwnProperty(childValue)) {
-          parentValue = key;
-        }
-      }
-    }
-
     this.state = {
-      parentValue: parentValue,
-      childValue: childValue,
+      parentOptions: [],
+      parentValues: {},
+      childValues: [],
+      addItem: 0
     }
   }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // if (!prevProps.nodeLoaded && this.props.nodeLoaded) {
+    //   this.loadData()
+    // }
+  }
+
+  loadData = () => {
+    const options = _.get(this.props.field, ['#options'], []);
+    let parentPickerOptions = [];
+    for (let key in options) {
+      // Create the option for the parent picker
+      parentPickerOptions.push({
+          key: key,
+          label: key,
+          value: key
+        }
+      );
+    }
+
+    // const fieldValues = getAllFieldValues(this.props.formValues[this.props.fieldName]);
+
+    // this.setState({
+    //   parentOptions: parentPickerOptions,
+    //   items: fieldValues != null ? fieldValues.length : 1
+    // });
+  };
 
   getParentVid(name) {
     for (let key in this.props.nodes) {
@@ -42,10 +60,18 @@ export default class ConditionalSelect extends React.Component {
     }
   }
 
+  onAdd = (i) => {
+    const {field, setFormValue, fieldName} = this.props;
+    const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
+    setFormValue(fieldName, null, i, valueKey);
+  };
 
   render() {
 
     const field = this.props.field;
+    const valueKey = (field['#value_key']) ? field['#value_key'] : 'value';
+    // const fieldValues = getAllFieldValues(this.props.formValues[this.props.fieldName]);
+    const fieldValues = _.get(this.props.formValues, [this.props.fieldName, 'und'], []);
 
     let options = field['#options'];
     if (Object.keys(field['#options']).length === 0) {
@@ -53,94 +79,119 @@ export default class ConditionalSelect extends React.Component {
     }
 
     let parentPickerOptions = [];
+    for (let key in options) {
+      // Create the option for the parent picker
+      parentPickerOptions.push({
+          key: key,
+          label: key,
+          value: key
+        }
+      );
+    }
+
     let parentPlaceholder = {
       label: 'Select',
       value: '0',
       color: '#9EA0A4',
     };
 
+    let renderedPickers = [];
 
-    for (let key in options) {
-      if (options.hasOwnProperty(key)) {
-        // Create the option for the parent picker
-        parentPickerOptions.push({
-            key: key,
-            label: key,
-            value: key
+
+    let numItems = fieldValues != null ? Object.keys(fieldValues).length : 0;
+    let showButton = numItems > 0;
+    numItems = numItems > 0 ? numItems : 1;
+    // console.log({numItems});
+    // numItems = numItems + this.state.addItem;
+
+    for (let i = 0; i < numItems; i++) {
+
+      const selectedVal = _.get(fieldValues, [i, valueKey], null);
+      let parentVal = _.get(this.state.parentValues, [i], "0");
+
+      //
+      for (let key in options) {
+        if (options.hasOwnProperty(key)) {
+          if (selectedVal != null && options[key][selectedVal] != null) {
+            parentVal = key
           }
-        );
-      }
-    }
-
-
-    let childPicker;
-    if (options[this.state.parentValue] !== undefined && options[this.state.parentValue] !== 0) {
-      let currentOptions = options[this.state.parentValue];
-      let childPickerOptions = [];
-      if (Object.keys(currentOptions).length > 0) {
-
-        let childPlaceholder = {
-          label: 'Select',
-          value: '0',
-          color: '#9EA0A4',
-        };
-
-        for (let [childKey, value] of Object.entries(currentOptions)) {
-          childPickerOptions.push({
-            key: value,
-            label: value,
-            value: childKey
-          });
         }
+      }
 
+      let childPicker;
 
-        childPicker = <RNPickerSelect
-          placeholder={childPlaceholder}
-          // key={0}
-          items={childPickerOptions}
-          onValueChange={(itemValue, itemIndex, childKey) => {
-            this.setState({
-              childValue: itemValue
-            }, () => {
-              // For this component we need the title as the parentValue state, but form submit needs the ID
-              let parentVal = this.getParentVid(this.state.parentValue);
-              this.props.setFormValue(this.props.fieldName, this.state.childValue, parentVal);
+      if (parentVal !== '0') {
+        let currentOptions = options[parentVal];
+        let childPickerOptions = [];
+        if (Object.keys(currentOptions).length > 0) {
+
+          let childPlaceholder = {
+            label: 'Select',
+            value: '0',
+            color: '#9EA0A4',
+          };
+
+          for (let [childKey, value] of Object.entries(currentOptions)) {
+            childPickerOptions.push({
+              key: value,
+              label: value,
+              value: childKey
             });
           }
-          }
-          style={pickerSelectStyles}
-          value={this.state.childValue}
-          Icon={() => {
-            return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
-          }}
-        />
 
+          childPicker = <RNPickerSelect
+            placeholder={childPlaceholder}
+
+            items={childPickerOptions}
+            onValueChange={(itemValue) => {
+              this.props.setFormValue(this.props.fieldName, itemValue, i, valueKey);
+            }}
+            style={pickerSelectStyles}
+            value={selectedVal}
+            Icon={() => {
+              return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
+            }}
+          />
+        }
       }
-    }
 
+      renderedPickers.push(
+        <View key={`cond-picker-${i}`}>
+          <Text>{field['#title']} #{i+1}</Text>
+          <RNPickerSelect
+            placeholder={parentPlaceholder}
+            items={parentPickerOptions}
+            onValueChange={(itemValue) => {
+              // this.props.setFormValue(this.props.fieldName, 0, i, valueKey);
+              const newParentValues = {[i]: itemValue};
+              this.setState({
+                parentValues: {
+                  ...this.state.parentValues,
+                  ...newParentValues
+                }
+              });
+            }}
+            style={pickerSelectStyles}
+            value={parentVal}
+            Icon={() => {
+              return <FontAwesome name="chevron-down" size={25}
+                                  style={styles.pickerIcon}/>;
+            }}
+          />
+          {childPicker}
+        </View>
+      );
+    }
 
     return <View style={styles.viewStyle}>
       <Text style={styles.titleTextStyle}>{field['#title']}</Text>
       <FieldDescription description={(this.props.description) ? this.props.description : null}/>
       <Required required={this.props.required}/>
 
-      <RNPickerSelect
-        placeholder={parentPlaceholder}
-        // key={0}
-        items={parentPickerOptions}
-        onValueChange={(itemValue, itemIndex) => {
-          this.setState({parentValue: itemValue}, () => {
-          })
-        }
-        }
-        style={pickerSelectStyles}
-        value={this.state.parentValue}
-        Icon={() => {
-          return <FontAwesome name="chevron-down" size={25} style={styles.pickerIcon}/>;
-        }}
-      />
+      {renderedPickers}
 
-      {childPicker}
+      {field['#multiple'] && showButton && <Button title={`Add ${field['#title']}`} onPress={() => this.onAdd(numItems)}/>}
+
     </View>;
   }
 }
