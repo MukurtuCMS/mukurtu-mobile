@@ -63,7 +63,7 @@ export class ScaldItem extends React.Component {
             }
 
             let provider =  JSON.parse(atom.entity).provider;
-            if(['scald_youtube'].includes(provider)) {
+            if(['scald_youtube', 'scald_soundcloud'].includes(provider)) {
               return;
             } else if(provider === 'scald_vimeo') {
               const VIMEO_ID = JSON.parse(atom.entity).base_id;
@@ -183,12 +183,21 @@ export class ScaldItem extends React.Component {
         />
       }
       // Then check for youtube
-      else if (response.base_id && response.provider === 'scald_youtube') {
-        isYoutTube = true;
-        const html = `<html>
+      else if (response.base_id && ['scald_youtube', 'scald_soundcloud'].includes(response.provider)) {
+        isYouTube = true;
+        let html = ''
+        if (response.provider === 'scald_youtube') {
+          html = `<html>
             <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
             <iframe src="https://www.youtube.com/embed/${response.base_id}?modestbranding=1&playsinline=1&showinfo=0&rel=0" frameborder="0" style="overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:100%;width:100%;position:absolute;top:0px;left:0px;right:0px;bottom:0px" height="100%" width="100%">
             </iframe></html>`;
+        }
+        else if (response.provider === 'scald_soundcloud') {
+          html = `<html>
+            <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+            <iframe width="100%" height="300" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/${response.base_id}&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=true&visual=true">
+            </iframe></html>`;
+        }
 
         renderedItem = this.state.online ? (<WebView
           style={{
