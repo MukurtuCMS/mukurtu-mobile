@@ -67,6 +67,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.9.6",
+    "babel-eslint": "^10.1.0",
     "babel-preset-expo": "^8.1.0",
     "eslint": "^7.0.0",
     "eslint-plugin-jest": "^23.11.0",
