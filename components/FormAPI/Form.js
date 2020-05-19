@@ -1314,7 +1314,7 @@ export default class FormComponent extends React.Component {
           height="auto"
         >
           <View style={styles.activityContainer}>
-            <Text style={{marginBottom: 10}}>Saving Node...</Text>
+            <Text style={{marginBottom: 10}}>Saving content...</Text>
             <ActivityIndicator size="large" color="#159EC4"/>
           </View>
         </Overlay>

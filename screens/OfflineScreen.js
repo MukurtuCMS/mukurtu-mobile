@@ -23,7 +23,7 @@ export default class OfflineScreen extends React.Component {
   }
 
   static navigationOptions = {
-    title: 'Queued Nodes',
+    title: 'Queued Content',
     headerStyle: {
       backgroundColor: Colors.default.gold,
       marginTop: -20,
@@ -138,7 +138,7 @@ export default class OfflineScreen extends React.Component {
 
       return (
         <View style={styles.wrapper}>
-          <Text style={styles.text}>No nodes are queued for saving.</Text>
+          <Text style={styles.text}>No content is queued for saving.</Text>
         </View>
       )
     }

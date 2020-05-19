@@ -456,7 +456,7 @@ class NodeScreen extends React.Component {
                 item to Mukurtu Mobile.</Text>
           } else {
             renderedNode.push(
-              <Text key={`${fieldName}_notice`}>Collection only displays synced nodes; unsynced nodes will not display in collection even if they're
+              <Text key={`${fieldName}_notice`}>Collection only displays synced content; unsynced content will not be display in collection even if they are
                 in the collection on the desktop site.</Text>
             );
             for (i = 0; i < node[fieldName][lang].length; i++) {

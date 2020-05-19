@@ -295,7 +295,7 @@ export default class HomeScreen extends React.Component {
             {/*  />*/}
             {/*</View>*/}
 
-            <Text>No nodes were found in offline storage.</Text>
+            <Text>No content found in offline storage.</Text>
           </View>
         </ScrollView>
       )
@@ -435,7 +435,7 @@ export default class HomeScreen extends React.Component {
 
     let message;
     if(filteredContentList.length === 0) {
-      message = <Text>No nodes found for those search criteria.</Text>
+      message = <Text>No content found for those search criteria.</Text>
     }
 
     return (
