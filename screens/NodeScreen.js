@@ -7,6 +7,7 @@ import {
   Dimensions, Image
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import {Feather} from '@expo/vector-icons';
 import * as SQLite from 'expo-sqlite';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
@@ -22,20 +23,40 @@ import NodeTeaser from "../components/Displays/nodeTeaser";
 import {ScaldSwipe} from '../components/ScaldSwipe';
 import {FieldCollection} from "../components/FieldCollection";
 import _ from 'lodash';
+import {NavigationActions} from "react-navigation";
 
 
 // create a global db for database list and last known user
 const globalDB = SQLite.openDatabase('global-8');
 
 class NodeScreen extends React.Component {
-  static navigationOptions = ({navigation}) => ({
-    title: `${navigation.getParam('node').title}`,
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
-  });
+  static navigationOptions = ({navigation}) => {
+    const canEdit = navigation.getParam('canEdit');
+    return {
+      title: `${navigation.getParam('node').title}`,
+      headerStyle: {
+        backgroundColor: Colors.default.gold,
+        marginTop: -20,
+      },
+      headerTintColor: '#000',
+      headerRight: (canEdit !== undefined && canEdit &&
+        <Feather style={{marginRight: 10}} onPress={() => {
+          const navNode = navigation.getParam('node');
+          const navigateAction = NavigationActions.navigate({
+            routeName: 'EditContentForm',
+            params: {
+              contentType: navNode.type,
+              contentTypeLabel: navNode.title,
+              node: navNode,
+              editWord: 'Edit',
+            },
+            key: `node-edit-${navNode.nid}`
+          });
+          navigation.dispatch(navigateAction);
+        }} name="edit" size={24} color="#000"/>
+      ),
+    }
+  };
 
   constructor(props) {
     super(props);
@@ -53,9 +74,21 @@ class NodeScreen extends React.Component {
   }
 
   componentDidMount() {
-    const type = this.props.navigation.getParam('contentType');
+    const {navigation, screenProps} = this.props;
+    const type = navigation.getParam('contentType');
+    const node = navigation.getParam('node');
 
-    const node = this.props.navigation.getParam('node');
+
+    const editableContentTypes = screenProps.contentTypes !== undefined ? Object.keys(screenProps.contentTypes) : [];
+    if(editableContentTypes.indexOf(node.type) > -1 && (screenProps.editable[node.nid] === true || screenProps.editable[node.nid] == '1')) {
+      navigation.setParams({
+        canEdit: true
+      });
+    }
+
+
+
+
     this.props.screenProps.db.transaction(tx => {
       tx.executeSql('select * from nodes WHERE nid = ?', [node.nid],
         (success, array) => {
