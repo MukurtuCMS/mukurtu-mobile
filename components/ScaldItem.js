@@ -9,10 +9,9 @@ import {
   Modal
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import {SQLite} from "expo-sqlite";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from 'expo-sharing';
-import { Video, Audio } from 'expo-av';
+import { Video } from 'expo-av';
 import {FontAwesome} from "@expo/vector-icons";
 import NetInfo from "@react-native-community/netinfo";
 
@@ -35,13 +34,12 @@ export class ScaldItem extends React.Component {
       online: true,
     };
 
-    let netEventListener;
   }
 
   componentDidMount() {
-  this.netEventListener = NetInfo.addEventListener(state => {
-    this.setState({online: state.isConnected});
-  });
+    this.netEventListener = NetInfo.addEventListener(state => {
+      this.setState({online: state.isConnected});
+    });
 
     this.props.db.transaction(
       tx => {
@@ -65,7 +63,8 @@ export class ScaldItem extends React.Component {
             let provider =  JSON.parse(atom.entity).provider;
             if(['scald_youtube', 'scald_soundcloud'].includes(provider)) {
               return;
-            } else if(provider === 'scald_vimeo') {
+            }
+            else if(provider === 'scald_vimeo') {
               const VIMEO_ID = JSON.parse(atom.entity).base_id;
               fetch(`https://player.vimeo.com/video/${VIMEO_ID}/config`)
                 .then(res => res.json())
@@ -74,7 +73,8 @@ export class ScaldItem extends React.Component {
                   vimeoUrl: res.request.files.hls.cdns[res.request.files.hls.default_cdn].url,
                   vimeoInfo: res.video,
                 }));
-            }else if(['video', 'audio'].includes(type)) {
+            }
+            else if(['video', 'audio'].includes(type)) {
               // Probably unnecessary to check this, but was having issues with file saving earlier so keeping it in case
               FileSystem.getInfoAsync(this.props.documentDirectory + sanitizedFileName)
                 .then((result) => {
@@ -142,7 +142,7 @@ export class ScaldItem extends React.Component {
 
     let addModal = false;
     let renderedItem;
-    let isYoutTube = false;
+    let isYouTube = false;
 
     const offlineText = (<Text>Content only available online</Text>);
 
@@ -151,11 +151,11 @@ export class ScaldItem extends React.Component {
       let calcWidth = 300;
       let calcImageHeight = 300;
       if(this.state.atom.base_entity) {
-         let width = parseInt(this.state.atom.base_entity.width);
-         let height = parseInt(this.state.atom.base_entity.height);
+        let width = parseInt(this.state.atom.base_entity.width);
+        let height = parseInt(this.state.atom.base_entity.height);
         const screenWidth = Dimensions.get('window').width;
         calcWidth = screenWidth - 40;
-        let calcImageHeight = screenWidth * .6;
+        calcImageHeight = screenWidth * .6;
         if(Number.isInteger(width) && Number.isInteger(height)) {
           calcImageHeight = screenWidth * (height / width);
         }
@@ -232,11 +232,6 @@ export class ScaldItem extends React.Component {
       }
 
       else if (response.base_id && response.provider === 'scald_file' && this.state.data != null) {
-        // renderedItem = (<View style={{flex: 1, justifyContent: "center"}}>
-        //   <FontAwesome name={'file-text-o'} size={25} />
-        //   {/*<Text>{this.state.title}</Text>*/}
-        // </View>);
-          // <WebView source={{uri: this.state.data}}/>;
         renderedItem = <View style={{alignItems: 'center'}}>
           <TouchableOpacity onPress={this.onShareClick}>
             <FontAwesome name={'file-text-o'} size={25} style={{textAlign: 'center'}} />
@@ -251,12 +246,12 @@ export class ScaldItem extends React.Component {
         renderedItem = <TouchableOpacity
           onPress={() => this.setModalVisible(true)}>
           <Image
-          source={{uri: 'data:image/png;base64,' + this.state.data}}
-          resizeMode={'contain'}
-          style={{
-            height: calcImageHeight,
-            width: calcWidth
-          }}/></TouchableOpacity>;
+            source={{uri: 'data:image/png;base64,' + this.state.data}}
+            resizeMode={'contain'}
+            style={{
+              height: calcImageHeight,
+              width: calcWidth
+            }}/></TouchableOpacity>;
         addModal = true;
       }
     }
@@ -264,7 +259,7 @@ export class ScaldItem extends React.Component {
       renderedItem = <Text>This media item is not synced to your device</Text>
     }
 
-    const useStyle = (this.props.inSlider || isYoutTube) ? styles.slider : styles.standard;
+    const useStyle = (this.props.inSlider || isYouTube) ? styles.slider : styles.standard;
 
     return (
       <View style={useStyle}>
@@ -274,21 +269,23 @@ export class ScaldItem extends React.Component {
           visible={this.state.lightbox}>
           <View style={{paddingTop: 50, backgroundColor: '#000', height: '100%'}}>
 
-              <Image
-                source={{uri: 'data:image/png;base64,' + this.state.data}}
-                resizeMode={'contain'}
-                style={{
-                  height: '80%',
-                  width: '100%',
-                }}/>
+            <Image
+              source={{uri: 'data:image/png;base64,' + this.state.data}}
+              resizeMode={'contain'}
+              style={{
+                height: '80%',
+                width: '100%',
+              }}/>
 
-              <TouchableOpacity
-                onPress={() => this.setModalVisible(false)}>
+            <TouchableOpacity
+              onPress={() => this.setModalVisible(false)}>
 
-                <FontAwesome name={'close'} size={26} style={{color: '#fff', textAlign: 'center'}}/>
-                <Text style={{color: '#fff', textAlign: 'center'}}>Close</Text>
+              <FontAwesome
+                name={'close'} size={26}
+                style={{color: '#fff', textAlign: 'center'}}/>
+              <Text style={{color: '#fff', textAlign: 'center'}}>Close</Text>
 
-              </TouchableOpacity>
+            </TouchableOpacity>
 
           </View>
         </Modal>
