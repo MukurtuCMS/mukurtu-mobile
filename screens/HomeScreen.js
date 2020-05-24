@@ -20,6 +20,7 @@ import { WebBrowser} from 'expo';
 import * as SQLite from 'expo-sqlite';
 import * as Colors from "../constants/Colors";
 import {PleaseLogin} from "../components/PleaseLogin";
+import * as _ from 'lodash';
 
 class HomeScreen extends React.Component {
   static navigationOptions = {
@@ -71,7 +72,10 @@ class HomeScreen extends React.Component {
     // check that content types is not empty
     if (!(Object.entries(contentTypes).length === 0) && contentTypes.constructor === Object) {
       for (const [machineName, TypeObject] of Object.entries(contentTypes)) {
-        if(this.props.screenProps.viewableTypes[machineName] !== undefined) {
+        const localNodeExists = _.find(this.props.screenProps.nodes, (node) => {
+          return node.type === machineName;
+        });
+        if(localNodeExists !== undefined && this.props.screenProps.viewableTypes[machineName] !== undefined) {
           list.push(
             <SettingsList.Item
               key={machineName}
