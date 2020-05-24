@@ -1,7 +1,5 @@
 import React from 'react';
-import {Image, StyleSheet, Text, View, WebView, Dimensions} from 'react-native';
-import {SQLite} from "expo-sqlite";
-import * as FileSystem from "expo-file-system";
+import {Text, View} from 'react-native';
 
 export class Term extends React.Component {
 
@@ -12,32 +10,32 @@ export class Term extends React.Component {
     }
   }
 
- componentDidMount() {
+  componentDidMount() {
 
-   const data = {
-     method: 'get',
-     headers: {
-       'Accept': 'application/json',
-       'Content-Type': 'application/json',
-       'X-CSRF-Token': this.props.token,
-       'Cookie': this.props.cookie,
-       'Cache-Control': 'no-cache, no-store, must-revalidate',
-       'Pragma': 'no-cache',
-       'Expires': 0
-     }
-   };
+    const data = {
+      method: 'get',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': this.props.token,
+        'Cookie': this.props.cookie,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': 0
+      }
+    };
 
 
-   fetch(this.props.url + '/app/tax-term/' + this.props.tid + '.json', data)
-     .then((response) => response.json())
-     .then((term) => {
-       this.setState({'name': term.name})
-     })
-     .catch((error) => {
-       console.error(error);
-     });
+    fetch(this.props.url + '/app/tax-term/' + this.props.tid + '.json', data)
+      .then((response) => response.json())
+      .then((term) => {
+        this.setState({'name': term.name})
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
- }
+  }
 
 
   render() {

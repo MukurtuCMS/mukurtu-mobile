@@ -1,9 +1,8 @@
 import React from 'react';
-import {View, Text, StyleSheet, TextInput} from 'react-native';
-import {Button, CheckBox} from "react-native-elements";
+import {View, Text, StyleSheet} from 'react-native';
+import {Button} from "react-native-elements";
 import Textfield from "./Textfield";
 import Select2 from "./Select2";
-import Scald from "./Scald";
 import Textarea from "./Textarea";
 import _ from 'lodash';
 
@@ -67,15 +66,6 @@ export default class Paragraph extends React.Component {
       }
     }
   };
-
-
-  enableSubmit() {
-    console.log('enable');
-  }
-
-  disableSubmit() {
-    console.log('disable');
-  }
 
   addParagraph() {
     let currentIndex = this.state.numberOfForms;
@@ -391,14 +381,20 @@ export default class Paragraph extends React.Component {
         description = originalSubField['und']['#description'];
       }
 
-     if(subfield['sid'] !== undefined) {
-       // const selectFormValues = _.get(currentFormValues, [parentField, lang, index], {});
-       paragraphForm.push(
-         <View key={`${fieldName}-${index}`} style={{paddingBottom: 20}}>
-           <Text key={'media-placeholder-header'} style={{fontSize: 20, fontWeight: 'bold'}}>{subfield['sid']['#title']}</Text>
-           <Text key={'media-placeholder-text'} style={{fontStyle: 'italic'}}>Editing Media Items within paragraphs is currently not supported in the app.</Text>
-         </View>
-     );
+      if (subfield['sid'] !== undefined) {
+        // const selectFormValues = _.get(currentFormValues, [parentField,
+        // lang, index], {});
+        paragraphForm.push(
+          <View key={`${fieldName}-${index}`} style={{paddingBottom: 20}}>
+            <Text key={'media-placeholder-header'} style={{
+              fontSize: 20,
+              fontWeight: 'bold'
+            }}>{subfield['sid']['#title']}</Text>
+            <Text key={'media-placeholder-text'} style={{fontStyle: 'italic'}}>Editing
+              Media Items within paragraphs is currently not supported in the
+              app.</Text>
+          </View>
+        );
 
         // paragraphForm.push(
         //   <Scald
@@ -471,13 +467,13 @@ export default class Paragraph extends React.Component {
 
     // Add remove button if this isn't the first one
 
-      let removeButton = <Button
-        key={`remove-btn-${index}`}
-        index={index}
-        title="Remove"
-        onPress={() => this.removeParagraph(index)}
-      />;
-      paragraphForm.push(removeButton);
+    let removeButton = <Button
+      key={`remove-btn-${index}`}
+      index={index}
+      title="Remove"
+      onPress={() => this.removeParagraph(index)}
+    />;
+    paragraphForm.push(removeButton);
 
 
     return paragraphForm;

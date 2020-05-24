@@ -1,26 +1,14 @@
 import React from 'react';
 import {
-  Image,
-  Platform,
-  ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
-  TextInput,
   TouchableHighlight,
-  Alert, WebView
 } from 'react-native';
 import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
 import {addUser} from '../actions/user';
-import {WebBrowser} from 'expo';
 import * as SQLite from 'expo-sqlite';
-import Axios from "axios";
-import * as Colors from "../constants/Colors";
-
-// create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-8');
 
 class LogoutScreen extends React.Component {
 
@@ -35,22 +23,6 @@ class LogoutScreen extends React.Component {
     this._handleLogoutStatusUpdate = screenProps._handleLogoutStatusUpdate.bind(this);
   }
 
-  componentDidMount() {
-
-
-    // we need to remove our global user
-    // globalDB.transaction(
-    //   tx => {
-    //     tx.executeSql('delete from user;',
-    //     );
-    //   }
-    // );
-
-
-    // this._handleLogoutStatusUpdate(false);
-    // this._handleSiteUrlUpdate('');
-  }
-
 
   handleLogoutClick() {
     this._handleLogoutStatusUpdate();
@@ -62,31 +34,30 @@ class LogoutScreen extends React.Component {
   }
 
 
-
-
   render() {
-
-
     if (this.props.screenProps.loggedIn) {
       return (
-          <View style={styles.container}>
-            <Text style={{marginBottom: 20}}>You Are Logged in as {this.props.screenProps.user.user.name}</Text>
-            <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
-                                onPress={() => this.handleLogoutClick()}>
-              <Text style={styles.loginText}>Log Out</Text>
-            </TouchableHighlight>
-          </View>
+        <View style={styles.container}>
+          <Text style={{marginBottom: 20}}>You Are Logged in
+            as {this.props.screenProps.user.user.name}</Text>
+          <TouchableHighlight
+            style={[styles.buttonContainer, styles.loginButton]}
+            onPress={() => this.handleLogoutClick()}>
+            <Text style={styles.loginText}>Log Out</Text>
+          </TouchableHighlight>
+        </View>
       )
     }
     return (
-        <View style={styles.container}>
-          <Text style={{marginBottom: 20}}>You Have Been Logged Out</Text>
-          <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
-                              onPress={() => this.handleLoginClick()}>
-            <Text style={styles.loginText}>Log In</Text>
-          </TouchableHighlight>
+      <View style={styles.container}>
+        <Text style={{marginBottom: 20}}>You Have Been Logged Out</Text>
+        <TouchableHighlight
+          style={[styles.buttonContainer, styles.loginButton]}
+          onPress={() => this.handleLoginClick()}>
+          <Text style={styles.loginText}>Log In</Text>
+        </TouchableHighlight>
 
-        </View>
+      </View>
     )
 
   }
@@ -98,29 +69,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#DCDCDC',
-  },
-  inputContainer: {
-    borderBottomColor: '#F5FCFF',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 30,
-    borderBottomWidth: 1,
-    width: 250,
-    height: 45,
-    marginBottom: 20,
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  inputs: {
-    height: 45,
-    marginLeft: 16,
-    borderBottomColor: '#FFFFFF',
-    flex: 1,
-  },
-  inputIcon: {
-    width: 30,
-    height: 30,
-    marginLeft: 15,
-    justifyContent: 'center'
   },
   buttonContainer: {
     height: 45,

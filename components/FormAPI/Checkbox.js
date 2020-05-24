@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import {CheckBox} from "react-native-elements";
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
@@ -65,24 +65,24 @@ export default class Checkbox extends React.Component {
       <FieldDescription description={(this.props.description) ? this.props.description : null} />
       <Required required={this.props.required}/>
       <CheckBox
-          title={field['#title']}
-          checked={isChecked}
-          containerStyle={checkboxStyle}
-          iconType='material'
-          checkedIcon='check-box'
-          uncheckedIcon='check-box-outline-blank'
-          checkedColor={Colors.default.gold}
-          textStyle={styles.textStyle}
-          onPress={() => {
-            this.props.setFormValue(this.props.fieldName, !isChecked, valueKey, formErrorString);
+        title={field['#title']}
+        checked={isChecked}
+        containerStyle={checkboxStyle}
+        iconType='material'
+        checkedIcon='check-box'
+        uncheckedIcon='check-box-outline-blank'
+        checkedColor={Colors.default.gold}
+        textStyle={styles.textStyle}
+        onPress={() => {
+          this.props.setFormValue(this.props.fieldName, !isChecked, valueKey, formErrorString);
           //   this.setState({
           //     checked: !this.state.checked
           //
           // }, () => {
-          //     this.props.setFormValue(this.props.fieldName, this.state.checked, valueKey, formErrorString);
-          //   });
-          }
-          }
+          //     this.props.setFormValue(this.props.fieldName,
+          // this.state.checked, valueKey, formErrorString); });
+        }
+        }
       />
     </View>;
   }

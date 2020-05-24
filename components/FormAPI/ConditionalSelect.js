@@ -1,11 +1,10 @@
 import React from 'react';
-import {Picker, View, Text, Platform, StyleSheet} from 'react-native';
+import {Picker, View, Text, StyleSheet} from 'react-native';
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import * as Colors from "../../constants/Colors";
 import RNPickerSelect from "react-native-picker-select";
 import {FontAwesome} from "@expo/vector-icons";
-import {getAllFieldValues} from "./formUtils";
 import _ from "lodash";
 import {Button} from "react-native-elements";
 
@@ -35,11 +34,10 @@ export default class ConditionalSelect extends React.Component {
     for (let key in options) {
       // Create the option for the parent picker
       parentPickerOptions.push({
-          key: key,
-          label: key,
-          value: key
-        }
-      );
+        key: key,
+        label: key,
+        value: key
+      });
     }
 
     // const fieldValues = getAllFieldValues(this.props.formValues[this.props.fieldName]);
@@ -49,16 +47,6 @@ export default class ConditionalSelect extends React.Component {
     //   items: fieldValues != null ? fieldValues.length : 1
     // });
   };
-
-  getParentVid(name) {
-    for (let key in this.props.nodes) {
-      if (this.props.nodes.hasOwnProperty(key)) {
-        if (this.props.nodes[key].title === name) {
-          return key;
-        }
-      }
-    }
-  }
 
   onAdd = (i) => {
     const {field, setFormValue, fieldName} = this.props;
@@ -82,11 +70,10 @@ export default class ConditionalSelect extends React.Component {
     for (let key in options) {
       // Create the option for the parent picker
       parentPickerOptions.push({
-          key: key,
-          label: key,
-          value: key
-        }
-      );
+        key: key,
+        label: key,
+        value: key
+      });
     }
 
     let parentPlaceholder = {
@@ -174,8 +161,9 @@ export default class ConditionalSelect extends React.Component {
             style={pickerSelectStyles}
             value={parentVal}
             Icon={() => {
-              return <FontAwesome name="chevron-down" size={25}
-                                  style={styles.pickerIcon}/>;
+              return <FontAwesome
+                name="chevron-down" size={25}
+                style={styles.pickerIcon}/>;
             }}
           />
           {childPicker}
@@ -197,23 +185,6 @@ export default class ConditionalSelect extends React.Component {
 }
 
 var styles = StyleSheet.create({
-  selectListAndroid: {
-    height: 60,
-    borderWidth: 1,
-    borderColor: Colors.default.mediumGray,
-    borderRadius: 5,
-    backgroundColor: '#FFF',
-    marginBottom: 10,
-    padding: 8,
-    fontSize: 20,
-    width: 'auto'
-  },
-  selectListIOS: {
-    height: 60,
-    width: 'auto',
-    padding: 0,
-    marginTop: 0,
-  },
   viewStyle: {
     marginBottom: 15,
   },
@@ -230,6 +201,7 @@ var styles = StyleSheet.create({
   },
 });
 
+/* eslint-disable react-native/no-unused-styles */
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     fontSize: 16,

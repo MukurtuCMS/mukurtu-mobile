@@ -1,12 +1,8 @@
 import React from 'react';
-import {Dimensions, Image, ScrollView, StyleSheet, Text, View, WebView} from 'react-native';
+import {Dimensions, StyleSheet, Text, View} from 'react-native';
 import HTML from "react-native-render-html";
 import MapView, {Marker} from "react-native-maps";
-import {ScaldItem} from "./ScaldItem";
-import {ParagraphView} from "./ParagraphView";
-import {Star} from "./Star";
 import {FieldCollection} from "./FieldCollection";
-import NodeTeaser from "./Displays/nodeTeaser";
 
 export class EmbeddedNode extends React.Component {
 
@@ -117,8 +113,9 @@ export class EmbeddedNode extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML tagsStyles={tagsStyles}  key={fieldName + i} html={node[fieldName][lang][i].safe_value}
-                                    imagesMaxWidth={Dimensions.get('window').width}/>)
+            renderedNode.push(<HTML
+              tagsStyles={tagsStyles}  key={fieldName + i} html={node[fieldName][lang][i].safe_value}
+              imagesMaxWidth={Dimensions.get('window').width}/>)
           }
         }
       }
@@ -140,13 +137,14 @@ export class EmbeddedNode extends React.Component {
                 latitude: Number(node[fieldName][lang][i].lat),
                 longitude: Number(node[fieldName][lang][i].lon),
               };
-              renderedNode.push(<MapView style={styles.map} key={fieldName + i}
-                                         initialRegion={{
-                                           latitude: Number(node[fieldName][lang][i].lat),
-                                           longitude: Number(node[fieldName][lang][i].lon),
-                                           latitudeDelta: 0.0922,
-                                           longitudeDelta: 0.0421,
-                                         }}
+              renderedNode.push(<MapView
+                style={styles.map} key={fieldName + i}
+                initialRegion={{
+                  latitude: Number(node[fieldName][lang][i].lat),
+                  longitude: Number(node[fieldName][lang][i].lon),
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
               >
                 <Marker
                   coordinate={latLng}
@@ -276,20 +274,16 @@ export class EmbeddedNode extends React.Component {
 
 
 
-    return (<View style={{flex: 1}}>
+    return (
+      <View style={{flex: 1}}>
         <Text style={styles.nodeTitle}>{node.title}</Text>
-          {renderedNode}
+        {renderedNode}
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  titleTextStyle: {
-    marginBottom: 5,
-    color: '#000',
-    fontSize: 24
-  },
   nodeTitle: {
     marginBottom: 3,
     color: '#000',

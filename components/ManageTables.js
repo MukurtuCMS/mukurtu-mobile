@@ -1,4 +1,3 @@
-import React from 'react';
 import * as SQLite from 'expo-sqlite';
 
 const globalDB = SQLite.openDatabase('global-8');
@@ -24,12 +23,11 @@ export const createUniqueTables = (db) => {
 export const createGlobalTables = async () => {
   console.log('create global tables');
   return new Promise((resolve, reject) => globalDB.transaction(tx => {
-      tx.executeSql('create table if not exists user (siteUrl primary key, user text);');
-      tx.executeSql('create table if not exists database (siteUrl primary key, databaseName text);');
-      tx.executeSql('create table if not exists savedinfo (url primary key, username text);',
-        '', (_, result) => resolve, reject);
-    })
-  );
+    tx.executeSql('create table if not exists user (siteUrl primary key, user text);');
+    tx.executeSql('create table if not exists database (siteUrl primary key, databaseName text);');
+    tx.executeSql('create table if not exists savedinfo (url primary key, username text);',
+      '', (_, result) => resolve, reject);
+  }));
 
   // globalDB.transaction(tx => {
   //   tx.executeSql(

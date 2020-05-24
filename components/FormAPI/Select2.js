@@ -50,9 +50,8 @@ export default class Select2 extends React.Component {
     let currentAutocompleteState = this.state.autocompleteSelected;
     currentAutocompleteState[index] = boolean;
     this.setState({
-          autocompleteSelected: currentAutocompleteState
-        }
-    )
+      autocompleteSelected: currentAutocompleteState
+    })
   }
 
   submitChanges = (value, index, options) => {
@@ -199,7 +198,8 @@ export default class Select2 extends React.Component {
 
       const hideResults = this.state.autocompleteSelected[key] !== undefined ? this.state.autocompleteSelected[key] : true;
 
-      autocompleteFields.push(<Autocomplete
+      autocompleteFields.push(
+        <Autocomplete
           // flatListProps={{ nestedScrollEnabled: true, }}
           key={`ac-${i}`}
           autoCapitalize="none"
@@ -222,22 +222,23 @@ export default class Select2 extends React.Component {
           keyExtractor={(item, index) => `list-item-${index}` }
           hideResults={hideResults}
           renderItem={({item, i}) => (
-              <TouchableOpacity
-                  onPress={
-                    () => {
-                      // this.props.setFormValue(this.props.fieldName, item.text, valueKey, lang, options, key);
-                      this.submitChanges(item.text, key, options);
-                      this.updateAutocomplete(key, true);
-                      this.setState({'heightReset': true});
-                    }
+            <TouchableOpacity
+              onPress={
+                () => {
+                  // this.props.setFormValue(this.props.fieldName, item.text,
+                  // valueKey, lang, options, key);
+                  this.submitChanges(item.text, key, options);
+                  this.updateAutocomplete(key, true);
+                  this.setState({'heightReset': true});
+                }
 
-                  }>
-                <Text style={styles.itemText}>
-                  {item.text}
-                </Text>
-              </TouchableOpacity>
+              }>
+              <Text style={styles.itemText}>
+                {item.text}
+              </Text>
+            </TouchableOpacity>
           )}
-      />);
+        />);
     }
 
     const sortedOptions = this.findFilm(this.state.q, options);
@@ -326,49 +327,11 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: 15
   },
-  autocompleteContainer: {
-  },
-  autocomplete_list_container : {
-    height: '100%',
-    backgroundColor: '#fff',
-  },
-  autocompleteContainers: {
-    flex: 1,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
   itemText: {
     fontSize: 15,
     margin: 2,
     backgroundColor: '#fff',
     zIndex: 100
-  },
-  descriptionContainer: {
-    // `backgroundColor` needs to be set otherwise the
-    // autocomplete input will disappear on text input.
-    backgroundColor: '#FFF',
-    marginTop: 8
-  },
-  infoText: {
-    textAlign: 'center'
-  },
-  titleText: {
-    fontSize: 18,
-    fontWeight: '500',
-    marginBottom: 10,
-    marginTop: 10,
-    textAlign: 'center'
-  },
-  directorText: {
-    color: 'grey',
-    fontSize: 12,
-    marginBottom: 10,
-    textAlign: 'center'
-  },
-  openingText: {
-    textAlign: 'center'
   },
   titleTextStyle: {
     color: '#000',

@@ -1,12 +1,11 @@
 import React from 'react';
 import DatePicker from 'react-native-datepicker'
-import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {StyleSheet, Text, View} from "react-native";
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import ErrorMessage from "./ErrorMessage";
-import { Appearance, useColorScheme } from 'react-native-appearance';
-import {FontAwesome} from "@expo/vector-icons";
+import { Appearance } from 'react-native-appearance';
 import {getFirstFieldValue} from "./formUtils";
 
 export default class DatePick extends React.Component {
@@ -17,14 +16,6 @@ export default class DatePick extends React.Component {
     this.state = {'dateChanged': false}
   }
 
-  componentDidMount() {
-    // Set initial date in case it's not changed
-    // let today = this.getTodayFormatted();
-    // this.setState({'date': today}, () => {
-      // Ensure we're setting this to form state in case the value isn't changed
-      // this.props.setFormValue(this.props.fieldName, this.state.date, this.props.fieldType);
-    // })
-  }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!this.state.dateChanged) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Dimensions, Picker, StyleSheet, TouchableOpacity, View} from 'react-native';
+import {Picker, StyleSheet, TouchableOpacity, View} from 'react-native';
 import {Image} from "react-native";
 import {Modal} from "react-native";
 import {TouchableHighlight} from "react-native";

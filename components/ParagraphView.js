@@ -1,15 +1,10 @@
 import React from 'react';
-import {Dimensions, Image, StyleSheet, Text, View, WebView} from 'react-native';
+import {Dimensions, StyleSheet, Text, View} from 'react-native';
 import HTML from "react-native-render-html";
 import {ScaldItem} from "./ScaldItem";
 import _ from 'lodash';
 
 export class ParagraphView extends React.Component {
-
-
-  componentDidMount() {
-
-  }
 
 
   render() {
@@ -43,7 +38,7 @@ export class ParagraphView extends React.Component {
           )
         }
 
-          // Taxonomy term
+        // Taxonomy term
         // else if (t(paragraphData[pid][key]['und']['0']['tid']).isDefined) {
         else if (fieldKeys.includes('tid')) {
           for (let i = 0; i < thisParagraphData[key]['und'].length; i++) {
@@ -68,7 +63,7 @@ export class ParagraphView extends React.Component {
             }
           }
         }
-          // Scald Item
+        // Scald Item
         // else if (t(paragraphData[pid][key]['und']['0']['sid']).isDefined) {
         else if (fieldKeys.includes('sid')) {
           for (let i = 0; i < thisParagraphData[key]['und'].length; i++) {
@@ -87,7 +82,7 @@ export class ParagraphView extends React.Component {
           }
 
         }
-          // Node reference
+        // Node reference
         // else if
         // (t(paragraphData[pid][key]['und']['0']['target_id']).isDefined) {
         else if (fieldKeys.includes('target_id')) {

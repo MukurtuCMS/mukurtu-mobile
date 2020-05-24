@@ -1,23 +1,12 @@
-import React                                  from 'react'
-import { TextField }                          from 'react-native-material-textfield'
-// import { TouchableOpacity, View, Button }     from 'react-native'
-import t                                      from 'tcomb-form-native/lib'
-import { DocumentPicker, FileSystem } from 'expo';
+import React from 'react'
+import {TextField} from 'react-native-material-textfield'
+import t from 'tcomb-form-native/lib'
+import {DocumentPicker} from 'expo';
 import {
-  ActionSheetIOS,
   View,
-  Text,
   Button,
-  Animated,
-  StyleSheet,
-  Platform,
   TouchableOpacity
 } from 'react-native';
-import ImagePicker from 'react-native-image-crop-picker';
-import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
-// import t from 'tcomb-form-native';
-import BottomSheet from 'react-native-js-bottom-sheet';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 type Props = {
   title: string
@@ -89,32 +78,5 @@ class DocumentPickerFactory extends Component<Props, State> {
     )
   }
 }
-
-
-const styles = StyleSheet.create({
-  topContainer: {
-    overflow: 'hidden',
-    borderRadius: 4,
-    marginBottom: 12,
-    height: 150,
-    borderColor: 'grey',
-    borderWidth: 1
-  },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#e6e6e6',
-    height: 100,
-    borderRadius: 4
-  },
-  icon: {
-    textAlign: 'center',
-    textAlignVertical: 'center'
-  },
-  image: {
-    height: 150
-  }
-});
 
 export default DocumentPickerFactory;
