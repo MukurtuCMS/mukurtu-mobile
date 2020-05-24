@@ -22,6 +22,12 @@ import {Ionicons} from '@expo/vector-icons';
 
 
 export default class HomeScreen extends React.Component {
+  static navigationOptions = ({navigation}) => {
+    return {
+      title: navigation.getParam('contentTypeLabel')
+    }
+  };
+
   constructor(props) {
     super(props);
     const {navigation, screenProps} = this.props;
@@ -58,10 +64,6 @@ export default class HomeScreen extends React.Component {
       numberOfNodes: Object.keys(this.props.screenProps.nodes).length
     }
   }
-
-  static navigationOptions = {
-    title: 'Content List'
-  };
 
   componentDidMount() {
     // this.props.navigation.addListener('willFocus', this.componentActive);

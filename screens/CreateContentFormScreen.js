@@ -32,7 +32,7 @@ class CreateContentFormScreen extends React.Component {
   static navigationOptions = ({navigation}) => (
     {
       title: `${navigation.getParam('editWord')}` + ' ' + `${navigation.getParam('contentTypeLabel')}`,
-      headerLeft: (<CustomBackButton navigation={navigation}/>)
+      headerLeft: () => <CustomBackButton navigation={navigation}/>
     });
 
   constructor(props) {
@@ -190,7 +190,7 @@ class CreateContentFormScreen extends React.Component {
     }
 
     return (
-      <View style={{backgroundColor:'#FFFFFF',flex:1, padding: '5%'}}>
+      <View style={{backgroundColor:'#FFFFFF',flex:1, padding: '5%', paddingBottom: 0}}>
         <KeyboardAwareScrollView style={{backgroundColor:'#FFFFFF',flex:1}}>
           { nodeForm }
         </KeyboardAwareScrollView>
