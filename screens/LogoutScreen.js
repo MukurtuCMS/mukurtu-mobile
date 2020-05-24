@@ -24,14 +24,6 @@ const globalDB = SQLite.openDatabase('global-8');
 
 class LogoutScreen extends React.Component {
 
-  static navigationOptions = {
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
-  };
-
   constructor(props) {
     super(props);
     const {navigation, screenProps} = this.props;

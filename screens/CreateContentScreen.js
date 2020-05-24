@@ -8,9 +8,9 @@ import {
   Text,
   View,
   Image,
-  Alert,
-  NetInfo
+  Alert
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import SettingsList from 'react-native-settings-list';
 import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
@@ -23,12 +23,7 @@ import {PleaseLogin} from "../components/PleaseLogin";
 
 export default class CreateContentScreen extends React.Component {
   static navigationOptions = {
-    title: 'Create Content',
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
+    title: 'Create Content'
   };
 
   constructor(props){

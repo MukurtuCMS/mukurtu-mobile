@@ -31,15 +31,9 @@ import CustomBackButton from "../components/CustomBackButton";
 class CreateContentFormScreen extends React.Component {
   static navigationOptions = ({navigation}) => (
     {
-    title: `${navigation.getParam('editWord')}` + ' ' + `${navigation.getParam('contentTypeLabel')}`,
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-      headerTintColor: '#000',
-    },
-    headerTintColor: '#000',
-    headerLeft: (<CustomBackButton navigation={navigation}/>)
-  });
+      title: `${navigation.getParam('editWord')}` + ' ' + `${navigation.getParam('contentTypeLabel')}`,
+      headerLeft: (<CustomBackButton navigation={navigation}/>)
+    });
 
   constructor(props) {
     super(props);

@@ -23,12 +23,7 @@ import {PleaseLogin} from "../components/PleaseLogin";
 
 class HomeScreen extends React.Component {
   static navigationOptions = {
-    title: 'View Content',
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
+    title: 'View Content'
   };
 
   constructor(props){

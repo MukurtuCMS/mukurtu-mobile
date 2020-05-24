@@ -24,6 +24,7 @@ import {ScaldSwipe} from '../components/ScaldSwipe';
 import {FieldCollection} from "../components/FieldCollection";
 import _ from 'lodash';
 import {NavigationActions} from "react-navigation";
+import UnlockOrientation from "../components/UnlockOrientation";
 
 
 // create a global db for database list and last known user
@@ -31,30 +32,30 @@ const globalDB = SQLite.openDatabase('global-8');
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
-    const canEdit = navigation.getParam('canEdit');
     return {
       title: `${navigation.getParam('node').title}`,
-      headerStyle: {
-        backgroundColor: Colors.default.gold,
-        marginTop: -20,
-      },
-      headerTintColor: '#000',
-      headerRight: (canEdit !== undefined && canEdit &&
-        <Feather style={{marginRight: 10}} onPress={() => {
-          const navNode = navigation.getParam('node');
-          const navigateAction = NavigationActions.navigate({
-            routeName: 'EditContentForm',
-            params: {
-              contentType: navNode.type,
-              contentTypeLabel: navNode.title,
-              node: navNode,
-              editWord: 'Edit',
-            },
-            key: `node-edit-${navNode.nid}`
-          });
-          navigation.dispatch(navigateAction);
-        }} name="edit" size={24} color="#000"/>
-      ),
+      headerRight: () => {
+        const canEdit = navigation.getParam('canEdit');
+        if (canEdit !== undefined && canEdit) {
+          return (<Feather style={{marginRight: 10}} onPress={() => {
+            const navNode = navigation.getParam('node');
+            const navigateAction = NavigationActions.navigate({
+              routeName: 'EditContentForm',
+              params: {
+                contentType: navNode.type,
+                contentTypeLabel: navNode.title,
+                node: navNode,
+                editWord: 'Edit',
+              },
+              key: `node-edit-${navNode.nid}`
+            });
+            navigation.dispatch(navigateAction);
+          }} name="edit" size={24} color="#000"/>)
+        }
+        else {
+          return null;
+        }
+      }
     }
   };
 
@@ -604,7 +605,9 @@ class NodeScreen extends React.Component {
     }
 
 
-    return renderedNode.length > 0 ? (<View style={{flex: 1}}>
+    return renderedNode.length > 0 ? (
+      <View style={{flex: 1}}>
+        <UnlockOrientation />
         <ScrollView style={styles.container}>
           <Text>{this.state.media_text}</Text>
           {star}

@@ -23,12 +23,7 @@ export default class OfflineScreen extends React.Component {
   }
 
   static navigationOptions = {
-    title: 'Queued Content',
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
+    title: 'Queued Content'
   };
 
   componentDidMount() {

@@ -14,6 +14,7 @@ import Validator from 'validator';
 import {Overlay} from "react-native-elements";
 import {PleaseLogin} from "../components/PleaseLogin";
 import * as Colors from "../constants/Colors";
+import UnlockOrientation from "../components/UnlockOrientation";
 
 
 export default class WebviewScreen extends React.Component {
@@ -30,12 +31,7 @@ export default class WebviewScreen extends React.Component {
   }
 
   static navigationOptions = {
-    title: 'Browse Site',
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
+    title: 'Browse Site'
   };
 
   componentDidMount() {
@@ -169,6 +165,7 @@ export default class WebviewScreen extends React.Component {
 
     return (
       <View style={styles.container}>
+        <UnlockOrientation />
         {activityIndicator}
         <WebView
           source={{uri: this.state.targetUrl}}

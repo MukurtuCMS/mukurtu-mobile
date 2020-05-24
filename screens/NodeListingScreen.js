@@ -60,11 +60,7 @@ export default class HomeScreen extends React.Component {
   }
 
   static navigationOptions = {
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
+    title: 'Content List'
   };
 
   componentDidMount() {

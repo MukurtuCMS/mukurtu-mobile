@@ -26,14 +26,6 @@ import resolveAssetSource from "expo-asset/build/resolveAssetSource.web";
 // create a global db for database list and last known user
 class LoginScreen extends React.Component {
 
-  static navigationOptions = {
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
-  };
-
   constructor(props) {
     super(props);
     const {navigation, screenProps} = this.props;
