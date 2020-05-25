@@ -4,9 +4,8 @@ import {
   Text,
   View,
   ScrollView,
-  Dimensions, Image
+  Dimensions,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
 import {Feather} from '@expo/vector-icons';
 import * as SQLite from 'expo-sqlite';
 import MapView from "react-native-maps";
@@ -15,9 +14,6 @@ import HTML from 'react-native-render-html';
 import {Star} from "../components/Star";
 import {ScaldItem} from "../components/ScaldItem";
 import {ParagraphView} from "../components/ParagraphView";
-import {Term} from "../components/Term";
-import axios from "axios";
-import * as Colors from "../constants/Colors";
 import {EmbeddedNode} from "../components/EmbeddedNode";
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import {ScaldSwipe} from '../components/ScaldSwipe';
@@ -25,10 +21,6 @@ import {FieldCollection} from "../components/FieldCollection";
 import _ from 'lodash';
 import {NavigationActions} from "react-navigation";
 import UnlockOrientation from "../components/UnlockOrientation";
-
-
-// create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-8');
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
@@ -139,24 +131,6 @@ class NodeScreen extends React.Component {
 
 
   }
-
-  setTaxonomy = (array) => {
-    let termList = {};
-    for (var i = 0; i < array.length; i++) {
-      termList[array[i].tid] = JSON.parse(array[i].entity)
-    }
-    this.setState({terms: termList});
-  }
-
-
-  setNodes = (array) => {
-    let nodeList = {};
-    for (var i = 0; i < array.length; i++) {
-      nodeList[array[i].nid] = JSON.parse(array[i].entity)
-    }
-    this.setState({nodes: nodeList});
-  }
-
 
   render() {
 
@@ -307,9 +281,10 @@ class NodeScreen extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML tagsStyles={tagsStyles} key={`${fieldName}_html_${i}`}
-                                    html={node[fieldName][lang][i].safe_value}
-                                    imagesMaxWidth={Dimensions.get('window').width}/>)
+            renderedNode.push(<HTML
+              tagsStyles={tagsStyles} key={`${fieldName}_html_${i}`}
+              html={node[fieldName][lang][i].safe_value}
+              imagesMaxWidth={Dimensions.get('window').width}/>)
           }
         }
       }
@@ -332,13 +307,14 @@ class NodeScreen extends React.Component {
                 latitude: Number(node[fieldName][lang][i].lat),
                 longitude: Number(node[fieldName][lang][i].lon),
               };
-              renderedNode.push(<MapView style={styles.map} key={`${fieldName}_geo_${i}`}
-                                         initialRegion={{
-                                           latitude: Number(node[fieldName][lang][i].lat),
-                                           longitude: Number(node[fieldName][lang][i].lon),
-                                           latitudeDelta: 0.0922,
-                                           longitudeDelta: 0.0421,
-                                         }}
+              renderedNode.push(<MapView
+                style={styles.map} key={`${fieldName}_geo_${i}`}
+                initialRegion={{
+                  latitude: Number(node[fieldName][lang][i].lat),
+                  longitude: Number(node[fieldName][lang][i].lon),
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
               >
                 <Marker
                   coordinate={latLng}
@@ -405,15 +381,14 @@ class NodeScreen extends React.Component {
         // (I have a suspicion this could be simplified.)
         // first, create array of unique values
         let uniqueVals = items.map((item) => {
-            return item.value;
-          }
-        );
+          return item.value;
+        });
         uniqueVals = Array.from(new Set(uniqueVals));
 
         // Now, for each unique value, get the key of the highest revision ID
         let sortableArray = uniqueVals.map((val) => {
           return items.filter((item) => {
-              return item.value === val;
+            return item.value === val;
           })
         });
 
@@ -626,9 +601,6 @@ const
       backgroundColor: '#DCDCDC',
       padding: 10,
     },
-    interior: {
-      flexDirection: 'column'
-    },
     label: {
       marginTop: 10,
       marginBottom: 5,
@@ -648,12 +620,6 @@ const
     syncError: {
       fontSize: 12
     },
-    htmlField: {
-      marginTop: 0,
-      backgroundColor: '#fff'
-    },
-
-
   });
 
 export default NodeScreen;

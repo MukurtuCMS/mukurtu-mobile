@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {StyleSheet, View, Dimensions, Text} from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import {ScaldItem} from './ScaldItem';

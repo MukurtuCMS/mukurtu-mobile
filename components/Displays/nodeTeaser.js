@@ -1,5 +1,5 @@
 import React from 'react';
-import {TextInput, View, Text, StyleSheet, TouchableHighlight} from 'react-native';
+import {View, Text, StyleSheet, TouchableHighlight} from 'react-native';
 import {Feather} from '@expo/vector-icons';
 import {ScaldItem} from "../ScaldItem";
 import {ParagraphView} from "../ParagraphView";
@@ -39,11 +39,6 @@ export default class NodeTeaser extends React.Component {
 
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot) {
-
-  }
-
-
   render() {
     const node = this.props.node;
 
@@ -72,16 +67,16 @@ export default class NodeTeaser extends React.Component {
             typeof node[key]['und'] !== 'undefined' &&
             typeof node[key]['und']['0']['sid'] !== 'undefined') {
           viewableFields.push(
-              <View key={key} style={styles.view}>
-                <Text style={styles.label}>{value.label}</Text>
-                <ScaldItem
-                    token={this.props.token}
-                    cookie={this.props.cookie}
-                    url={this.props.url}
-                    sid={node[key]['und']['0']['sid']}
-                    db={this.props.db}
-                />
-              </View>
+            <View key={key} style={styles.view}>
+              <Text style={styles.label}>{value.label}</Text>
+              <ScaldItem
+                token={this.props.token}
+                cookie={this.props.cookie}
+                url={this.props.url}
+                sid={node[key]['und']['0']['sid']}
+                db={this.props.db}
+              />
+            </View>
           )
         }
         // Node reference
@@ -108,10 +103,10 @@ export default class NodeTeaser extends React.Component {
             typeof node[key]['und']['0']['safe_value'] !== 'undefined'
         ) {
           viewableFields.push(
-              <View key={key} style={styles.view}>
-                <Text style={styles.label}>{value.label}</Text>
-                <Text>{node[key]['und']['0']['safe_value']}</Text>
-              </View>
+            <View key={key} style={styles.view}>
+              <Text style={styles.label}>{value.label}</Text>
+              <Text>{node[key]['und']['0']['safe_value']}</Text>
+            </View>
           )
         }
         // Taxonomy terms
@@ -141,16 +136,16 @@ export default class NodeTeaser extends React.Component {
             typeof node[key]['und']['0']['revision_id'] !== 'undefined'
         ) {
           viewableFields.push(
-              <View key={key}  style={styles.view}>
-                <ParagraphView
-                    token={this.props.token}
-                    cookie={this.props.cookie}
-                    url={this.props.url}
-                    pid={node[key]['und']['0']['value']}
-                    viewableFields={this.props.viewableFields}
-                    fieldName={key}
-                />
-              </View>
+            <View key={key} style={styles.view}>
+              <ParagraphView
+                token={this.props.token}
+                cookie={this.props.cookie}
+                url={this.props.url}
+                pid={node[key]['und']['0']['value']}
+                viewableFields={this.props.viewableFields}
+                fieldName={key}
+              />
+            </View>
           )
         }
 

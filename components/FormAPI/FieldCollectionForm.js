@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import {Button, CheckBox} from "react-native-elements";
+import {Button} from "react-native-elements";
 import Textfield from "./Textfield";
 import Select2 from "./Select2";
 

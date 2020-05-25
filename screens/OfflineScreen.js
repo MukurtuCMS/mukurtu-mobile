@@ -1,17 +1,12 @@
 import React from 'react';
 import {
-  Image,
-  Platform,
   ScrollView,
   StyleSheet,
-  Text, TouchableHighlight,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {SQLite} from "expo-sqlite";
-import * as Sync from "../components/MukurtuSync"
-import {Feather, FontAwesome} from "@expo/vector-icons"
-import * as Colors from "../constants/Colors";
+import {Feather} from "@expo/vector-icons"
 
 export default class OfflineScreen extends React.Component {
   constructor(props) {
@@ -27,7 +22,6 @@ export default class OfflineScreen extends React.Component {
   };
 
   componentDidMount() {
-    this.props.navigation.addListener('willFocus', this.componentActive);
 
     if (!this.props.screenProps.db) {
       return;
@@ -102,19 +96,6 @@ export default class OfflineScreen extends React.Component {
       }
     );
   }
-
-  componentActive = async () => {
-    // const offlineNodes = await Sync.getSavedOffline(this.state);
-    // console.log(offlineNodes);
-    // if (offlineNodes && offlineNodes.length > 0) {
-    //   for (let i = 0; i < offlineNodes.length; i++) {
-    //     offlineNodes[i].blob = JSON.parse(offlineNodes[i].blob);
-    //   }
-    //   this.setState({nodes: offlineNodes})
-    // }
-  }
-
-
 
   editNode(node, did) {
     this.props.navigation.navigate('CreateContentForm', {

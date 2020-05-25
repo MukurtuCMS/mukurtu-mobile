@@ -1,7 +1,5 @@
 import React from 'react';
 import { View, StyleSheet, Text, Image} from 'react-native';
-import {EvilIcons} from "@expo/vector-icons";
-import {SQLite} from "expo-sqlite";
 
 export default class AppHeader extends React.Component {
 
@@ -11,21 +9,6 @@ export default class AppHeader extends React.Component {
     this.state = {
       siteInfo: null,
     }
-  }
-
-
-  componentDidMount() {
-    // if (this.state.db) {
-    //   this.state.db.transaction(
-    //     tx => {
-    //       tx.executeSql('select * from site_info limit 1',
-    //         [],
-    //         (success, info) => this.setState({siteInfo: info.rows._array[0]}),
-    //         (success, error) => ''
-    //       );
-    //     }
-    //   );
-    // }
   }
 
   render() {
@@ -52,10 +35,10 @@ export default class AppHeader extends React.Component {
     return <View style={styles.container}>
       <View style={styles.siteIconView}>
         {siteLogo}
-      <Text style={loginBubbleStyle}></Text>
+        <Text style={loginBubbleStyle}></Text>
       </View>
       <View style={styles.siteName}>
-      <Text>{this.props.url}</Text>
+        <Text>{this.props.url}</Text>
         {pullDownText}
       </View>
 {/*      <Image
@@ -67,21 +50,14 @@ export default class AppHeader extends React.Component {
 }
 
 const styles = StyleSheet.create({
-   container: {
-      backgroundColor: "#FFF",
-      flex: 0,
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'row',
-      height: 46,
-      marginTop: 25
-   },
-  profileIcon: {
-    height: 20,
-    width: 20,
+  container: {
+    backgroundColor: "#fff",
     flex: 0,
-    justifyContent: 'flex-end',
-    marginRight: 10
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: 46,
+    marginTop: 25
   },
   siteIcon: {
     height: 26,
@@ -120,6 +96,6 @@ const styles = StyleSheet.create({
     borderRadius: 100
   },
   smallText: {
-     fontSize: 12
+    fontSize: 12
   }
 });

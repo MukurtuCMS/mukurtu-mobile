@@ -1,9 +1,8 @@
 import React from 'react';
-import {Image, Picker, View, Text, StyleSheet, Button, WebView, Platform} from 'react-native';
+import {Image, Picker, View, Text, StyleSheet, Button, Platform} from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker'
-import Constants from 'expo-constants'
 import Required from "./Required";
 import * as FileSystem from "expo-file-system";
 import axios from "axios";
@@ -287,11 +286,13 @@ export default class Scald extends React.Component {
       if (!image.cancelled) {
         const thumbnailUri = await this.getThumbnailUri(image);
 
-        this.setState({
+        this.setState(
+          {
             placeholder: {
               [index]: thumbnailUri
             }
-          }, () => {
+          },
+          () => {
             this.handleUpload(this.props.fieldName, image, 'image', index);
           }
         );
@@ -318,13 +319,12 @@ export default class Scald extends React.Component {
     if (!image.cancelled) {
       const thumbnailUri = await this.getThumbnailUri(image);
       this.setState({
-          placeholder: {
-            [index]: thumbnailUri
-          }
-        }, () => {
-          this.handleUpload(this.props.fieldName, image, 'camera', index);
+        placeholder: {
+          [index]: thumbnailUri
         }
-      );
+      }, () => {
+        this.handleUpload(this.props.fieldName, image, 'camera', index);
+      });
     }
   }
 
@@ -417,7 +417,8 @@ export default class Scald extends React.Component {
           );
         } else if (existingElements[sid].type === 'video' && !existingElements[sid].remote) {
           const thumbnail = this.state.placeholder[i] != null ? this.state.placeholder[i] : false;
-          mediaElement = thumbnail ? (<Image
+          mediaElement = thumbnail ? (
+            <Image
               source={{uri: thumbnail}}
               resizeMode={'contain'}
               style={{
@@ -462,21 +463,24 @@ export default class Scald extends React.Component {
         if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
 
           buttons.push(<View key={'roll-btn'} style={styles.mediaButtonWrapper}>
-            <Button title={'Select photo/video'}
-                    onPress={() => this._launchCameraRollAsync(i, allowedMediaTypes)}/>
+            <Button
+              title={'Select photo/video'}
+              onPress={() => this._launchCameraRollAsync(i, allowedMediaTypes)}/>
           </View>);
           buttons.push(<View key={'camera-btn'} style={styles.mediaButtonWrapper}>
-            <Button style={styles.mediaButton}
-                    title={'Take photo/video'}
-                    onPress={() => this._launchCameraAsync(i, allowedMediaTypes)}/>
+            <Button
+              style={styles.mediaButton}
+              title={'Take photo/video'}
+              onPress={() => this._launchCameraAsync(i, allowedMediaTypes)}/>
           </View>);
 
         }
         if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
           buttons.push(<View key={'file-btn'} style={styles.mediaButtonWrapper}>
-            <Button style={styles.mediaButton}
-                    title={'Select audio/document'}
-                    onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/>
+            <Button
+              style={styles.mediaButton}
+              title={'Select audio/document'}
+              onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/>
           </View>);
         }
 
@@ -536,260 +540,7 @@ export default class Scald extends React.Component {
           {elements}
         </View>
         {addMoreButton}
-      </View>)
-      ;
-
-  }
-
-  _bob() {
-
-    let elements = []
-    let fieldName = this.props.fieldName;
-    const field = this.props.field;
-    const allowedMediaTypes = this.getAllowedMediaTypes(field);
-    for (let i = 0; i < this.state.numberOfValues; i++) {
-
-      // Check for existing media value, load it from drupal if it's there
-      if (!(this.state[i] && !this.state[i]['overRidden']) &&
-        this.props.formValues[fieldName] &&
-        this.props.formValues[fieldName]['und'] &&
-        this.props.formValues[fieldName]['und'][i] &&
-        this.props.formValues[fieldName]['und'][i]['sid']
-      ) {
-        let sid = this.props.formValues[fieldName]['und'][i]['sid'];
-
-        const data = {
-          method: 'get',
-          mode: 'cors',
-          cache: 'no-cache',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': this.props.token,
-            'Cookie': this.props.cookie
-          },
-          redirect: 'follow',
-          referrer: 'no-referrer',
-        };
-
-
-        let url = this.props.url;
-        fetch(url + '/app/scald/retrieve/' + sid, data)
-          .then((response) => {
-            return response.json();
-          })
-          .then((response) => {
-
-
-            // First check for youtube video
-            if (response.base_id && response.provider === 'scald_youtube') {
-              this.setState({
-                [i]: {
-                  'chosenDocument': {
-                    // 'name': response.base_entity.filename,
-                    'url': 'https://www.youtube.com/watch?v=' + response.base_id
-                  }
-                }
-              })
-            } else if (response.base_id && response.provider === 'scald_file') {
-              this.setState({
-                [i]: {
-                  'chosenDocument': {
-                    'name': response.base_entity.filename,
-                    'uri': response.file_url
-                  }
-                }
-              })
-            } else if (response.base_id && response.provider === 'scald_video') {
-              this.setState({
-                [i]: {
-                  'chosenImage': {
-                    'name': response.title,
-                    'uri': response.thumbnail_url
-                  }
-                }
-              })
-            } else if (typeof response.base_entity !== 'undefined') {
-              // still need to detect whether this is a doc or an image
-              this.setState({
-                [i]: {
-                  'chosenImage': {
-                    'name': response.base_entity.filename,
-                    'url': response.thumbnail_url
-                  }
-                }
-              })
-            }
-
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-
-      }
-
-
-      let chosenDocumentText = "Select audio/document";
-      let chosenImageText = "Select image/video";
-      let takenImageText = "Take photo";
-      let removeFileText = "Remove image/video";
-      let showRemoveFile = false;
-      if (this.state[i] && this.state[i].chosenDocument) {
-        chosenDocumentText = "Select a different audio/document";
-      }
-      if (this.state[i] && this.state[i].chosenImage) {
-        chosenImageText = "Select a different image/video";
-      }
-      if (this.state[i] && this.state[i].takenImage) {
-        takenImageText = "Take a different photo";
-      }
-      if (this.state[i] && this.state[i].chosenDocument) {
-        removeFileText = "Remove Document";
-      }
-
-      if (this.state[i] && this.state.permission && (this.state[i].chosenDocument || this.state[i].chosenImage || this.state[i].takenImage || this.state[i].youtube)) {
-        showRemoveFile = true;
-      }
-
-
-      let line;
-      if (this.state[i] && this.state[i]['percent'] && this.state[i]['percent'] > 0 && this.state[i]['percent'] < 1) {
-        line =
-          <View>
-            <Text>Uploading...</Text>
-            <ProgressBar progress={this.state[i]['percent']} width={200}/>
-          </View>
-      } else if (this.state[i] && this.state[i]['percent'] && this.state[i]['percent'] === 1) {
-        line =
-          <View>
-            <Text>Upload Complete</Text>
-          </View>
-      }
-      let showButtons = (
-        typeof this.state[i] === 'undefined' ||
-        (this.state.permission &&
-          this.state[i]['chosenDocument'] == null &&
-          this.state[i]['chosenImage'] == null &&
-          this.state[i]['takenImage'] == null
-        ));
-
-      let docbutton;
-      let photobutton = null;
-      let camerabutton;
-      let permissionText;
-      if (showButtons) {
-        if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
-          photobutton =
-            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={chosenImageText}
-                                                            onPress={() => this._launchCameraRollAsync(i)}/></View>;
-          camerabutton =
-            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={takenImageText}
-                                                            onPress={() => this._launchCameraAsync(i)}/></View>;
-        }
-        if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
-          docbutton =
-            <View style={styles.mediaButtonWrapper}><Button style={styles.mediaButton} title={chosenDocumentText}
-                                                            onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/></View>;
-        }
-
-      } else if (!this.state.permission) {
-        permissionText = <Text>To upload media, please give this app permission to access photos/camera in your device's
-          settings.</Text>
-      }
-
-
-      let doctext = null;
-      if (this.state[i] && this.state[i].chosenDocument) {
-        doctext = <Text
-          style={{
-            height: 50,
-            width: 200,
-            textAlign: "center"
-          }}>
-          {this.state[i].chosenDocument.name}
-        </Text>
-      }
-
-
-      let image;
-      if (this.state[i] && this.state[i].chosenImage) {
-
-        let imgSrc;
-        if (this.state[i].thumbnailUri) {
-          imgSrc = {uri: this.state[i].thumbnailUri}
-        } else if (this.state[i].chosenImage.url) {
-          imgSrc = {uri: this.state[i].chosenImage.url}
-        }
-        image = <Image
-          source={imgSrc}
-          style={{
-            height: 200,
-            width: 200
-          }}/>;
-      } else if (this.state[i] && this.state[i].youtube) {
-
-        // Using WebView to avoid getting an Api Key for YouTube element
-        image = <WebView
-          style={{
-            height: 200,
-            width: 200
-          }}
-          javaScriptEnabled={true}
-          source={{uri: this.state[i].youtube.url}}
-        />
-      }
-
-
-      let takenImage = null;
-      if (this.state[i] && this.state[i].takenImage) {
-        takenImage = <Image
-          source={{uri: this.state[i].takenImage.uri}}
-          style={{
-            height: 200,
-            width: 200
-          }}/>
-      }
-
-      let removefile = null;
-      if (showRemoveFile) {
-        removefile = <Button color="red" title={removeFileText} onPress={() => this.removeFile(i)}/>;
-      }
-
-      let element = <View style={styles.element}
-                          key={i}>{doctext}{line}{image}{camerabutton}{photobutton}{takenImage}{docbutton}{removefile}{permissionText}</View>;
-      elements.push(element);
-
-    }
-
-
-    let addMoreButton;
-    let addMoreText = 'Add Another'; // Default in case it's not passed in props
-    if (this.props.addMoreText) {
-      addMoreText = this.props.addMoreText;
-    }
-    // Check for cardinality
-    if (this.props.cardinality === '-1' && this.state.permission) {
-      addMoreButton =
-        <View style={styles.addMoreButtonWrapper}>
-          <Button
-            title={addMoreText}
-            onPress={this.addItem.bind(this)}
-          />
-        </View>
-    }
-
-
-    return (
-      <View>
-        <Text style={styles.titleTextStyle}>Media Assets</Text>
-        <Required required={this.props.required}/>
-        <View style={styles.container}>
-          {elements}
-        </View>
-        {addMoreButton}
-      </View>
-
-    );
+      </View>);
   }
 
 }
@@ -817,13 +568,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     borderBottomWidth: 2,
     borderBottomColor: '#fff'
-  },
-  paragraph: {
-    margin: 24,
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#34495e',
   },
   mediaButtonWrapper: {
     marginBottom: 10,

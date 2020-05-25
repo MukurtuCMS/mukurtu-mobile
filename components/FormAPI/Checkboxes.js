@@ -68,7 +68,8 @@ export default class Checkboxes extends React.Component {
     let checkboxes = [];
     for (const [value, label] of Object.entries(field['#options'])) {
       const isChecked = this.determineCheckboxValue(this.props.fieldName, value, valueKey);
-      checkboxes.push(<CheckBox
+      checkboxes.push(
+        <CheckBox
           key={value}
           title={label}
           containerStyle={checkboxStyle}

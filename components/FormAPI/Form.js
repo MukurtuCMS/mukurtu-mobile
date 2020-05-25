@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Dimensions, StyleSheet, ActivityIndicator} from 'react-native';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
 import Textfield from './Textfield';
 import Textarea from './Textarea';
 import Radios from './Radios';
@@ -12,12 +12,7 @@ import Select2 from './Select2';
 import Paragraph from './Paragraph';
 import ConditionalSelect from './ConditionalSelect';
 import Location from './Location';
-import JSONTree from "react-native-json-tree";
 import {ButtonGroup, Button, Text, Overlay} from "react-native-elements";
-import axios from "axios";
-import * as SQLite from 'expo-sqlite';
-import * as Sync from "../MukurtuSync"
-import * as FileSystem from 'expo-file-system';
 import FieldCollectionForm from "./FieldCollectionForm";
 import Colors from "../../constants/Colors";
 import {sanitizeFormValues} from './formUtils';
@@ -161,7 +156,7 @@ export default class FormComponent extends React.Component {
 
       // Default set to null. This format needed for Drupal to work.
       let newFieldValue = {
-          "und": null
+        "und": null
       };
 
       // React uses true/false, but drupal needs 1/0 for booleans.
@@ -178,11 +173,11 @@ export default class FormComponent extends React.Component {
       //   }
 
 
-        // [newFieldName]: {
-        //   "und": {
-        //     "0": {[valueKey]: newValue}
-        //   }
-        // }
+      // [newFieldName]: {
+      //   "und": {
+      //     "0": {[valueKey]: newValue}
+      //   }
+      // }
       // };
       // Object.assign(formValues, values);
 
@@ -1377,9 +1372,6 @@ export default class FormComponent extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   button: {
     zIndex: -1
   },

@@ -1,21 +1,13 @@
 import React from 'react';
 import {
-  Image,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
-  Alert,
-  Button,
-  Linking, NetInfo, Picker, TouchableHighlight
 } from 'react-native';
-import RNPickerSelect, {defaultStyles} from 'react-native-picker-select';
-import {WebBrowser} from 'expo';
+import RNPickerSelect from 'react-native-picker-select';
 import {FontAwesome} from '@expo/vector-icons';
-import * as SQLite from 'expo-sqlite';
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import * as Colors from "../constants/Colors"
 import {Ionicons} from '@expo/vector-icons';
@@ -88,11 +80,6 @@ export default class HomeScreen extends React.Component {
         'filteredNodes': filteredNodes
       })
     }
-  }
-
-
-  componentWillUnmount() {
-    // NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
 
 
@@ -311,9 +298,9 @@ export default class HomeScreen extends React.Component {
       let options = [];
       for (let tid in this.state.categoriesList) {
         options.push({
-            label: this.state.categoriesList[tid],
-            value: tid
-          }
+          label: this.state.categoriesList[tid],
+          value: tid
+        }
         );
       }
       categoriesList.push(
@@ -343,9 +330,9 @@ export default class HomeScreen extends React.Component {
       let options = [];
       for (let tid in this.state.keywordsList) {
         options.push({
-            label: this.state.keywordsList[tid],
-            value: tid
-          }
+          label: this.state.keywordsList[tid],
+          value: tid
+        }
         );
       }
       keywordsList.push(
@@ -375,9 +362,9 @@ export default class HomeScreen extends React.Component {
       let options = [];
       for (let nid in this.state.communityList) {
         options.push({
-            label: this.state.communityList[nid],
-            value: nid
-          }
+          label: this.state.communityList[nid],
+          value: nid
+        }
         );
       }
       communityList.push(
@@ -407,9 +394,9 @@ export default class HomeScreen extends React.Component {
       let options = [];
       for (let nid in this.state.collectionList) {
         options.push({
-            label: this.state.collectionList[nid],
-            value: nid
-          }
+          label: this.state.collectionList[nid],
+          value: nid
+        }
         );
       }
       collectionList.push(
@@ -482,141 +469,12 @@ export default class HomeScreen extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  listTextHeader: {
-    fontSize: 24,
-    flex: 1
-  },
-  listTextBody: {
-    width: '100%'
-  },
-  listWrapper: {
-    textAlign: 'left',
-    width: '100%',
-    flexDirection: 'row',
-    flexWrap: 'wrap'
-  },
-  star: {
-    color: '#e0e0e0',
-    width: 50,
-    paddingLeft: 10
-  },
-  header: {
-    height: 50,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    paddingTop: 7,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-    borderBottomWidth: 1
-  },
-  headerButton: {
-    marginTop: 5,
-  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 15
-  },
-  developmentModeText: {
-    marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
-    fontSize: 14,
-    lineHeight: 19,
-    textAlign: 'center',
-  },
-  contentContainer: {
-    paddingTop: 30,
-  },
-  welcomeContainer: {
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  welcomeImage: {
-    width: 100,
-    height: 80,
-    resizeMode: 'contain',
-    marginTop: 3,
-    marginLeft: -10,
-  },
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
-    marginTop: 20
-  },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: {height: -3},
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
-  },
-  picker: {
-    width: '100%',
-    backgroundColor: Colors.default.primary,
-    borderColor: 'black',
-    borderWidth: 1,
-    color: '#FFF',
-    height: 24
-  },
-  pickerItem: {},
-  pickerView: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    backgroundColor: Colors.default.primary,
-    paddingVertical: 10,
-    position: 'relative',
-    marginBottom: 10
   },
   pickerIcon: {
     color: Colors.default.tabIconDefault,
@@ -631,14 +489,6 @@ const styles = StyleSheet.create({
     top: 6,
     width: 40,
     opacity: .5
-  },
-  textInput: {
-    backgroundColor: Colors.default.lightGray,
-    height: 45,
-    marginBottom: 10,
-    marginTop: 10,
-    paddingLeft: 10,
-    paddingRight: 10
   },
   searchInputContainer: {
     height: 60,
@@ -660,6 +510,7 @@ const styles = StyleSheet.create({
   },
 });
 
+/* eslint-disable react-native/no-unused-styles */
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     fontSize: 16,
