@@ -1098,12 +1098,25 @@ export default class App extends React.Component {
       },
       () => {
         // Push any nodes we've saved offline
-        this.pushSavedOffline()
-          .then(() => {
-            console.log('finished pushing');
-            this.newSyncEverything()
-          })
+        try {
+          this.pushSavedOffline()
+            .then(() => {
+              console.log('finished pushing');
+              this.newSyncEverything()
+            })
+        }
+        catch(error) {
+          console.log(error);
+          this.resetSyncMessage();
+        }
+      });
+  }
 
+  resetSyncMessage() {
+    this.setState(
+      {
+        'refreshing': false,
+        'nodeSyncMessages': {}
       });
   }
 
@@ -1341,7 +1354,7 @@ export default class App extends React.Component {
       this.state.db.transaction(tx => {
         tx.executeSql('select * from saved_offline',
           [],
-          (success, array) => {
+          (_, array) => {
             console.log('pushing saved nodes');
             if (array.rows._array.length === 0) {
               resolve();
@@ -1465,9 +1478,9 @@ export default class App extends React.Component {
             Promise.all(promises).then(res => resolve());
 
           },
-          (success, error) => {
+          (_, error) => {
             console.log(error);
-            resolve();
+            reject();
           }
         );
       });
@@ -1777,6 +1790,11 @@ export default class App extends React.Component {
       })
       .catch((error) => {
         console.log(error);
+        this.setState({
+          'syncing': false,
+          'refreshing': false,
+          'syncText': ''
+        })
       });
 
   }
