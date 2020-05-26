@@ -54,19 +54,25 @@ class NodeScreen extends React.Component {
   constructor(props) {
     super(props);
     // Pass props down from App.js, since we're not using Redux
-    const {navigation, screenProps} = this.props;
-    const siteUrl = screenProps.siteUrl;
     this.state = {
-      url: siteUrl,
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
       displayModes: false,
-      terms: this.props.screenProps.terms,
-      nodes: null,
-      thisNode: null
+      thisNode: null,
+      personalCollectionValid: false
     }
   }
 
   componentDidMount() {
+    this.loadNode();
+  }
+
+  componentDidUpdate(prevProps) {
+    const {refreshing} = this.props.screenProps;
+    if (prevProps.screenProps.refreshing && !refreshing) {
+      this.loadNode();
+    }
+  }
+
+  loadNode = () => {
     const {navigation, screenProps} = this.props;
     const type = navigation.getParam('contentType');
     const node = navigation.getParam('node');
@@ -79,61 +85,40 @@ class NodeScreen extends React.Component {
       });
     }
 
-
-
-
     this.props.screenProps.db.transaction(tx => {
       tx.executeSql('select * from nodes WHERE nid = ?', [node.nid],
         (success, array) => {
           const entity = _.get(array, ['rows', '_array', 0], null);
           if (entity != null) {
-            this.setState({thisNode: JSON.parse(entity.entity)})
+            const thisNode = JSON.parse(entity.entity);
+
+            // Filter display modes by weight
+            const displayModes = this.props.screenProps.displayModes[type];
+
+            let displayModesArray = Object.keys(displayModes).map(function (key) {
+              return [key, displayModes[key]];
+            });
+            displayModesArray.sort((a, b) => {
+              return a['weight'] - b['weight'];
+            });
+
+            let personalCollectionValid = false;
+            if (typeof this.props.screenProps.viewableTypes[type] !== 'undefined' && this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
+              personalCollectionValid = true;
+            }
+
+            this.setState({
+              'thisNode': thisNode,
+              'displayModes': displayModesArray,
+              'personalCollectionValid': personalCollectionValid
+            })
           }
         }
       )
     });
-
-    // Filter display modes by weight
-    let displayModes = this.props.screenProps.displayModes[type];
-    // let filteredDisplayModes = [];
-    //
-    // for (let key in displayModes) {
-    //   if (displayModes.hasOwnProperty(key)) {
-    //     filteredDisplayModes.push({[key]: displayModes[key]})
-    //   }
-    // }
-
-    let displayModesArray = Object.keys(displayModes).map(function (key) {
-      return [key, displayModes[key]];
-    });
-
-    displayModesArray.sort((a, b) => {
-      return a['weight'] - b['weight'];
-    });
-
-
-    // filteredDisplayModes = {...filteredDisplayModes};
-
-    this.setState({displayModes: displayModesArray});
-
-
-    let filteredNodes = {};
-    for (let nid in this.props.screenProps.nodes) {
-      if (this.props.screenProps.nodes[nid].type === type) {
-        filteredNodes[nid] = this.props.screenProps.nodes[nid];
-      }
-    }
-    this.setState({'nodes': filteredNodes});
-
-    if (typeof this.props.screenProps.viewableTypes[type] !== 'undefined' && this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
-      this.setState({'personalCollectionValid': true});
-    }
-
-
   }
 
   render() {
-
     const emptyView = (
       <View style={{flex: 1}}>
         <ScrollView style={styles.container}>
@@ -174,7 +159,7 @@ class NodeScreen extends React.Component {
 
     const relatedContent = _.get(node, ['field_related_content', 'und'], []);
 
-    this.state.displayModes.forEach((elem) => {
+    this.state.displayModes.forEach((elem, index) => {
       let fieldName = elem[0];
       let fieldObject = elem[1];
 
@@ -237,8 +222,9 @@ class NodeScreen extends React.Component {
             errorMessage =
               <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
                 item to Mukurtu Mobile.</Text>
-          } else if (typeof node[fieldName][lang] !== 'undefined') {
-            for (var i = 0; i < node[fieldName][lang].length; i++) {
+          }
+          else if (typeof node[fieldName][lang] !== 'undefined') {
+            for (let i = 0; i < node[fieldName][lang].length; i++) {
               let tid = node[fieldName][lang][i].tid;
               if (!tid || tid === undefined) {
                 errorMessage =
@@ -272,7 +258,7 @@ class NodeScreen extends React.Component {
             }
           }
 
-          renderedNode.push(<Text key={`${fieldName}_term_ref_${i}`} style={styles.text}>{fieldData}</Text>)
+          renderedNode.push(<Text key={`${fieldName}_term_ref_${index}`} style={styles.text}>{fieldData}</Text>)
         }
       }
 
@@ -280,7 +266,7 @@ class NodeScreen extends React.Component {
         let tagsStyles = {p: {marginTop: 0}};
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          for (var i = 0; i < node[fieldName][lang].length; i++) {
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<HTML
               tagsStyles={tagsStyles} key={`${fieldName}_html_${i}`}
               html={node[fieldName][lang][i].safe_value}
@@ -292,7 +278,7 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'license_formatter') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          for (var i = 0; i < node[fieldName][lang].length; i++) {
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<Text key={`${fieldName}_license_${i}`}>{node[fieldName][lang][0].value}</Text>)
           }
         }
@@ -301,7 +287,7 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'geofield_map_map') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          for (var i = 0; i < node[fieldName][lang].length; i++) {
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
             if (node[fieldName][lang][i].lat.length > 0) {
               const latLng = {
                 latitude: Number(node[fieldName][lang][i].lat),
@@ -356,7 +342,7 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'entityreference_entity_view') {
 
         let items = node[fieldName][lang];
-        for (i = 0; i < items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
           let nid = items[i].target_id;
           renderedNode.push(
             <EmbeddedNode
@@ -409,7 +395,7 @@ class NodeScreen extends React.Component {
         let uniqueItems = items.filter(item => keeperRevisionIds.includes(item.revision_id));
 
 
-        for (i = 0; i < uniqueItems.length; i++) {
+        for (let i = 0; i < uniqueItems.length; i++) {
           let pid = uniqueItems[i].value;
           renderedNode.push(
             <ParagraphView
@@ -456,7 +442,6 @@ class NodeScreen extends React.Component {
         fieldObject.view_mode_properties.type === 'entityreference_label') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          let fieldData = '';
           let errorMessage = '';
           let oneExists = false;
           if (!this.props.screenProps.nodes) {
@@ -468,7 +453,7 @@ class NodeScreen extends React.Component {
               <Text key={`${fieldName}_notice`}>Collection only displays synced content; unsynced content will not be display in collection even if they are
                 in the collection on the desktop site.</Text>
             );
-            for (i = 0; i < node[fieldName][lang].length; i++) {
+            for (let i = 0; i < node[fieldName][lang].length; i++) {
               let nid = node[fieldName][lang][i].nid;
               if (fieldObject.view_mode_properties.type === 'entityreference_label') {
                 nid = node[fieldName][lang][i].target_id;
@@ -515,7 +500,7 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'partial_date_default') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          for (i = 0; i < node[fieldName][lang].length; i++) {
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<Text
               key={`${fieldName}_date_${i}`}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
           }
@@ -547,7 +532,7 @@ class NodeScreen extends React.Component {
 
       if(fieldObject.view_mode_properties.type === 'field_collection_view') {
         if (node[fieldName] != null && node[fieldName][lang]) {
-          for (var i = 0; i < node[fieldName][lang].length; i++) {
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(
               <FieldCollection
                 key={`${fieldName}_fc_${i}`}
@@ -584,7 +569,7 @@ class NodeScreen extends React.Component {
       <View style={{flex: 1}}>
         <UnlockOrientation />
         <ScrollView style={styles.container}>
-          <Text>{this.state.media_text}</Text>
+          {/*<Text>{this.state.media_text}</Text>*/}
           {star}
           {renderedNode}
 
