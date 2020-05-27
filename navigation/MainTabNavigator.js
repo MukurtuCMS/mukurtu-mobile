@@ -15,6 +15,7 @@ import OfflineScreen from '../screens/OfflineScreen';
 import WebviewScreen from "../screens/WebviewScreen";
 import NodeScreen from "../screens/NodeScreen";
 import NodeListing from "../screens/NodeListingScreen";
+import CategoryScreen from "../screens/CategoryScreen";
 import Colors from "../constants/Colors";
 
 const defaultScreenOptions = {
@@ -29,8 +30,14 @@ const defaultScreenOptions = {
 const HomeStack = createStackNavigator(
   {
     Home: {screen: HomeScreen},
-    Node: {screen: NodeScreen},
     NodeListing: {screen: NodeListing},
+    Node: {screen: NodeScreen},
+    Category: {
+      screen: CategoryScreen,
+      navigationOptions: ({navigation}) => ({
+        title: navigation.state.params.name
+      })
+    },
     EditContentForm: {screen: CreateContentFormScreen}
   },
   {

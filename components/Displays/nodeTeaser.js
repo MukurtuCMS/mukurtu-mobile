@@ -164,6 +164,7 @@ export default class NodeTeaser extends React.Component {
 
     return <View style={styles.nodeWrapper}>
       <View style={styles.nodeInnerWrapper}>
+        {this.props.showType && <Text style={styles.contentType}>{this.props.editableContentTypes[node.type].label}</Text>}
         <TouchableHighlight style={styles.touchable}  onPress={() => this.viewNode()}>
           <Text style={styles.nodeTitle}>{node.title}</Text>
         </TouchableHighlight>
@@ -210,6 +211,10 @@ const styles = StyleSheet.create({
   view: {
     width: '100%',
     marginBottom: 15,
+  },
+  contentType: {
+    textTransform: 'uppercase',
+    fontSize: 12
   },
   touchable: {
 

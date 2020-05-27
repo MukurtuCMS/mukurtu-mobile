@@ -4,7 +4,7 @@ import {
   Text,
   View,
   ScrollView,
-  Dimensions,
+  Dimensions, TouchableHighlight, TouchableOpacity,
 } from 'react-native';
 import {Feather} from '@expo/vector-icons';
 import * as SQLite from 'expo-sqlite';
@@ -21,6 +21,7 @@ import {FieldCollection} from "../components/FieldCollection";
 import _ from 'lodash';
 import {NavigationActions} from "react-navigation";
 import UnlockOrientation from "../components/UnlockOrientation";
+import Colors from "../constants/Colors";
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
@@ -116,6 +117,21 @@ class NodeScreen extends React.Component {
         }
       )
     });
+  }
+
+  showCategory = (field, tid) => {
+    console.log('IN HERE')
+    const navigateAction = NavigationActions.navigate({
+      routeName: 'Category',
+      params: {
+        tid: tid,
+        field: field,
+        type: this.state.thisNode.type,
+        exclude: [this.state.thisNode.nid],
+      },
+      key: `term-${tid}`
+    });
+    this.props.navigation.dispatch(navigateAction);
   }
 
   render() {
@@ -215,7 +231,7 @@ class NodeScreen extends React.Component {
         fieldObject.view_mode_properties.type === 'textformatter_list') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          let fieldData = '';
+          let fieldData = [];
           let errorMessage = '';
           let oneExists = false;
           if (!this.props.screenProps.terms) {
@@ -232,11 +248,15 @@ class NodeScreen extends React.Component {
                     item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
-                if (i > 0) {
-                  fieldData += ', ';
-                }
+                // if (i > 0) {
+                //   fieldData.push() += ', ';
+                // }
                 if (typeof this.props.screenProps.terms[tid] !== 'undefined') {
-                  fieldData += this.props.screenProps.terms[tid].name;
+                  // fieldData += this.props.screenProps.terms[tid].name;
+                  fieldData.push(
+                    <TouchableOpacity key={tid} onPress={() => this.showCategory(fieldName, tid)}>
+                      <Text style={styles.termLink}>{this.props.screenProps.terms[tid].name}</Text>
+                    </TouchableOpacity>);
                 } else {
                   // This is a catch in case the term isn't synced.
                   // let term = <Term
@@ -258,7 +278,7 @@ class NodeScreen extends React.Component {
             }
           }
 
-          renderedNode.push(<Text key={`${fieldName}_term_ref_${index}`} style={styles.text}>{fieldData}</Text>)
+          renderedNode.push(<View key={`${fieldName}_term_ref_${index}`} style={styles.text}>{fieldData}</View>)
         }
       }
 
@@ -579,32 +599,34 @@ class NodeScreen extends React.Component {
   }
 }
 
-const
-  styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#DCDCDC',
-      padding: 10,
-    },
-    label: {
-      marginTop: 10,
-      marginBottom: 5,
-      color: '#000',
-      fontSize: 24
-    },
-    text: {
-      marginBottom: 10,
-      color: '#000',
-      fontSize: 16
-    },
-    map: {
-      width: Dimensions.get('window').width - 20,
-      height: 300,
-      marginBottom: 10
-    },
-    syncError: {
-      fontSize: 12
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#dcdcdc',
+    padding: 10,
+  },
+  label: {
+    marginTop: 10,
+    marginBottom: 5,
+    color: '#000',
+    fontSize: 24
+  },
+  text: {
+    marginBottom: 10,
+    color: '#000',
+    fontSize: 16
+  },
+  map: {
+    width: Dimensions.get('window').width - 20,
+    height: 300,
+    marginBottom: 10
+  },
+  syncError: {
+    fontSize: 12
+  },
+  termLink: {
+    color: Colors.primary
+  }
+});
 
 export default NodeScreen;
