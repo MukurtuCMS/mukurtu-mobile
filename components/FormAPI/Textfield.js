@@ -145,17 +145,17 @@ export default class Textfield extends React.Component {
       }
 
       return (
-          <TextInput
-              key={i}
-              index={i}
-              style={textfieldStyle}
-              onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, this.props.index, i)}
-              value={value}
-              defaultValue={defaultValue}
-              maxLength={field['#maxlength']}
-              onBlur={ () => this.onBlur() }
-              onFocus={ () => this.onFocus() }
-          />);
+        <TextInput
+          key={i}
+          index={i}
+          style={textfieldStyle}
+          onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, this.props.index, i)}
+          value={value}
+          defaultValue={defaultValue}
+          maxLength={field['#maxlength']}
+          onBlur={() => this.onBlur()}
+          onFocus={() => this.onFocus()}
+        />);
 
     }, this);
 
@@ -166,8 +166,8 @@ export default class Textfield extends React.Component {
     }
     if (this.props.cardinality === -1) {
       addMoreButton = <Button
-          title={addMoreText}
-          onPress={this.addItem.bind(this)}
+        title={addMoreText}
+        onPress={this.addItem.bind(this)}
       />
     }
 

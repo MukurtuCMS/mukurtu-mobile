@@ -4,7 +4,6 @@ import {
   StatusBar,
   StyleSheet,
   View,
-  Text,
   YellowBox,
   ScrollView,
   RefreshControl,
@@ -136,12 +135,12 @@ export default class App extends React.Component {
     }
 
     // If we're syncing, run the ajax spinner
-    // But don't run the spinner if we're refreshing — just let the refresh graphic run
+    // But don't run the spinner if we're refreshing - just let the refresh
+    // graphic run
     if (this.state.syncing && !this.state.refreshing) {
       return (
         <AjaxSpinner
-          text={this.state.syncText}
-      />
+          text={this.state.syncText} />
       );
     }
 
@@ -174,7 +173,8 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2020-02-27_1800'
+      appVersion: '2020-02-27_1800',
+      refreshing: this.state.refreshing
     };
     // Not sure if this is necessary any longer, but leaving it just in case.
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
@@ -190,12 +190,11 @@ export default class App extends React.Component {
         <View style={styles.container}>
           <StatusBar barStyle="dark-content" />
           <ScrollView style={styles.container} contentContainerStyle={{flex: 1}}
-
-          refreshControl={<RefreshControl
-            refreshing={this.state.refreshing}
-            onRefresh={this._onRefresh}
-            title={this.state.syncText}
-          />}
+            refreshControl={<RefreshControl
+              refreshing={this.state.refreshing}
+              onRefresh={this._onRefresh}
+              title={this.state.syncText}
+            />}
           >
 
             <AppHeader
@@ -617,8 +616,7 @@ export default class App extends React.Component {
         );
 
 
-      })
-      ;
+      });
   }
 
   saveFieldCollection(fid, fieldName, contentType) {
@@ -653,8 +651,7 @@ export default class App extends React.Component {
         );
 
 
-      })
-      ;
+      });
   }
 
 
@@ -756,18 +753,18 @@ export default class App extends React.Component {
         //   .then(()=>{
         //     console.log('test');
         //     });
-          // the image is now dowloaded to device's storage
-          // .then(resp => {
-          //   // the image path you can use it directly with Image component
-          //   let imagePath = resp.path();
-          //   return resp.readFile("base64");
-          // })
-          // .then(base64Data => {
-          //   // here's base64 encoded image
-          //   console.log(base64Data);
-          //   // remove the file from storage
-          //   return fs.unlink(imagePath);
-          // }
+        // the image is now dowloaded to device's storage
+        // .then(resp => {
+        //   // the image path you can use it directly with Image component
+        //   let imagePath = resp.path();
+        //   return resp.readFile("base64");
+        // })
+        // .then(base64Data => {
+        //   // here's base64 encoded image
+        //   console.log(base64Data);
+        //   // remove the file from storage
+        //   return fs.unlink(imagePath);
+        // }
 
 
         // const test = await FileSystem.writeAsStringAsync(FileSystem.documentDirectory + atom.title, atom.file_url);
@@ -1080,9 +1077,7 @@ export default class App extends React.Component {
           'Sync Not Available Offline',
           'Please connect to the internet to sync new content.',
           [
-            {text: 'OK', onPress: () => {
-
-              }},
+            {text: 'OK', onPress: () => {}},
           ],
           {cancelable: false},
         );
@@ -1097,18 +1092,32 @@ export default class App extends React.Component {
       this.refreshAlert();
       return;
     }
-    this.setState({
+    this.setState(
+      {
         'refreshing': true,
         'nodeSyncMessages': {}
       },
       () => {
         // Push any nodes we've saved offline
-        this.pushSavedOffline()
-          .then(() => {
-            console.log('finished pushing');
-            this.newSyncEverything()
-          })
+        try {
+          this.pushSavedOffline()
+            .then(() => {
+              console.log('finished pushing');
+              this.newSyncEverything()
+            })
+        }
+        catch(error) {
+          console.log(error);
+          this.resetSyncMessage();
+        }
+      });
+  }
 
+  resetSyncMessage() {
+    this.setState(
+      {
+        'refreshing': false,
+        'nodeSyncMessages': {}
       });
   }
 
@@ -1223,7 +1232,7 @@ export default class App extends React.Component {
 
           // Save the blob again in case the file was uploaded, but the node fails
           await this.queryDB(
-          'replace into saved_offline (blob, id, saved) values (?, ?, 0)',
+            'replace into saved_offline (blob, id, saved) values (?, ?, 0)',
             [JSON.stringify(formData), offlineId])
             .then(() =>  console.log('Updated offline entry'))
             .catch((e) => console.log('Issue writing the DB', e));
@@ -1326,11 +1335,11 @@ export default class App extends React.Component {
   queryDB = (query, args) => {
     return new Promise((resolve, reject) => {
       this.state.db.transaction(tx => {
-       tx.executeSql(
-         query,
-         args,
-         (_, result) => resolve(result.rows._array),
-         (_, error) => reject(error)
+        tx.executeSql(
+          query,
+          args,
+          (_, result) => resolve(result.rows._array),
+          (_, error) => reject(error)
         );
       });
     });
@@ -1344,139 +1353,138 @@ export default class App extends React.Component {
         resolve();
       }
       this.state.db.transaction(tx => {
-          tx.executeSql('select * from saved_offline',
-            [],
-            (success, array) => {
-              console.log('pushing saved nodes');
-              if (array.rows._array.length === 0) {
-                resolve();
-              }
-              const promises = [];
-              for (let i = 0; i < array.rows._array.length; i++) {
-                console.log('iterating through');
-                let formValuesString = array.rows._array[i].blob;
-                let offlineId = array.rows._array[i].id;
-                promises.push(this.pushOfflineAtoms(JSON.parse(formValuesString), offlineId)
-                  .then((formValues) => {
-                    //  START
-                    let currentId = array.rows._array[i].id;
-
-                    // Largely copied from Form.js method for updating existing
-                    // nodes, but our state setting is different here
-                    const sanitizedValues = sanitizeFormValues(formValues, {formFields: this.state.formFields});
-                    if (formValues.nid) {
-                      console.log('here');
-                      const token = this.state.token;
-                      const cookie = this.state.cookie;
-                      const data = {
-                        method: 'PUT',
-                        mode: 'cors',
-                        cache: 'no-cache',
-                        headers: {
-                          'Accept': 'application/json',
-                          'Content-Type': 'application/json',
-                          'X-CSRF-Token': token,
-                          'Cookie': cookie
-                        },
-                        redirect: 'follow',
-                        referrer: 'no-referrer',
-                        body: JSON.stringify(sanitizedValues)
-                      };
-
-                      fetch(this.state.siteUrl + '/app/node/' + formValues.nid + '.json', data)
-                        .then((response) => response.json())
-                        .then((responseJson) => {
-
-                          if (typeof responseJson.form_errors === 'object') {
-                            let error = '';
-                            for (let key in responseJson.form_errors) {
-                              error = error + responseJson.form_errors[key] + ' ';
-                            }
-                            this.setNodeSyncMessage('error', currentId, error)
-                          }
-                          else {
-                            this.deleteFromQueue(currentId);
-                          }
-                          // resolve();
-                          return true;
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                          // resolve();
-                          return false;
-                        });
-                    }
-                    else {
-                      console.log('there');
-                      fetch(this.state.siteUrl + '/app/node.json', {
-                        method: 'POST',
-                        mode: 'cors',
-                        cache: 'no-cache',
-                        // credentials: 'same-origin',
-                        headers: {
-                          'Accept': 'application/json',
-                          'Content-Type': 'application/json',
-                          'X-CSRF-Token': this.state.token,
-                          'Cookie': this.state.cookie
-                        },
-                        redirect: 'follow',
-                        referrer: 'no-referrer',
-                        body: JSON.stringify(sanitizedValues),
-                      })
-                        .then((response) => {
-
-                          // Just skip the rest if we get a bad response
-                          if (response.ok === false) {
-                            this.setNodeSyncMessage('error', currentId, 'Node submission failed. Please try again.')
-                          }
-                          return response.json();
-                        })
-                        .then((responseJson) => {
-                          console.log('ok');
-
-                          if (responseJson.hasOwnProperty('nid')) {
-                            this.updateSyncedNids(responseJson.nid);
-                          }
-
-                          if (typeof responseJson.form_errors === 'object') {
-
-                            let error = '';
-                            for (let key in responseJson.form_errors) {
-                              error = error + responseJson.form_errors[key] + ' ';
-                            }
-                            this.setNodeSyncMessage('error', currentId, error)
-
-                          }
-                          else {
-                            this.deleteFromQueue(currentId);
-                          }
-
-                          // resolve();
-                          return true;
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                          // resolve();
-                          return false;
-                        });
-                    }
-
-                    //  FINISH
-                  })
-                );
-
-
-              }
-              Promise.all(promises).then(res => resolve());
-
-            },
-            (success, error) => {
-              console.log(error);
+        tx.executeSql('select * from saved_offline',
+          [],
+          (_, array) => {
+            console.log('pushing saved nodes');
+            if (array.rows._array.length === 0) {
               resolve();
             }
-          );
-        }
-      );
+            const promises = [];
+            for (let i = 0; i < array.rows._array.length; i++) {
+              console.log('iterating through');
+              let formValuesString = array.rows._array[i].blob;
+              let offlineId = array.rows._array[i].id;
+              promises.push(this.pushOfflineAtoms(JSON.parse(formValuesString), offlineId)
+                .then((formValues) => {
+                  //  START
+                  let currentId = array.rows._array[i].id;
+
+                  // Largely copied from Form.js method for updating existing
+                  // nodes, but our state setting is different here
+                  const sanitizedValues = sanitizeFormValues(formValues, {formFields: this.state.formFields});
+                  if (formValues.nid) {
+                    console.log('here');
+                    const token = this.state.token;
+                    const cookie = this.state.cookie;
+                    const data = {
+                      method: 'PUT',
+                      mode: 'cors',
+                      cache: 'no-cache',
+                      headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': token,
+                        'Cookie': cookie
+                      },
+                      redirect: 'follow',
+                      referrer: 'no-referrer',
+                      body: JSON.stringify(sanitizedValues)
+                    };
+
+                    fetch(this.state.siteUrl + '/app/node/' + formValues.nid + '.json', data)
+                      .then((response) => response.json())
+                      .then((responseJson) => {
+
+                        if (typeof responseJson.form_errors === 'object') {
+                          let error = '';
+                          for (let key in responseJson.form_errors) {
+                            error = error + responseJson.form_errors[key] + ' ';
+                          }
+                          this.setNodeSyncMessage('error', currentId, error)
+                        }
+                        else {
+                          this.deleteFromQueue(currentId);
+                        }
+                        // resolve();
+                        return true;
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        // resolve();
+                        return false;
+                      });
+                  }
+                  else {
+                    console.log('there');
+                    fetch(this.state.siteUrl + '/app/node.json', {
+                      method: 'POST',
+                      mode: 'cors',
+                      cache: 'no-cache',
+                      // credentials: 'same-origin',
+                      headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': this.state.token,
+                        'Cookie': this.state.cookie
+                      },
+                      redirect: 'follow',
+                      referrer: 'no-referrer',
+                      body: JSON.stringify(sanitizedValues),
+                    })
+                      .then((response) => {
+
+                        // Just skip the rest if we get a bad response
+                        if (response.ok === false) {
+                          this.setNodeSyncMessage('error', currentId, 'Node submission failed. Please try again.')
+                        }
+                        return response.json();
+                      })
+                      .then((responseJson) => {
+                        console.log('ok');
+
+                        if (responseJson.hasOwnProperty('nid')) {
+                          this.updateSyncedNids(responseJson.nid);
+                        }
+
+                        if (typeof responseJson.form_errors === 'object') {
+
+                          let error = '';
+                          for (let key in responseJson.form_errors) {
+                            error = error + responseJson.form_errors[key] + ' ';
+                          }
+                          this.setNodeSyncMessage('error', currentId, error)
+
+                        }
+                        else {
+                          this.deleteFromQueue(currentId);
+                        }
+
+                        // resolve();
+                        return true;
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        // resolve();
+                        return false;
+                      });
+                  }
+
+                  //  FINISH
+                })
+              );
+
+
+            }
+            Promise.all(promises).then(res => resolve());
+
+          },
+          (_, error) => {
+            console.log(error);
+            reject();
+          }
+        );
+      });
 
 
     });
@@ -1484,56 +1492,6 @@ export default class App extends React.Component {
 
   }
 
-
-  /**
-   * Largely copied from Form.js postData method, but how we handle state is a
-   * bit different so we're going to live with the duplication for now.
-   * @param url
-   * @param data
-   * @param method
-   */
-  postData(url = '', data = {}, method = 'POST') {
-    fetch(url, {
-      method: method,
-      mode: 'cors',
-      cache: 'no-cache',
-      // credentials: 'same-origin',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': this.state.token,
-        'Cookie': this.state.cookie
-      },
-      redirect: 'follow',
-      referrer: 'no-referrer',
-      body: JSON.stringify(data),
-    })
-      .then((response) => response.json())
-      .then((responseJson) => {
-
-        if (responseJson.hasOwnProperty('nid')) {
-          this.updateSyncedNids(responseJson.nid);
-        }
-
-        if (typeof responseJson.form_errors === 'object') {
-          // this.setState({formErrors: responseJson.form_errors, submitting: false})
-        } else {
-          // this.setState({
-          //   formSubmitted: true,
-          //   submitting: false
-          // });
-          // // Submit this nid to synced entities
-          //
-          // if (responseJson.hasOwnProperty('nid')) {
-          //   this.updateSyncedNids(responseJson.nid);
-          // }
-
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }
 
   updateSyncedNids(nid) {
 
@@ -1602,9 +1560,8 @@ export default class App extends React.Component {
 
 
           subPromises.push(Object.keys(nodes).map((key, index) => {
-              this.saveNode(key, data);
-            }
-          ));
+            this.saveNode(key, data);
+          }));
         }
 
 
@@ -1834,6 +1791,11 @@ export default class App extends React.Component {
       })
       .catch((error) => {
         console.log(error);
+        this.setState({
+          'syncing': false,
+          'refreshing': false,
+          'syncText': ''
+        })
       });
 
   }
@@ -1986,68 +1948,6 @@ export default class App extends React.Component {
 
   }
 
-
-  checkLoginOld() {
-
-    // First, get our global db info
-    // tx.executeSql('replace into database (siteUrl, databaseName) values (?, ?)',
-
-
-    globalDB.transaction(
-      tx => {
-        tx.executeSql('select * from database;',
-          '',
-          (success, array) => {
-            console.log('database selected');
-
-          }
-        );
-      }
-    );
-
-    // Save cookie and token so we can use them to check login status
-    this.setState({
-      cookie: cookie,
-      token: token
-    });
-
-    let data = {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
-        'Cookie': cookie,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': 0
-      }
-    };
-
-    data.url = this.state.siteUrl + '/app/system/connect';
-    axios(data)
-      .then((response) => {
-        return response.data;
-      })
-      .then((responseJson) => {
-        // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
-        try {
-          // If this uid is not 0, the user is currently authenticated
-          if (responseJson.user.uid !== 0) {
-            this.setState({loggedIn: true, isLoggedIn: true});
-            return;
-          }
-        } catch (e) {
-          this.setState({loggedIn: false});
-        }
-      })
-      .catch((error) => {
-        this.setState({loggedIn: false});
-      });
-
-  }
-
-
 }
 
 const
@@ -2055,10 +1955,6 @@ const
     container: {
       flex: 1,
       backgroundColor: '#fff',
-    },
-    scrollview: {
-      flex: 1,
-      backgroundColor: '#000',
     },
     appnavigator: {
       height: '500',

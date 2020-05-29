@@ -4,9 +4,9 @@ import {
   Text,
   View,
   ScrollView,
-  Dimensions, Image
+  Dimensions, TouchableHighlight, TouchableOpacity,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import {Feather} from '@expo/vector-icons';
 import * as SQLite from 'expo-sqlite';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
@@ -14,118 +14,127 @@ import HTML from 'react-native-render-html';
 import {Star} from "../components/Star";
 import {ScaldItem} from "../components/ScaldItem";
 import {ParagraphView} from "../components/ParagraphView";
-import {Term} from "../components/Term";
-import axios from "axios";
-import * as Colors from "../constants/Colors";
 import {EmbeddedNode} from "../components/EmbeddedNode";
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import {ScaldSwipe} from '../components/ScaldSwipe';
 import {FieldCollection} from "../components/FieldCollection";
 import _ from 'lodash';
-
-
-// create a global db for database list and last known user
-const globalDB = SQLite.openDatabase('global-8');
+import {NavigationActions} from "react-navigation";
+import UnlockOrientation from "../components/UnlockOrientation";
+import Colors from "../constants/Colors";
 
 class NodeScreen extends React.Component {
-  static navigationOptions = ({navigation}) => ({
-    title: `${navigation.getParam('node').title}`,
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
-  });
+  static navigationOptions = ({navigation}) => {
+    return {
+      title: `${navigation.getParam('node').title}`,
+      headerRight: () => {
+        const canEdit = navigation.getParam('canEdit');
+        if (canEdit !== undefined && canEdit) {
+          return (<Feather style={{marginRight: 10}} onPress={() => {
+            const navNode = navigation.getParam('node');
+            const navigateAction = NavigationActions.navigate({
+              routeName: 'EditContentForm',
+              params: {
+                contentType: navNode.type,
+                contentTypeLabel: navNode.title,
+                node: navNode,
+                editWord: 'Edit',
+              },
+              key: `node-edit-${navNode.nid}`
+            });
+            navigation.dispatch(navigateAction);
+          }} name="edit" size={24} color="#000"/>)
+        }
+        else {
+          return null;
+        }
+      }
+    }
+  };
 
   constructor(props) {
     super(props);
     // Pass props down from App.js, since we're not using Redux
-    const {navigation, screenProps} = this.props;
-    const siteUrl = screenProps.siteUrl;
     this.state = {
-      url: siteUrl,
-      db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null,
       displayModes: false,
-      terms: this.props.screenProps.terms,
-      nodes: null,
-      thisNode: null
+      thisNode: null,
+      personalCollectionValid: false
     }
   }
 
   componentDidMount() {
-    const type = this.props.navigation.getParam('contentType');
+    this.loadNode();
+  }
 
-    const node = this.props.navigation.getParam('node');
+  componentDidUpdate(prevProps) {
+    const {refreshing} = this.props.screenProps;
+    if (prevProps.screenProps.refreshing && !refreshing) {
+      this.loadNode();
+    }
+  }
+
+  loadNode = () => {
+    const {navigation, screenProps} = this.props;
+    const type = navigation.getParam('contentType');
+    const node = navigation.getParam('node');
+
+
+    const editableContentTypes = screenProps.contentTypes !== undefined ? Object.keys(screenProps.contentTypes) : [];
+    if(editableContentTypes.indexOf(node.type) > -1 && (screenProps.editable[node.nid] === true || screenProps.editable[node.nid] == '1')) {
+      navigation.setParams({
+        canEdit: true
+      });
+    }
+
     this.props.screenProps.db.transaction(tx => {
       tx.executeSql('select * from nodes WHERE nid = ?', [node.nid],
         (success, array) => {
           const entity = _.get(array, ['rows', '_array', 0], null);
           if (entity != null) {
-            this.setState({thisNode: JSON.parse(entity.entity)})
+            const thisNode = JSON.parse(entity.entity);
+
+            // Filter display modes by weight
+            const displayModes = this.props.screenProps.displayModes[type];
+
+            let displayModesArray = Object.keys(displayModes).map(function (key) {
+              return [key, displayModes[key]];
+            });
+            displayModesArray.sort((a, b) => {
+              return a['weight'] - b['weight'];
+            });
+
+            let personalCollectionValid = false;
+            if (typeof this.props.screenProps.viewableTypes[type] !== 'undefined' && this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
+              personalCollectionValid = true;
+            }
+
+            this.setState({
+              'thisNode': thisNode,
+              'displayModes': displayModesArray,
+              'personalCollectionValid': personalCollectionValid
+            })
           }
         }
       )
     });
+  }
 
-    // Filter display modes by weight
-    let displayModes = this.props.screenProps.displayModes[type];
-    // let filteredDisplayModes = [];
-    //
-    // for (let key in displayModes) {
-    //   if (displayModes.hasOwnProperty(key)) {
-    //     filteredDisplayModes.push({[key]: displayModes[key]})
-    //   }
-    // }
-
-    let displayModesArray = Object.keys(displayModes).map(function (key) {
-      return [key, displayModes[key]];
+  showCategory = (field, tid) => {
+    console.log('IN HERE')
+    const navigateAction = NavigationActions.navigate({
+      routeName: 'Category',
+      params: {
+        tid: tid,
+        field: field,
+        type: this.state.thisNode.type,
+        exclude: [this.state.thisNode.nid],
+      },
+      key: `term-${tid}`
     });
-
-    displayModesArray.sort((a, b) => {
-      return a['weight'] - b['weight'];
-    });
-
-
-    // filteredDisplayModes = {...filteredDisplayModes};
-
-    this.setState({displayModes: displayModesArray});
-
-
-    let filteredNodes = {};
-    for (let nid in this.props.screenProps.nodes) {
-      if (this.props.screenProps.nodes[nid].type === type) {
-        filteredNodes[nid] = this.props.screenProps.nodes[nid];
-      }
-    }
-    this.setState({'nodes': filteredNodes});
-
-    if (typeof this.props.screenProps.viewableTypes[type] !== 'undefined' && this.props.screenProps.viewableTypes[type]['valid type for personal collection'] === 1) {
-      this.setState({'personalCollectionValid': true});
-    }
-
-
+    this.props.navigation.dispatch(navigateAction);
   }
-
-  setTaxonomy = (array) => {
-    let termList = {};
-    for (var i = 0; i < array.length; i++) {
-      termList[array[i].tid] = JSON.parse(array[i].entity)
-    }
-    this.setState({terms: termList});
-  }
-
-
-  setNodes = (array) => {
-    let nodeList = {};
-    for (var i = 0; i < array.length; i++) {
-      nodeList[array[i].nid] = JSON.parse(array[i].entity)
-    }
-    this.setState({nodes: nodeList});
-  }
-
 
   render() {
-
     const emptyView = (
       <View style={{flex: 1}}>
         <ScrollView style={styles.container}>
@@ -166,7 +175,7 @@ class NodeScreen extends React.Component {
 
     const relatedContent = _.get(node, ['field_related_content', 'und'], []);
 
-    this.state.displayModes.forEach((elem) => {
+    this.state.displayModes.forEach((elem, index) => {
       let fieldName = elem[0];
       let fieldObject = elem[1];
 
@@ -222,15 +231,16 @@ class NodeScreen extends React.Component {
         fieldObject.view_mode_properties.type === 'textformatter_list') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          let fieldData = '';
+          let fieldData = [];
           let errorMessage = '';
           let oneExists = false;
           if (!this.props.screenProps.terms) {
             errorMessage =
               <Text style={styles.syncError}>In order to view the content in this field, in your browser sync this
                 item to Mukurtu Mobile.</Text>
-          } else if (typeof node[fieldName][lang] !== 'undefined') {
-            for (var i = 0; i < node[fieldName][lang].length; i++) {
+          }
+          else if (typeof node[fieldName][lang] !== 'undefined') {
+            for (let i = 0; i < node[fieldName][lang].length; i++) {
               let tid = node[fieldName][lang][i].tid;
               if (!tid || tid === undefined) {
                 errorMessage =
@@ -238,11 +248,15 @@ class NodeScreen extends React.Component {
                     item to Mukurtu Mobile.</Text>
               } else {
                 oneExists = true;
-                if (i > 0) {
-                  fieldData += ', ';
-                }
+                // if (i > 0) {
+                //   fieldData.push() += ', ';
+                // }
                 if (typeof this.props.screenProps.terms[tid] !== 'undefined') {
-                  fieldData += this.props.screenProps.terms[tid].name;
+                  // fieldData += this.props.screenProps.terms[tid].name;
+                  fieldData.push(
+                    <TouchableOpacity key={tid} onPress={() => this.showCategory(fieldName, tid)}>
+                      <Text style={styles.termLink}>{this.props.screenProps.terms[tid].name}</Text>
+                    </TouchableOpacity>);
                 } else {
                   // This is a catch in case the term isn't synced.
                   // let term = <Term
@@ -264,7 +278,7 @@ class NodeScreen extends React.Component {
             }
           }
 
-          renderedNode.push(<Text key={`${fieldName}_term_ref_${i}`} style={styles.text}>{fieldData}</Text>)
+          renderedNode.push(<View key={`${fieldName}_term_ref_${index}`} style={styles.text}>{fieldData}</View>)
         }
       }
 
@@ -272,10 +286,11 @@ class NodeScreen extends React.Component {
         let tagsStyles = {p: {marginTop: 0}};
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML tagsStyles={tagsStyles} key={`${fieldName}_html_${i}`}
-                                    html={node[fieldName][lang][i].safe_value}
-                                    imagesMaxWidth={Dimensions.get('window').width}/>)
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
+            renderedNode.push(<HTML
+              tagsStyles={tagsStyles} key={`${fieldName}_html_${i}`}
+              html={node[fieldName][lang][i].safe_value}
+              imagesMaxWidth={Dimensions.get('window').width}/>)
           }
         }
       }
@@ -283,7 +298,7 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'license_formatter') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          for (var i = 0; i < node[fieldName][lang].length; i++) {
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<Text key={`${fieldName}_license_${i}`}>{node[fieldName][lang][0].value}</Text>)
           }
         }
@@ -292,19 +307,20 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'geofield_map_map') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          for (var i = 0; i < node[fieldName][lang].length; i++) {
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
             if (node[fieldName][lang][i].lat.length > 0) {
               const latLng = {
                 latitude: Number(node[fieldName][lang][i].lat),
                 longitude: Number(node[fieldName][lang][i].lon),
               };
-              renderedNode.push(<MapView style={styles.map} key={`${fieldName}_geo_${i}`}
-                                         initialRegion={{
-                                           latitude: Number(node[fieldName][lang][i].lat),
-                                           longitude: Number(node[fieldName][lang][i].lon),
-                                           latitudeDelta: 0.0922,
-                                           longitudeDelta: 0.0421,
-                                         }}
+              renderedNode.push(<MapView
+                style={styles.map} key={`${fieldName}_geo_${i}`}
+                initialRegion={{
+                  latitude: Number(node[fieldName][lang][i].lat),
+                  longitude: Number(node[fieldName][lang][i].lon),
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
               >
                 <Marker
                   coordinate={latLng}
@@ -346,7 +362,7 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'entityreference_entity_view') {
 
         let items = node[fieldName][lang];
-        for (i = 0; i < items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
           let nid = items[i].target_id;
           renderedNode.push(
             <EmbeddedNode
@@ -371,15 +387,14 @@ class NodeScreen extends React.Component {
         // (I have a suspicion this could be simplified.)
         // first, create array of unique values
         let uniqueVals = items.map((item) => {
-            return item.value;
-          }
-        );
+          return item.value;
+        });
         uniqueVals = Array.from(new Set(uniqueVals));
 
         // Now, for each unique value, get the key of the highest revision ID
         let sortableArray = uniqueVals.map((val) => {
           return items.filter((item) => {
-              return item.value === val;
+            return item.value === val;
           })
         });
 
@@ -400,7 +415,7 @@ class NodeScreen extends React.Component {
         let uniqueItems = items.filter(item => keeperRevisionIds.includes(item.revision_id));
 
 
-        for (i = 0; i < uniqueItems.length; i++) {
+        for (let i = 0; i < uniqueItems.length; i++) {
           let pid = uniqueItems[i].value;
           renderedNode.push(
             <ParagraphView
@@ -447,7 +462,6 @@ class NodeScreen extends React.Component {
         fieldObject.view_mode_properties.type === 'entityreference_label') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          let fieldData = '';
           let errorMessage = '';
           let oneExists = false;
           if (!this.props.screenProps.nodes) {
@@ -456,10 +470,10 @@ class NodeScreen extends React.Component {
                 item to Mukurtu Mobile.</Text>
           } else {
             renderedNode.push(
-              <Text key={`${fieldName}_notice`}>Collection only displays synced nodes; unsynced nodes will not display in collection even if they're
+              <Text key={`${fieldName}_notice`}>Collection only displays synced content; unsynced content will not be display in collection even if they are
                 in the collection on the desktop site.</Text>
             );
-            for (i = 0; i < node[fieldName][lang].length; i++) {
+            for (let i = 0; i < node[fieldName][lang].length; i++) {
               let nid = node[fieldName][lang][i].nid;
               if (fieldObject.view_mode_properties.type === 'entityreference_label') {
                 nid = node[fieldName][lang][i].target_id;
@@ -506,7 +520,7 @@ class NodeScreen extends React.Component {
       if (fieldObject.view_mode_properties.type === 'partial_date_default') {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
-          for (i = 0; i < node[fieldName][lang].length; i++) {
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<Text
               key={`${fieldName}_date_${i}`}>{node[fieldName][lang][i].from.day}/{node[fieldName][lang][i].from.month}/{node[fieldName][lang][i].from.year}</Text>)
           }
@@ -538,7 +552,7 @@ class NodeScreen extends React.Component {
 
       if(fieldObject.view_mode_properties.type === 'field_collection_view') {
         if (node[fieldName] != null && node[fieldName][lang]) {
-          for (var i = 0; i < node[fieldName][lang].length; i++) {
+          for (let i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(
               <FieldCollection
                 key={`${fieldName}_fc_${i}`}
@@ -571,9 +585,11 @@ class NodeScreen extends React.Component {
     }
 
 
-    return renderedNode.length > 0 ? (<View style={{flex: 1}}>
+    return renderedNode.length > 0 ? (
+      <View style={{flex: 1}}>
+        <UnlockOrientation />
         <ScrollView style={styles.container}>
-          <Text>{this.state.media_text}</Text>
+          {/*<Text>{this.state.media_text}</Text>*/}
           {star}
           {renderedNode}
 
@@ -583,41 +599,34 @@ class NodeScreen extends React.Component {
   }
 }
 
-const
-  styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#DCDCDC',
-      padding: 10,
-    },
-    interior: {
-      flexDirection: 'column'
-    },
-    label: {
-      marginTop: 10,
-      marginBottom: 5,
-      color: '#000',
-      fontSize: 24
-    },
-    text: {
-      marginBottom: 10,
-      color: '#000',
-      fontSize: 16
-    },
-    map: {
-      width: Dimensions.get('window').width - 20,
-      height: 300,
-      marginBottom: 10
-    },
-    syncError: {
-      fontSize: 12
-    },
-    htmlField: {
-      marginTop: 0,
-      backgroundColor: '#fff'
-    },
-
-
-  });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#dcdcdc',
+    padding: 10,
+  },
+  label: {
+    marginTop: 10,
+    marginBottom: 5,
+    color: '#000',
+    fontSize: 24
+  },
+  text: {
+    marginBottom: 10,
+    color: '#000',
+    fontSize: 16
+  },
+  map: {
+    width: Dimensions.get('window').width - 20,
+    height: 300,
+    marginBottom: 10
+  },
+  syncError: {
+    fontSize: 12
+  },
+  termLink: {
+    color: Colors.primary
+  }
+});
 
 export default NodeScreen;

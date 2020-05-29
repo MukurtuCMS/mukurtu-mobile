@@ -1,7 +1,6 @@
 import React from 'react';
 import MapPicker from "react-native-map-picker";
 import {View, Text, Button} from "react-native";
-import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
 import FieldDescription from "./FieldDescription";
@@ -65,24 +64,26 @@ export default class LocationComponent extends React.Component {
       text = <Text>{this.state.errorMessage}</Text>;
     }
 
-      setMyLocationButton = <Button title="Set My Location" onPress={this._getLocationAsync} />
-      mapPicker = <MapPicker
-        initialCoordinate={{
-          latitude: (lat) ? lat : 37.09024,
-          longitude: (long) ? long : -95.712891,
-        }}
-        onLocationSelect={({latitude, longitude})=> this.props.setFormValue(this.props.fieldName, latitude, longitude)}
-        updateIndex={this.state.updateIndex}
-      />;
+    setMyLocationButton =
+      <Button title="Set My Location" onPress={this._getLocationAsync}/>
+    mapPicker = <MapPicker
+      initialCoordinate={{
+        latitude: (lat) ? lat : 37.09024,
+        longitude: (long) ? long : -95.712891,
+      }}
+      onLocationSelect={({latitude, longitude}) => this.props.setFormValue(this.props.fieldName, latitude, longitude)}
+      updateIndex={this.state.updateIndex}
+    />;
 
-    return(
-        <View style={{flex: 1/2, height: 800}}>
-          {text}
-          <FieldDescription description={(this.props.description) ? this.props.description : null} />
-          <Required required={this.props.required}/>
-          {setMyLocationButton}
-          {mapPicker}
-        </View>
+    return (
+      <View style={{flex: 1 / 2, height: 800}}>
+        {text}
+        <FieldDescription
+          description={(this.props.description) ? this.props.description : null}/>
+        <Required required={this.props.required}/>
+        {setMyLocationButton}
+        {mapPicker}
+      </View>
     );
   }
 }

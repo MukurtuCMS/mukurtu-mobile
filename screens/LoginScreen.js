@@ -1,38 +1,23 @@
 import React from 'react';
 import {
-  Image,
-  Platform,
-  ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   TextInput,
   TouchableHighlight,
-  Alert
 } from 'react-native';
 import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
 import {addUser} from '../actions/user';
-import {WebBrowser} from 'expo';
 import * as SQLite from 'expo-sqlite';
 import Validator from 'validator';
 import * as Colors from "../constants/Colors";
 import axios from "axios";
 import {PleaseLogin} from "../components/PleaseLogin";
-import resolveAssetSource from "expo-asset/build/resolveAssetSource.web";
 
 
 // create a global db for database list and last known user
 class LoginScreen extends React.Component {
-
-  static navigationOptions = {
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
-  };
 
   constructor(props) {
     super(props);
@@ -73,7 +58,7 @@ class LoginScreen extends React.Component {
 
           },
           (error) => {
-          console.log(error);
+            console.log(error);
           })
       });
 
@@ -258,12 +243,13 @@ class LoginScreen extends React.Component {
         </View>
         <View style={styles.inputContainer}>
           {showError}
-          <TextInput style={styles.inputs}
-                     placeholder="Username"
-                     underlineColorAndroid='transparent'
-                     placeholderTextColor="#464646"
-                     value={this.state.name}
-                     onChangeText={(name) => this.setState({name})}/>
+          <TextInput
+            style={styles.inputs}
+            placeholder="Username"
+            underlineColorAndroid='transparent'
+            placeholderTextColor="#464646"
+            value={this.state.name}
+            onChangeText={(name) => this.setState({name})}/>
         </View>
 
 
@@ -272,12 +258,13 @@ class LoginScreen extends React.Component {
         </View>
 
         <View style={styles.inputContainer}>
-          <TextInput style={styles.inputs}
-                     placeholder="Password"
-                     secureTextEntry={true}
-                     underlineColorAndroid='transparent'
-                     placeholderTextColor="#464646"
-                     onChangeText={(password) => this.setState({password})}/>
+          <TextInput
+            style={styles.inputs}
+            placeholder="Password"
+            secureTextEntry={true}
+            underlineColorAndroid='transparent'
+            placeholderTextColor="#464646"
+            onChangeText={(password) => this.setState({password})}/>
         </View>
 
         <View style={styles.errorTextStyle}>
@@ -287,25 +274,27 @@ class LoginScreen extends React.Component {
 
         <View style={styles.inputContainer}>
 
-          <TextInput style={styles.inputs}
-                     placeholder="Url"
-                     underlineColorAndroid='transparent'
-                     placeholderTextColor="#464646"
-                     value={this.state.url}
-                     onChangeText={
-                       (url) => {
-                         this.setState({url});
-                         this.setState({'urlInvalid': false})
-                       }
-                     }/>
+          <TextInput
+            style={styles.inputs}
+            placeholder="Url"
+            underlineColorAndroid='transparent'
+            placeholderTextColor="#464646"
+            value={this.state.url}
+            onChangeText={
+              (url) => {
+                this.setState({url});
+                this.setState({'urlInvalid': false})
+              }
+            }/>
         </View>
 
         <View style={styles.errorTextStyle}>
           <Text>{loginError}</Text>
         </View>
 
-        <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]}
-                            onPress={() => this.onClickListener('login')}>
+        <TouchableHighlight
+          style={[styles.buttonContainer, styles.loginButton]}
+          onPress={() => this.onClickListener('login')}>
           <Text style={styles.loginText}>Login</Text>
         </TouchableHighlight>
 
@@ -337,12 +326,6 @@ const styles = StyleSheet.create({
     marginLeft: 0,
     flex: 1,
   },
-  inputIcon: {
-    width: 30,
-    height: 30,
-    marginLeft: 15,
-    justifyContent: 'center'
-  },
   buttonContainer: {
     height: 48,
     flexDirection: 'row',
@@ -359,34 +342,10 @@ const styles = StyleSheet.create({
   loginText: {
     color: 'white',
   },
-  titleTextStyle: {
-    color: '#000',
-    fontSize: 20,
-    fontWeight: 'bold'
-  },
-  titleTextStyleError: {
-    color: Colors.default.errorBackground,
-    fontSize: 20,
-    fontWeight: 'bold'
-  },
   errorTextStyle: {
     color: '#000',
     marginBottom: 5,
     marginTop: 10
-  },
-  errorTextStyleError: {
-    color: Colors.default.errorBackground,
-    marginBottom: 10
-  },
-  textfieldStyle: {
-    height: 60,
-    borderWidth: 1,
-    borderColor: Colors.default.mediumGray,
-    borderRadius: 5,
-    backgroundColor: '#FFF',
-    marginBottom: 10,
-    padding: 8,
-    fontSize: 20
   },
 });
 

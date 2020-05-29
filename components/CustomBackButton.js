@@ -1,5 +1,5 @@
 import React from 'react';
-import {HeaderBackButton} from 'react-navigation';
+import {HeaderBackButton} from 'react-navigation-stack';
 
 /**
  * When editing a node from the node listing screen, we want the back button to go back to the node listing screen,

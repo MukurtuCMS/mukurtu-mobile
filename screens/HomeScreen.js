@@ -1,62 +1,26 @@
 import React from 'react';
-import ContentTypes from '../endpoints/ContentTypes';
 import {
-  AppRegistry,
-  ScrollView,
-  Component,
   StyleSheet,
-  Text,
   View,
-  Image,
-  Alert,
-  NetInfo
 } from 'react-native';
 import SettingsList from 'react-native-settings-list';
 import { connect } from 'react-redux';
 import { addPlace } from '../actions/place';
 import { addUser } from '../actions/user';
-import axios from "axios";
-import { WebBrowser} from 'expo';
 import * as SQLite from 'expo-sqlite';
-import * as Colors from "../constants/Colors";
 import {PleaseLogin} from "../components/PleaseLogin";
+import * as _ from 'lodash';
 
 class HomeScreen extends React.Component {
   static navigationOptions = {
-    title: 'View Content',
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
+    title: 'View Content'
   };
 
   constructor(props){
     super(props);
     const { navigation, screenProps } = this.props;
     this.onValueChange = this.onValueChange.bind(this);
-    this.componentActive = this.componentActive.bind(this);
     this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: '', isConnected: false, db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
-  }
-
-  componentDidMount(){
-    this.props.navigation.addListener('willFocus', this.componentActive);
-  //   NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
-  }
-
-
-
-  componentActive(){
-    // Immediately check if first time, and rout to login screen
-    // We're assuming that there are content types if they've logged in before
-    // if (!this.props.screenProps.authorized) {
-    //   this.props.navigation.navigate('Login');
-    // }
-
-  }
-
-  handleConnectivityChange = isConnected => {
-    this.setState({ isConnected });
   }
 
   render() {
@@ -65,18 +29,21 @@ class HomeScreen extends React.Component {
     let list = [];
     if(typeof this.props.screenProps.viewableTypes !== 'object' || Object.entries(this.props.screenProps.viewableTypes).length === 0 ) {
       return (
-      <PleaseLogin
-        loginText='Please Log In to Sync Content.'
-        navigation={this.props.navigation}
-      />
-    );
+        <PleaseLogin
+          loginText='Please Log In to Sync Content.'
+          navigation={this.props.navigation}
+        />
+      );
     }
     const contentTypes = this.props.screenProps.viewableTypes;
 
     // check that content types is not empty
     if (!(Object.entries(contentTypes).length === 0) && contentTypes.constructor === Object) {
       for (const [machineName, TypeObject] of Object.entries(contentTypes)) {
-        if(this.props.screenProps.viewableTypes[machineName] !== undefined) {
+        const localNodeExists = _.find(this.props.screenProps.nodes, (node) => {
+          return node.type === machineName;
+        });
+        if(localNodeExists !== undefined && this.props.screenProps.viewableTypes[machineName] !== undefined) {
           list.push(
             <SettingsList.Item
               key={machineName}
@@ -113,12 +80,6 @@ class HomeScreen extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  imageStyle:{
-    marginLeft:15,
-    alignSelf:'center',
-    height:30,
-    width:30
-  },
   titleInfoStyle:{
     fontSize:16,
     color: '#8e8e93',

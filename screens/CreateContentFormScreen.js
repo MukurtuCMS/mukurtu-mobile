@@ -1,45 +1,24 @@
 import React from 'react';
-import ContentTypes from '../endpoints/ContentTypes';
-import {
-  AppRegistry,
-  ScrollView,
-  Component,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  Alert,
-  TouchableHighlight,
-} from 'react-native';
-import SettingsList from 'react-native-settings-list';
+import {View} from 'react-native';
 import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
 import {addUser} from '../actions/user';
 import transform from 'tcomb-json-schema';
 import t from 'tcomb-form-native';
-import ImageFactory from 'react-native-image-picker-form';
 import DigitalHeritageForm from '../endpoints/DigitalHeritage';
 import {FileSystem} from 'expo';
 import * as SQLite from 'expo-sqlite';
 import FormComponent from '../components/FormAPI/Form';
 import weightSort from 'weight-sort';
-import * as Colors from "../constants/Colors";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { HeaderBackButton } from 'react-navigation';
 import CustomBackButton from "../components/CustomBackButton";
 
 class CreateContentFormScreen extends React.Component {
   static navigationOptions = ({navigation}) => (
     {
-    title: `${navigation.getParam('editWord')}` + ' ' + `${navigation.getParam('contentTypeLabel')}`,
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-      headerTintColor: '#000',
-    },
-    headerTintColor: '#000',
-    headerLeft: (<CustomBackButton navigation={navigation}/>)
-  });
+      title: `${navigation.getParam('editWord')}` + ' ' + `${navigation.getParam('contentTypeLabel')}`,
+      headerLeft: () => <CustomBackButton navigation={navigation}/>
+    });
 
   constructor(props) {
     super(props);
@@ -61,23 +40,10 @@ class CreateContentFormScreen extends React.Component {
     this.props.navigation.addListener('willFocus', this.componentActive)
   }
 
-
-
-
   componentActive = () => {
     let node = this.props.navigation.getParam('node');
     this.setState({'node': node});
   };
-
-
-  // customBackButton(props) {
-  //   return <HeaderBackButton
-  //     onPress={()=>{navigation.navigate('Home')}}
-  //     style={styles.backButton}
-  //     title='test'
-  //     tintColor='black'
-  //   />
-  // }
 
   onPress = async () => {
     var value = this.refs.form.getValue();
@@ -196,7 +162,7 @@ class CreateContentFormScreen extends React.Component {
     }
 
     return (
-      <View style={{backgroundColor:'#FFFFFF',flex:1, padding: '5%'}}>
+      <View style={{backgroundColor:'#FFFFFF',flex:1, padding: '5%', paddingBottom: 0}}>
         <KeyboardAwareScrollView style={{backgroundColor:'#FFFFFF',flex:1}}>
           { nodeForm }
         </KeyboardAwareScrollView>
@@ -204,33 +170,6 @@ class CreateContentFormScreen extends React.Component {
     );
   }
 }
-
-var styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    marginTop: 50,
-    padding: 20,
-    backgroundColor: '#ffffff',
-  },
-  buttonText: {
-    fontSize: 18,
-    color: 'white',
-    alignSelf: 'center'
-  },
-  button: {
-    height: 36,
-    backgroundColor: '#48BBEC',
-    borderColor: '#48BBEC',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 10,
-    alignSelf: 'stretch',
-    justifyContent: 'center'
-  },
-  backButton: {
-    color: '#000'
-  }
-});
 
 const mapStateToProps = state => {
   return {

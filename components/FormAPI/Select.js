@@ -1,8 +1,6 @@
 import React from 'react';
 import {Picker, View, Text, StyleSheet} from 'react-native';
-import {CheckBox} from "react-native-elements";
 import Required from "./Required";
-import RNPickerSelect from "react-native-picker-select";
 import {getFieldLanguage} from "./formUtils";
 import _ from 'lodash';
 
@@ -28,21 +26,22 @@ export default class Select extends React.Component {
 
     for (const [value, label] of Object.entries(field['#options'])) {
       if (typeof label === "string") {
-        options.push(<Picker.Item
-                key={value}
-                label={label}
-                value={value}
-            />
+        options.push(
+          <Picker.Item
+            key={value}
+            label={label}
+            value={value}/>
         );
       } else {
         defaultSelect = false;
         for (const [v, l] of Object.entries(label)) {
           if (typeof l === "string") {
-            options.push(<Picker.Item
-                    key={v}
-                    label={l}
-                    value={v}
-                />
+            options.push(
+              <Picker.Item
+                key={v}
+                label={l}
+                value={v}
+              />
             );
           }
         }
@@ -68,9 +67,9 @@ export default class Select extends React.Component {
       <Text>{field['#title']}</Text>
       <Required required={this.props.required}/>
       <Picker
-          style={{height: 216, width: 'auto', borderColor: '#ccc', borderWidth: 1}}
-          onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey)}
-          selectedValue={selectedValue}
+        style={{height: 216, width: 'auto', borderColor: '#ccc', borderWidth: 1}}
+        onValueChange={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey)}
+        selectedValue={selectedValue}
       >
         {options}
       </Picker>

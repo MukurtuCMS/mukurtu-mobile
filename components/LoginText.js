@@ -12,9 +12,9 @@ export class LoginText extends React.Component {
     }
 
     return (
-        <View style={styles.header}>
-          <Text style={styles.headerText}>{text}</Text>
-        </View>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>{text}</Text>
+      </View>
     )
   }
 }

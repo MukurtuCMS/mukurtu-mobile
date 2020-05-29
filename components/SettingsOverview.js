@@ -1,20 +1,10 @@
 import React from 'react';
 import {
-  AppRegistry,
-  Component,
   StyleSheet,
   Text,
   View,
-  Image,
-  Alert,
 } from 'react-native';
 import SettingsList from 'react-native-settings-list';
-import { connect } from 'react-redux';
-import { addPlace } from '../actions/place';
-import { addUser } from '../actions/user';
-import {SQLite} from "expo-sqlite";
-import Textarea from "./FormAPI/Textarea";
-
 
 class SettingsOverview extends React.Component {
   constructor(props){
@@ -58,7 +48,7 @@ class SettingsOverview extends React.Component {
 
   render() {
     const { navigation } = this.props;
-// console.log('USERR: ' + JSON.stringify(this.props.user.user.uid));
+    // console.log('USERR: ' + JSON.stringify(this.props.user.user.uid));
     var bgColor = '#DCE3F4';
 
     let lastUpdatedText = [];
@@ -142,12 +132,6 @@ class SettingsOverview extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  imageStyle:{
-    marginLeft:15,
-    alignSelf:'center',
-    height:30,
-    width:30
-  },
   titleInfoStyle:{
     fontSize:16,
     color: '#8e8e93'

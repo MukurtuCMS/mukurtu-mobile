@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, StyleSheet, Text, View, WebView} from 'react-native';
+import {Text, View} from 'react-native';
 
 export class FieldCollection extends React.Component {
 
@@ -80,13 +80,5 @@ export class FieldCollection extends React.Component {
     )
   }
 }
-
-const styles = StyleSheet.create({
-  titleTextStyle: {
-    marginBottom: 5,
-    color: '#000',
-    fontSize: 24
-  }
-});
 
 

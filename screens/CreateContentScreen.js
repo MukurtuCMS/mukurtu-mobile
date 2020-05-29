@@ -1,39 +1,17 @@
 import React from 'react';
-import ContentTypes from '../endpoints/ContentTypes';
-import {
-  AppRegistry,
-  ScrollView,
-  Component,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  Alert,
-  NetInfo
-} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import SettingsList from 'react-native-settings-list';
-import { connect } from 'react-redux';
-import { addPlace } from '../actions/place';
-import { addUser } from '../actions/user';
-import axios from "axios";
-import { WebBrowser} from 'expo';
-import * as SQLite from 'expo-sqlite';
-import * as Colors from "../constants/Colors";
 import {PleaseLogin} from "../components/PleaseLogin";
 
 export default class CreateContentScreen extends React.Component {
   static navigationOptions = {
-    title: 'Create Content',
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
+    title: 'Create Content'
   };
 
   constructor(props){
     super(props);
     const { navigation, screenProps } = this.props;
+
     // this.onValueChange = this.onValueChange.bind(this);
     // this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: '', isConnected: false, db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
   }
@@ -44,12 +22,8 @@ export default class CreateContentScreen extends React.Component {
     if (this.props.screenProps.firstTime) {
       this.props.navigation.navigate('Login');
     }
-  }
 
-  componentWillUnmount() {
-    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
   }
-
 
 
   render() {
@@ -70,18 +44,18 @@ export default class CreateContentScreen extends React.Component {
       // key is content type machine name
       for (let key in this.props.screenProps.contentTypes) {
         list.push(
-            <SettingsList.Item
-                key={key}
-                title={this.props.screenProps.contentTypes[key].label}
-                titleInfoStyle={styles.titleInfoStyle}
-                onPress={() =>
-                    this.props.navigation.navigate('CreateContentForm', {
-                      contentType: key,
-                      editWord: 'Create',
-                      contentTypeLabel: this.props.screenProps.contentTypes[key].label
-                    })
-                }
-            />
+          <SettingsList.Item
+            key={key}
+            title={this.props.screenProps.contentTypes[key].label}
+            titleInfoStyle={styles.titleInfoStyle}
+            onPress={() =>
+              this.props.navigation.navigate('CreateContentForm', {
+                contentType: key,
+                editWord: 'Create',
+                contentTypeLabel: this.props.screenProps.contentTypes[key].label
+              })
+            }
+          />
         )
       }
     }
@@ -99,18 +73,9 @@ export default class CreateContentScreen extends React.Component {
   toggleAuthView() {
     this.setState({toggleAuthView: !this.state.toggleAuthView});
   }
-  onValueChange(value){
-    this.setState({switchValue: value});
-  }
 }
 
 const styles = StyleSheet.create({
-  imageStyle:{
-    marginLeft:15,
-    alignSelf:'center',
-    height:30,
-    width:30
-  },
   titleInfoStyle:{
     fontSize:16,
     color: '#8e8e93',

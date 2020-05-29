@@ -1,19 +1,15 @@
 import React from 'react';
 import {
   ActivityIndicator,
-  Image,
-  Platform,
-  ScrollView,
   StyleSheet,
-  Text, TouchableHighlight,
-  TouchableOpacity,
+  Text,
   View
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Validator from 'validator';
 import {Overlay} from "react-native-elements";
 import {PleaseLogin} from "../components/PleaseLogin";
-import * as Colors from "../constants/Colors";
+import UnlockOrientation from "../components/UnlockOrientation";
 
 
 export default class WebviewScreen extends React.Component {
@@ -30,12 +26,7 @@ export default class WebviewScreen extends React.Component {
   }
 
   static navigationOptions = {
-    title: 'Browse Site',
-    headerStyle: {
-      backgroundColor: Colors.default.gold,
-      marginTop: -20,
-    },
-    headerTintColor: '#000',
+    title: 'Browse Site'
   };
 
   componentDidMount() {
@@ -97,35 +88,6 @@ export default class WebviewScreen extends React.Component {
       });
   }
 
-
-  /**
-   * Checks browser login status by fetching the homepage HTML and checking for logged-in class
-   * @returns {boolean}
-   * @private
-   */
-  _checkBrowserLoginStatus = async (url) => {
-    let isLoggedInBrowser = false;
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
-      });
-      const html = await response.text();
-      // Might be better to use a dom parser
-      isLoggedInBrowser = html.includes(' logged-in');
-    } catch (e) {
-      isLoggedInBrowser = false;
-    }
-
-    return isLoggedInBrowser;
-  }
-
-
   render() {
 
     if(!this.props.screenProps.isConnected) {
@@ -169,6 +131,7 @@ export default class WebviewScreen extends React.Component {
 
     return (
       <View style={styles.container}>
+        <UnlockOrientation />
         {activityIndicator}
         <WebView
           source={{uri: this.state.targetUrl}}
@@ -184,93 +147,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  developmentModeText: {
-    marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
-    fontSize: 14,
-    lineHeight: 19,
-    textAlign: 'center',
-  },
-  contentContainer: {
-    // paddingTop: 30,
-  },
-  welcomeContainer: {
-    alignItems: 'center',
-    // marginTop: 10,
-    marginBottom: 20,
-  },
-  welcomeImage: {
-    width: 100,
-    height: 80,
-    resizeMode: 'contain',
-    marginTop: 3,
-    marginLeft: -10,
-  },
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
-  },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: {height: -3},
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
-  },
   wrapper: {
     padding: 30,
     textAlign: 'center'
   },
-
   text: {
     fontSize: 18,
     textAlign: 'center',

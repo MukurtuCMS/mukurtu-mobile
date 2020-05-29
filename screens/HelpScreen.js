@@ -1,24 +1,12 @@
 import React from 'react';
 import {
-  Image,
-  Platform,
-  ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
-  TextInput,
-  TouchableHighlight,
-  Alert
 } from 'react-native';
+import Colors from "../constants/Colors";
 
 export default class HelpScreen extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-    }
-  }
 
   render() {
 
@@ -38,7 +26,7 @@ export default class HelpScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#DCDCDC',
+    backgroundColor: Colors.lightGray,
     padding: '5%',
     textAlign: 'left',
     marginBottom: '2%'
