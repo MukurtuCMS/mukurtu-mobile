@@ -137,6 +137,7 @@ export default createBottomTabNavigator({
   SettingsStack
 }, {
   tabBarOptions: {
-    adaptive: true
+    adaptive: true,
+    safeAreaInset: {bottom: 'never'},
   }
 });

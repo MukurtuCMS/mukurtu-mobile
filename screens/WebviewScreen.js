@@ -46,7 +46,10 @@ export default class WebviewScreen extends React.Component {
       .then((html) => {
 
         isLoggedInBrowser = html.includes(' logged-in');
-        this.setState({isLoggedInBrowser: isLoggedInBrowser});
+        this.setState({
+          isLoggedInBrowser: isLoggedInBrowser,
+          loading: false
+        });
         // If we're logged in to app but not browser, get one-time login link
         if (this.props.screenProps.loggedIn && !isLoggedInBrowser) {
           let returnUrl = null;
@@ -136,6 +139,7 @@ export default class WebviewScreen extends React.Component {
         <WebView
           source={{uri: this.state.targetUrl}}
           useWebKit={true}
+          allowsFullscreenVideo={true}
         />
       </View>
     );

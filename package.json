@@ -60,7 +60,7 @@
     "react-native-settings-list": "^1.8.0",
     "react-native-snap-carousel": "^3.9.0",
     "react-native-tab-view": "^2.14.0",
-    "react-native-webview": "^9.4.0",
+    "react-native-webview": "^10.2.3",
     "react-navigation": "^4.3.9",
     "react-navigation-stack": "^2.5.1",
     "react-navigation-tabs": "^2.8.13",

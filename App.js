@@ -3,11 +3,10 @@ import {
   Platform,
   StatusBar,
   StyleSheet,
-  View,
   YellowBox,
   ScrollView,
   RefreshControl,
-  Alert
+  Alert, SafeAreaView
 } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import AppNavigator from './navigation/AppNavigator';
@@ -187,7 +186,7 @@ export default class App extends React.Component {
 
     return (
       <Provider store={store}>
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
           <StatusBar barStyle="dark-content" />
           <ScrollView style={styles.container} contentContainerStyle={{flex: 1}}
             refreshControl={<RefreshControl
@@ -210,7 +209,7 @@ export default class App extends React.Component {
             />
 
           </ScrollView>
-        </View>
+        </SafeAreaView>
 
       </Provider>
     );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, Image} from 'react-native';
+import {View, StyleSheet, Text, Image} from 'react-native';
 
 export default class AppHeader extends React.Component {
 
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     height: 46,
-    marginTop: 25
+    marginTop: 0
   },
   siteIcon: {
     height: 26,

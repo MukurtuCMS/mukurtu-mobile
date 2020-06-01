@@ -189,7 +189,7 @@ export class ScaldItem extends React.Component {
         if (response.provider === 'scald_youtube') {
           html = `<html>
             <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
-            <iframe src="https://www.youtube.com/embed/${response.base_id}?modestbranding=1&playsinline=1&showinfo=0&rel=0" frameborder="0" style="overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:100%;width:100%;position:absolute;top:0px;left:0px;right:0px;bottom:0px" height="100%" width="100%">
+            <iframe src="https://www.youtube.com/embed/${response.base_id}?modestbranding=1&playsinline=0&showinfo=0&rel=0" frameborder="0" style="overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:100%;width:100%;position:absolute;top:0px;left:0px;right:0px;bottom:0px" height="100%" width="100%">
             </iframe></html>`;
         }
         else if (response.provider === 'scald_soundcloud') {
@@ -208,10 +208,12 @@ export class ScaldItem extends React.Component {
             justifyContent: 'center',
             backgroundColor: '#000'
           }}
+          allowsFullscreenVideo={true}
           domStorageEnabled={true}
           scalesPageToFit={true}
           javaScriptEnabled={true}
           source={{html: html}}
+          useWebKit={true}
         />) : offlineText;
 
 
