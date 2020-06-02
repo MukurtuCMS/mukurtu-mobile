@@ -66,9 +66,18 @@ export default class FormComponent extends React.Component {
   }
 
   preprocessNodeForSaving = () => {
-    let node = this.props.node;
+    const {node, screenProps} = this.props;
     if (node) {
-      this.setState({formValues: node, nodeLoaded: true});
+      screenProps.db.transaction(tx => {
+        tx.executeSql('SELECT * FROM nodes WHERE nid = ?', [node.nid],
+          (_tx, results) => {
+            const entity = _.get(results, ['rows', '_array', 0], null);
+            if (entity != null) {
+              const thisNode = JSON.parse(entity.entity);
+              this.setState({formValues: thisNode, nodeLoaded: true});
+            }
+          })
+      });
     }
   }
 
