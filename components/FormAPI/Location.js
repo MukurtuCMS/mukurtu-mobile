@@ -2,7 +2,6 @@ import React from 'react';
 import MapPicker from "react-native-map-picker";
 import {View, Text, Button} from "react-native";
 import * as Location from 'expo-location';
-import * as Permissions from 'expo-permissions';
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 
@@ -18,33 +17,48 @@ export default class LocationComponent extends React.Component {
     };
 
     this._getLocationAsync = this._getLocationAsync.bind(this);
+    this._mounted = false;
   }
 
 
   componentDidMount() {
+    this._mounted = true;
     this._getLocationAsync();
   }
 
+  componentWillUnmount() {
+    this._mounted = false;
+  }
+
   _getLocationAsync = async () => {
-    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    let { status } = await Location.requestPermissionsAsync();
     if (status !== 'granted') {
-      this.setState({
+      this._mounted && this.setState({
         errorMessage: 'Permission to access location was denied',
         locationChecked: true
       });
     }
 
-    let location = await Location.getCurrentPositionAsync({});
-    this.props.setFormValue(this.props.fieldName, location.coords.latitude, location.coords.longitude);
-    if (location) {
-      this.setState({
-        locationChecked: true,
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        updateIndex: this.state.updateIndex + 1
+    try {
+      let location = await Location.getCurrentPositionAsync({});
+      this.props.setFormValue(this.props.fieldName, location.coords.latitude, location.coords.longitude);
+      if (location) {
+        this._mounted && this.setState({
+          locationChecked: true,
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          updateIndex: this.state.updateIndex + 1
+        });
+      }
+      this._mounted && this.forceUpdate();
+    }
+    catch (e) {
+      console.log('Could not get location', e);
+      this._mounted && this.setState({
+        errorMessage: 'Not able to determine location',
+        locationChecked: true
       });
     }
-    this.forceUpdate();
   };
 
   render() {
