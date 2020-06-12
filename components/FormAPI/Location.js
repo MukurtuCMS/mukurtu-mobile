@@ -1,9 +1,12 @@
 import React from 'react';
-import MapPicker from "react-native-map-picker";
-import {View, Text, Button} from "react-native";
+import {View, Text, Button, Dimensions, ActivityIndicator} from "react-native";
 import * as Location from 'expo-location';
+import * as Permissions from 'expo-permissions';
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
+import MapView, {Marker} from "react-native-maps";
+import _ from 'lodash';
+import Colors from "../../constants/Colors";
 
 
 export default class LocationComponent extends React.Component {
@@ -13,7 +16,8 @@ export default class LocationComponent extends React.Component {
     this.state = {
       locationChecked: false,
       errorMessage: null,
-      updateIndex: 0
+      updateIndex: 0,
+      lookingUp: false
     };
 
     this._getLocationAsync = this._getLocationAsync.bind(this);
@@ -23,80 +27,109 @@ export default class LocationComponent extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
-    this._getLocationAsync();
   }
 
   componentWillUnmount() {
     this._mounted = false;
   }
 
+
+  getPropsLocation = () => {
+    const {formValues, fieldName} = this.props;
+    if (_.has(formValues, [fieldName, 'und', 0, 'lat'])) {
+      return {
+        latitude: Number(_.get(formValues, [fieldName, 'und', 0, 'lat'], 0)),
+        longitude: Number(_.get(formValues, [fieldName, 'und', 0, 'lon'], 0))
+      }
+    }
+
+    return {
+      latitude: Number(_.get(formValues, [fieldName, 'und', 0, 'geom', 'lat'], 0)),
+      longitude: Number(_.get(formValues, [fieldName, 'und', 0, 'geom', 'lon'], 0))
+    }
+  }
+
+  setLocation = (latLng) => {
+    const {setFormValue, fieldName} = this.props;
+    setFormValue(fieldName, latLng.latitude, latLng.longitude);
+  }
+
   _getLocationAsync = async () => {
-    let { status } = await Location.requestPermissionsAsync();
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
     if (status !== 'granted') {
       this._mounted && this.setState({
         errorMessage: 'Permission to access location was denied',
-        locationChecked: true
       });
     }
-
-    try {
-      let location = await Location.getCurrentPositionAsync({});
-      this.props.setFormValue(this.props.fieldName, location.coords.latitude, location.coords.longitude);
-      if (location) {
+    else {
+      try {
+        let location = await Location.getCurrentPositionAsync({});
+        if (location) {
+          this.props.setFormValue(this.props.fieldName, location.coords.latitude, location.coords.longitude);
+        }
+      }
+      catch (e) {
+        console.log('Could not get location', e);
         this._mounted && this.setState({
-          locationChecked: true,
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          updateIndex: this.state.updateIndex + 1
+          errorMessage: 'Not able to determine location',
         });
       }
-      this._mounted && this.forceUpdate();
-    }
-    catch (e) {
-      console.log('Could not get location', e);
-      this._mounted && this.setState({
-        errorMessage: 'Not able to determine location',
-        locationChecked: true
-      });
     }
   };
 
   render() {
-    let lat = null;
-    let long = null;
-    if(this.state.longitude) {
-      lat = this.state.latitude;
-      long = this.state.longitude
-    } else if (this.props.formValues[this.props.fieldName] && typeof this.props.formValues[this.props.fieldName]['und'] !== 'undefined') {
-      lat = this.props.formValues[this.props.fieldName]['und'][0]['geom']['lat'];
-      long = this.props.formValues[this.props.fieldName]['und'][0]['geom']['lon'];
-    }
-    let text = [];
-    let mapPicker = [];
-    let setMyLocationButton = []
+    let text = null;
+
     if (this.state.errorMessage) {
       text = <Text>{this.state.errorMessage}</Text>;
     }
 
-    setMyLocationButton =
-      <Button title="Set My Location" onPress={this._getLocationAsync}/>
-    mapPicker = <MapPicker
-      initialCoordinate={{
-        latitude: (lat) ? lat : 37.09024,
-        longitude: (long) ? long : -95.712891,
-      }}
-      onLocationSelect={({latitude, longitude}) => this.props.setFormValue(this.props.fieldName, latitude, longitude)}
-      updateIndex={this.state.updateIndex}
-    />;
+    const setMyLocationButton = (
+      <Button
+        disabled={this.state.lookingUp}
+        title="Set My Location"
+        onPress={() => {
+          this.setState({lookingUp: true})
+          this._getLocationAsync().then(() => {
+            this.setState({lookingUp: false})
+          })
+        }}/>);
+
+    const latLng = this.getPropsLocation();
+
+    const mapView = (
+      <MapView
+        style={{width: Dimensions.get('window').width - 20,
+          height: 300,
+          marginBottom: 10}}
+        region={{
+          latitude: latLng.latitude === 0 ? 37.09024 : latLng.latitude,
+          longitude: latLng.longitude === 0 ? -95.712891 : latLng.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+      >
+        {latLng.longitude !== 0 && <Marker
+          coordinate={latLng}
+          draggable={true}
+          onDragEnd={e => {
+            this.setLocation(e.nativeEvent.coordinate)
+          }}
+        />}
+      </MapView>
+    );
 
     return (
-      <View style={{flex: 1 / 2, height: 800}}>
+      <View style={{flex: 1 / 2, height: 650}}>
         {text}
         <FieldDescription
           description={(this.props.description) ? this.props.description : null}/>
         <Required required={this.props.required}/>
-        {setMyLocationButton}
-        {mapPicker}
+        <View style={{flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center"}}>
+          {setMyLocationButton}
+          {this.state.lookingUp && <ActivityIndicator size="small" color={Colors.primary}/>}
+        </View>
+        {mapView}
       </View>
     );
   }
