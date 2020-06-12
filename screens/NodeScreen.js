@@ -299,7 +299,7 @@ class NodeScreen extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (let i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<Text key={`${fieldName}_license_${i}`}>{node[fieldName][lang][0].value}</Text>)
+            renderedNode.push(<Text key={`${fieldName}_license_${i}`}>{node[fieldName][lang][i].value}</Text>)
           }
         }
       }
@@ -308,7 +308,7 @@ class NodeScreen extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (let i = 0; i < node[fieldName][lang].length; i++) {
-            if (node[fieldName][lang][i].lat.length > 0) {
+            if (node[fieldName][lang][i].lat != null) {
               const latLng = {
                 latitude: Number(node[fieldName][lang][i].lat),
                 longitude: Number(node[fieldName][lang][i].lon),
@@ -591,8 +591,9 @@ class NodeScreen extends React.Component {
         <ScrollView style={styles.container}>
           {/*<Text>{this.state.media_text}</Text>*/}
           {star}
-          {renderedNode}
-
+          <View style={{paddingBottom: 50}}>
+            {renderedNode}
+          </View>
         </ScrollView>
       </View>
     ) : emptyView;

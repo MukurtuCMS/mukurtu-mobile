@@ -244,6 +244,7 @@ class LoginScreen extends React.Component {
         <View style={styles.inputContainer}>
           {showError}
           <TextInput
+            autoCapitalize={'none'}
             style={styles.inputs}
             placeholder="Username"
             underlineColorAndroid='transparent'
