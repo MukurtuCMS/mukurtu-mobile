@@ -33,7 +33,7 @@ export class ScaldSwipe extends React.Component {
 
   render() {
     return (
-      <View style={{height: 300}}>
+      <View style={{height: 320}}>
         <Carousel
           // ref={(c) => { this._carousel = c; }}
           data={this.props.items}

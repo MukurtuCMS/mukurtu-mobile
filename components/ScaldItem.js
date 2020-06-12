@@ -143,6 +143,7 @@ export class ScaldItem extends React.Component {
     let addModal = false;
     let renderedItem;
     let isYouTube = false;
+    const screenWidth = Dimensions.get('window').width;
 
     const offlineText = (<Text>Content only available online</Text>);
 
@@ -153,7 +154,7 @@ export class ScaldItem extends React.Component {
       if(this.state.atom.base_entity) {
         let width = parseInt(this.state.atom.base_entity.width);
         let height = parseInt(this.state.atom.base_entity.height);
-        const screenWidth = Dimensions.get('window').width;
+
         calcWidth = screenWidth - 40;
         calcImageHeight = screenWidth * .6;
         if(Number.isInteger(width) && Number.isInteger(height)) {
@@ -168,7 +169,7 @@ export class ScaldItem extends React.Component {
       // First check for video
       if(this.state.video !== null) {
         // Adjust height of player if it's audio
-        let videoHeight = '100%';
+        let videoHeight = 300;
         if(this.state.audio) {
           videoHeight = 45;
         }
@@ -189,7 +190,7 @@ export class ScaldItem extends React.Component {
         if (response.provider === 'scald_youtube') {
           html = `<html>
             <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
-            <iframe src="https://www.youtube.com/embed/${response.base_id}?modestbranding=1&playsinline=0&showinfo=0&rel=0" frameborder="0" style="overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:100%;width:100%;position:absolute;top:0px;left:0px;right:0px;bottom:0px" height="100%" width="100%">
+            <iframe src="https://www.youtube.com/embed/${response.base_id}?modestbranding=1&playsinline=1&showinfo=0&rel=0" frameborder="0" style="overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:100%;width:100%;position:absolute;top:0px;left:0px;right:0px;bottom:0px" height="100%" width="100%">
             </iframe></html>`;
         }
         else if (response.provider === 'scald_soundcloud') {
@@ -229,7 +230,7 @@ export class ScaldItem extends React.Component {
           resizeMode={Video.RESIZE_MODE_CONTAIN}
           useNativeControls={true}
           // style={{flex: 1, flexGrow: 1}}
-          style={{width: '100%', height: '100%'}}
+          style={{width: '100%', height: 300}}
         />) : offlineText;
       }
 
@@ -247,12 +248,17 @@ export class ScaldItem extends React.Component {
 
         renderedItem = <TouchableOpacity
           onPress={() => this.setModalVisible(true)}>
+
           <Image
             source={{uri: 'data:image/png;base64,' + this.state.data}}
-            resizeMode={'contain'}
+            resizeMode={'cover'}
             style={{
-              height: calcImageHeight,
-              width: calcWidth
+              height: this.props.inSlider ? 300 : screenWidth - 35,
+              width: this.props.inSlider ? screenWidth - 22 : screenWidth - 35,
+              borderWidth: this.props.inSlider ? 0 : 3,
+              borderColor: '#fff',
+              borderRadius: this.props.inSlider ? 0 : 3,
+              marginVertical: this.props.inSlider ? 0 : 10
             }}/></TouchableOpacity>;
         addModal = true;
       }
