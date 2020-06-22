@@ -716,6 +716,11 @@ export default class App extends React.Component {
       })
       .then((atom) => {
 
+        // Skip further processing for remote media items
+        const remoteProvider = ['scald_youtube', 'scald_soundcloud', 'scald_vimeo', 'scald_dailymotion'];
+        if (remoteProvider.includes(atom.provider)) {
+          return;
+        }
 
         const sanitizedFileName = atom.title.replace(/ /g,"_");
         FileSystem.downloadAsync(
