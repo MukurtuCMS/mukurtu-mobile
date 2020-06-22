@@ -476,10 +476,14 @@ export default class App extends React.Component {
           return {'nodes': newNodes};
         });
 
-        return node;
+        return {node, syncData: data};
       })
-      .then((node) => {
+      .then(({node, syncData}) => {
         // Now we need to save the paragraphs, terms, and nodes referenced within each node
+        let {nodeIds, termIds} = syncData;
+        nodeIds = nodeIds === undefined ? [] : nodeIds;
+        termIds = termIds === undefined ? [] : termIds;
+
         let promises = [];
         for (let field in node) {
 
@@ -490,8 +494,10 @@ export default class App extends React.Component {
               // Right now can't figure out how to distinguish field collections from paragraphs, so listing them manually. Need to fix though.
               if (field === 'field_lesson_micro_tasks') {
                 if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined') {
-                  let fid = node[field].und[0].value;
-                  promises.push(this.saveFieldCollection(fid, field, node.type));
+                  Object.keys(node[field].und).forEach((id) => {
+                    let fid = node[field].und[id].value;
+                    promises.push(this.saveFieldCollection(fid, field, node.type));
+                  });
                 }
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['revision_id'] !== 'undefined') {
                 Object.keys(node[field].und).forEach((id) => {
@@ -499,11 +505,22 @@ export default class App extends React.Component {
                   promises.push(this.saveParagraph(pid, field, node.type));
                 });
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['tid'] !== 'undefined') {
-                data = this.buildFetchData('GET');
-                promises.push(this.saveTaxonomy(node[field].und[0]['tid'], data));
+                Object.keys(node[field].und).forEach((id) => {
+                  if (!termIds.includes(node[field].und[id]['tid'])) {
+                    data = this.buildFetchData('GET');
+                    promises.push(this.saveTaxonomy(node[field].und[id]['tid'], data));
+                  }
+                });
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['nid'] !== 'undefined') {
-                data = this.buildFetchData('GET');
-                promises.push(this.saveNode(node[field].und[0]['nid'], data));
+                Object.keys(node[field].und).forEach((id) => {
+                  if (node[field].und[id]['nid'] == 827) {
+                    let tes = 6;
+                  }
+                  if (!nodeIds.includes(node[field].und[id]['nid'])) {
+                    data = this.buildFetchData('GET');
+                    promises.push(this.saveNode(node[field].und[id]['nid'], data));
+                  }
+                });
               }
             }
           }
@@ -1558,6 +1575,16 @@ export default class App extends React.Component {
               }
             }
           }
+
+
+          let nodeIds = Object.keys(nodes);
+          let termIds = [];
+          if (typeof responseJson.terms === 'object') {
+            termIds = Object.keys(responseJson.terms);
+          }
+          const syncIds = {nodeIds, termIds};
+
+
           this.buildRemovalNids(nodes);
 
           // Build the editable array once based on info from the API.
@@ -1569,7 +1596,7 @@ export default class App extends React.Component {
 
 
           subPromises.push(Object.keys(nodes).map((key, index) => {
-            this.saveNode(key, data);
+            this.saveNode(key, syncIds);
           }));
         }
 
