@@ -20,6 +20,7 @@ import AppHeader from "./components/AppHeader";
 import * as FileSystem from "expo-file-system";
 import NetInfo from '@react-native-community/netinfo';
 import {sanitizeFormValues} from "./components/FormAPI/formUtils";
+import _ from 'lodash';
 
 
 const store = configureStore();
@@ -722,7 +723,11 @@ export default class App extends React.Component {
           return;
         }
 
-        const sanitizedFileName = atom.title.replace(/ /g,"_");
+        let sanitizedFileName = atom.title.replace(/ /g,"_");
+        if (_.has(atom, ['base_entity', 'filename'])) {
+          sanitizedFileName = atom.base_entity.filename.replace(/ /g,"_");
+        }
+
         FileSystem.downloadAsync(
           atom.file_url,
           FileSystem.documentDirectory + sanitizedFileName

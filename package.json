@@ -34,6 +34,7 @@
     "expo-sharing": "~8.1.0",
     "expo-sqlite": "~8.1.0",
     "expo-task-manager": "~8.1.0",
+    "expo-video-player": "^1.5.8",
     "expo-video-thumbnails": "~4.1.0",
     "lodash": "^4.17.15",
     "prop-types": "^15.7.2",

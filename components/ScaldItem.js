@@ -14,6 +14,7 @@ import * as Sharing from 'expo-sharing';
 import { Video } from 'expo-av';
 import {FontAwesome} from "@expo/vector-icons";
 import NetInfo from "@react-native-community/netinfo";
+import _ from "lodash";
 
 export class ScaldItem extends React.Component {
   // A lot of overlap between this and the form scald components,
@@ -53,9 +54,15 @@ export class ScaldItem extends React.Component {
               return;
             }
 
-            this.setState({title: atom.title, atom: JSON.parse(atom.entity)});
-            let type = JSON.parse(atom.entity).type;
-            const sanitizedFileName = atom.title.replace(/ /g,"_");
+            const atomEntity = JSON.parse(atom.entity);
+            this.setState({title: atom.title, atom: atomEntity});
+            let type = atomEntity.type;
+            // const sanitizedFileName = atom.title.replace(/ /g,"_");
+            let sanitizedFileName = atom.title.replace(/ /g,"_");
+            if (_.has(atomEntity, ['base_entity', 'filename'])) {
+              sanitizedFileName = atomEntity.base_entity.filename.replace(/ /g,"_");
+            }
+
             if(type === 'audio') {
               this.setState({'audio': true});
             }
@@ -184,7 +191,7 @@ export class ScaldItem extends React.Component {
         />
       }
       // Then check for youtube
-      else if (response.base_id && ['scald_youtube', 'scald_soundcloud'].includes(response.provider)) {
+      else if (response.base_id && ['scald_youtube', 'scald_soundcloud', 'scald_vimeo'].includes(response.provider)) {
         isYouTube = true;
         let html = ''
         if (response.provider === 'scald_youtube') {
@@ -192,6 +199,13 @@ export class ScaldItem extends React.Component {
             <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
             <iframe src="https://www.youtube.com/embed/${response.base_id}?modestbranding=1&playsinline=1&showinfo=0&rel=0" frameborder="0" style="overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:100%;width:100%;position:absolute;top:0px;left:0px;right:0px;bottom:0px" height="100%" width="100%">
             </iframe></html>`;
+        }
+        else if (response.provider === 'scald_vimeo' && this.state.vimeoInfo !== undefined) {
+          const vimeoWidth = this.props.inSlider ? this.props.slideWidth - 22 : screenWidth - 30;
+          html = `<html>
+             <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+             <iframe src="https://player.vimeo.com/video/${this.state.vimeoInfo.id}?transparent=false" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>
+            </html>`;
         }
         else if (response.provider === 'scald_soundcloud') {
           html = `<html>
@@ -202,8 +216,8 @@ export class ScaldItem extends React.Component {
 
         renderedItem = this.state.online ? (<WebView
           style={{
-            height: '100%',
-            width: 300,
+            height: 300,
+            width: this.props.inSlider ? this.props.slideWidth - 22 : screenWidth - 30,
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
@@ -218,20 +232,6 @@ export class ScaldItem extends React.Component {
         />) : offlineText;
 
 
-      }
-      else if (this.state.vimeoUrl !== null) {
-        renderedItem =  this.state.online ? (<Video
-          source={{uri: this.state.vimeoUrl}}
-          // navigator={this.props.navigator}
-          fullscreen={true}
-          rate={1.0}
-          volume={1.0}
-          isMuted={false}
-          resizeMode={Video.RESIZE_MODE_CONTAIN}
-          useNativeControls={true}
-          // style={{flex: 1, flexGrow: 1}}
-          style={{width: '100%', height: 300}}
-        />) : offlineText;
       }
 
       else if (response.base_id && response.provider === 'scald_file' && this.state.data != null) {

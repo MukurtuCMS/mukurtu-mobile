@@ -810,7 +810,7 @@ export default class FormComponent extends React.Component {
 
         // If this was an offline submission, clear it out
         if (this.props.did != null) {
-          this.clearOfflineNode(did);
+          this.clearOfflineNode(this.props.did);
         }
 
         return responseJson;

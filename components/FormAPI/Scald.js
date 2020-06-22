@@ -12,6 +12,7 @@ import {getFieldValueCount} from './formUtils';
 import {FontAwesome} from "@expo/vector-icons";
 import NetInfo from '@react-native-community/netinfo';
 import {Video} from "expo-av";
+import _ from "lodash";
 
 // To do on this if we have time:
 // 1. Ensure that if images are removed they're removed from drupal side.
@@ -73,12 +74,16 @@ export default class Scald extends React.Component {
                     remote: true
                   };
                 } else {
+                  let sanitizedFileName = atom.title.replace(/ /g,"_");
+                  if (_.has(atomEntity, ['base_entity', 'filename'])) {
+                    sanitizedFileName = atomEntity.base_entity.filename.replace(/ /g,"_");
+                  }
                   elements[atom.sid] = {
                     sid: atom.sid,
                     title: `${atom.title}`,
                     remote: false,
                     type: atomEntity.type,
-                    file: documentDirectory + atom.title
+                    file: documentDirectory + sanitizedFileName
                   };
                 }
               });
@@ -164,10 +169,14 @@ export default class Scald extends React.Component {
           .then((response) => response.json());
 
         let e = 1;
-        const sanitiziedName = filename.replace(/ /g, "_");
+        let sanitizedFileName = scaldData.title.replace(/ /g,"_");
+        if (_.has(scaldData, ['base_entity', 'filename'])) {
+          sanitizedFileName = scaldData.base_entity.filename.replace(/ /g,"_");
+        }
+        // const sanitiziedName = filename.replace(/ /g, "_");
         const copyFile = await FileSystem.copyAsync({
           from: value.uri,
-          to: this.props.documentDirectory + sanitiziedName
+          to: this.props.documentDirectory + sanitizedFileName
         });
 
         const saveAtom = await this.saveAtom(scaldData);

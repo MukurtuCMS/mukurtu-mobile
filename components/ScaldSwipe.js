@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, Dimensions, Text} from 'react-native';
-import Carousel from 'react-native-snap-carousel';
+import Carousel, {Pagination} from 'react-native-snap-carousel';
 import {ScaldItem} from './ScaldItem';
 
 export class ScaldSwipe extends React.Component {
@@ -11,6 +11,7 @@ export class ScaldSwipe extends React.Component {
     this.state = {
       width: width,
       widthItem: width - 10,
+      activeSlide: 0
     }
   }
 
@@ -26,8 +27,33 @@ export class ScaldSwipe extends React.Component {
           key={index}
           documentDirectory={this.props.documentDirectory}
           inSlider={true}
+          slideWidth={this.state.width}
         />
       </View>
+    );
+  }
+
+  get pagination() {
+    const { activeSlide } = this.state;
+    const entries = this.props.items;
+
+    return (
+      <Pagination
+        dotsLength={entries.length}
+        activeDotIndex={activeSlide}
+        containerStyle={{
+          paddingVertical: 5,
+        }}
+        dotStyle={{
+          width: 5,
+          height: 5,
+          borderRadius: 5,
+          marginHorizontal: 8,
+          backgroundColor: '#333'
+        }}
+        inactiveDotOpacity={0.4}
+        inactiveDotScale={0.6}
+      />
     );
   }
 
@@ -35,7 +61,7 @@ export class ScaldSwipe extends React.Component {
     return (
       <View style={{height: 320}}>
         <Carousel
-          // ref={(c) => { this._carousel = c; }}
+          ref={(c) => { this._carousel = c; }}
           data={this.props.items}
           layout={'default'}
           renderItem={this._renderItem}
@@ -45,13 +71,14 @@ export class ScaldSwipe extends React.Component {
           itemHeight={300}
           useScrollView={true}
           slideStyle={{}}
+          onSnapToItem={(index) => this.setState({ activeSlide: index }) }
           containerCustomStyle={{
             borderWidth: 1,
             borderColor: '#ccc',
             backgroundColor: '#eee'
           }}
         />
-        <Text>Swipe for more</Text>
+        { this.pagination }
       </View>
     );
   }
