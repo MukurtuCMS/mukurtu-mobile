@@ -455,7 +455,7 @@ export default class App extends React.Component {
         return response.json();
       })
       .then((node) => {
-        this.setState({'syncText': 'Retrieving Node ' + node.title});
+        this.setState({'syncText': 'Retrieving content: ' + node.title});
 
         this.state.db.transaction(
           tx => {
@@ -480,9 +480,9 @@ export default class App extends React.Component {
       })
       .then(({node, syncData}) => {
         // Now we need to save the paragraphs, terms, and nodes referenced within each node
-        let {nodeIds, termIds} = syncData;
-        nodeIds = nodeIds === undefined ? [] : nodeIds;
-        termIds = termIds === undefined ? [] : termIds;
+
+        const nodeIds = _.get(syncData, ['nodeIds'], []);
+        const termIds = _.get(syncData, ['termIds'], []);
 
         let promises = [];
         for (let field in node) {
@@ -513,9 +513,6 @@ export default class App extends React.Component {
                 });
               } else if (node[field] !== null && typeof node[field].und !== 'undefined' && typeof node[field].und[0] !== 'undefined' && typeof node[field].und[0]['nid'] !== 'undefined') {
                 Object.keys(node[field].und).forEach((id) => {
-                  if (node[field].und[id]['nid'] == 827) {
-                    let tes = 6;
-                  }
                   if (!nodeIds.includes(node[field].und[id]['nid'])) {
                     data = this.buildFetchData('GET');
                     promises.push(this.saveNode(node[field].und[id]['nid'], data));

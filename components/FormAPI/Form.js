@@ -723,12 +723,13 @@ export default class FormComponent extends React.Component {
               this.props.screenProps.saveNode(this.state.formValues.nid);
               this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
               // Navigate back to main content screen
-              this.setState({'submitting': false}, () => {
+              this.setState({'submitting': false, 'formSubmitted': true}, () => {
                 this.clearOfflineNode(this.state.formValues.nid);
-                this.props.navigation.navigate('NodeListing', {
-                  contentType: this.props.contentType,
-                  contentTypeLabel: 'Test Label'
-                })
+                // this.props.navigation.navigate('NodeListing', {
+                //   contentType: this.props.contentType,
+                //   contentTypeLabel: 'Test Label',
+                //   updateMessage: 'Content updated.'
+                // })
               });
 
 
@@ -1338,6 +1339,9 @@ export default class FormComponent extends React.Component {
       } else {
         formDisplay = <View>
           <Text>Your content has been submitted successfully.</Text>
+          <Text style={{paddingVertical: 20}}><Text style={{fontWeight: 'bold'}}>Please note:</Text> If you added references to your content such as
+            keywords, dictionary words or terms, you might have to "pull down"
+            in order to synchronize all the referenced content before it shows on the app.</Text>
           <Button
             title="Submit Another"
             onPress={this.resetForm}
