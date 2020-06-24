@@ -5,6 +5,7 @@ import MapView, {Marker} from "react-native-maps";
 import {FieldCollection} from "./FieldCollection";
 import Colors from "../constants/Colors";
 import NodeTeaser from "./Displays/nodeTeaser";
+import MicroTask from "./MicroTask";
 
 export class EmbeddedNode extends React.Component {
 
@@ -100,11 +101,21 @@ export class EmbeddedNode extends React.Component {
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<FieldCollection key={fieldName + i}
-              fid={node[fieldName][lang][i]['value']}
-              screenProps={this.props.screenProps}
-
-            />)
+            if (fieldName === 'field_lesson_micro_tasks') {
+              renderedNode.push(<MicroTask
+                key={fieldName + i}
+                taskId={node[fieldName][lang][i]['value']}
+                screenProps={this.props.screenProps}
+                navigation={this.props.navigation}
+              />)
+            }
+            else {
+              renderedNode.push(<FieldCollection
+                key={fieldName + i}
+                fid={node[fieldName][lang][i]['value']}
+                screenProps={this.props.screenProps}
+              />)
+            }
           }
         }
       }

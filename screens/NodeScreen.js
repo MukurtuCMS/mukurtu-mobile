@@ -22,6 +22,7 @@ import _ from 'lodash';
 import {NavigationActions} from "react-navigation";
 import UnlockOrientation from "../components/UnlockOrientation";
 import Colors from "../constants/Colors";
+import MicroTask from "../components/MicroTask";
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
@@ -188,6 +189,7 @@ class NodeScreen extends React.Component {
           if (nodes[rc.target_id] !== undefined && nodes[rc.target_id].type == fieldObject.extracted_type) {
             relatedNodes.push(
               <NodeTeaser
+                condensed={true}
                 key={`${fieldName}_teaser_${rc.target_id}`}
                 node={this.props.screenProps.nodes[rc.target_id]}
                 viewableFields={this.state.viewableFields}
@@ -490,6 +492,7 @@ class NodeScreen extends React.Component {
                 if (this.props.screenProps.nodes[nid]) {
                   renderedNode.push(
                     <NodeTeaser
+                      condensed={true}
                       key={`${fieldName}_teaser_${i}`}
                       node={this.props.screenProps.nodes[nid]}
                       viewableFields={this.state.viewableFields}
@@ -553,12 +556,22 @@ class NodeScreen extends React.Component {
       if(fieldObject.view_mode_properties.type === 'field_collection_view') {
         if (node[fieldName] != null && node[fieldName][lang]) {
           for (let i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(
-              <FieldCollection
-                key={`${fieldName}_fc_${i}`}
-                fid={node[fieldName][lang][i]['value']}
+            if (fieldName === 'field_lesson_micro_tasks') {
+              renderedNode.push(<MicroTask
+                key={fieldName + i}
+                taskId={node[fieldName][lang][i]['value']}
                 screenProps={this.props.screenProps}
-              />);
+                navigation={this.props.navigation}
+              />)
+            }
+            else {
+              renderedNode.push(
+                <FieldCollection
+                  key={`${fieldName}_fc_${i}`}
+                  fid={node[fieldName][lang][i]['value']}
+                  screenProps={this.props.screenProps}
+                />);
+            }
           }
         }
       }

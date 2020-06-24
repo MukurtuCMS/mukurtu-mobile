@@ -173,7 +173,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2020-06-24_1345',
+      appVersion: '2020-06-24_1515',
       refreshing: this.state.refreshing
     };
     // Not sure if this is necessary any longer, but leaving it just in case.

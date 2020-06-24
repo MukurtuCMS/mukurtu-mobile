@@ -1,5 +1,10 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableHighlight} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity
+} from 'react-native';
 import {Feather} from '@expo/vector-icons';
 import {ScaldItem} from "../ScaldItem";
 import {ParagraphView} from "../ParagraphView";
@@ -161,13 +166,22 @@ export default class NodeTeaser extends React.Component {
       </View>);
     }
 
+    if (this.props.condensed) {
+      return (<View>
+        {this.props.showType && <Text style={styles.contentType}>{this.props.editableContentTypes[node.type].label}</Text>}
+        <TouchableOpacity onPress={() => this.viewNode()}>
+          <Text style={styles.nodeTitleCondensed}>{node.title}</Text>
+        </TouchableOpacity>
+      </View>);
+    }
+
 
     return <View style={styles.nodeWrapper}>
       <View style={styles.nodeInnerWrapper}>
         {this.props.showType && <Text style={styles.contentType}>{this.props.editableContentTypes[node.type].label}</Text>}
-        <TouchableHighlight style={styles.touchable}  onPress={() => this.viewNode()}>
+        <TouchableOpacity style={styles.touchable}  onPress={() => this.viewNode()}>
           <Text style={styles.nodeTitle}>{node.title}</Text>
-        </TouchableHighlight>
+        </TouchableOpacity>
         <Text style={styles.nodeBody} numberOfLines={2}>{body}</Text>
         {viewableFields}
       </View>
@@ -182,6 +196,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     fontSize: 24,
     flex: 1,
+    color: Colors.primary
+  },
+  nodeTitleCondensed: {
+    fontSize: 16,
+    marginVertical: 2,
+    // flex: 1,
     color: Colors.primary
   },
   nodeBody: {
