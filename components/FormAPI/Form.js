@@ -723,13 +723,12 @@ export default class FormComponent extends React.Component {
               this.props.screenProps.saveNode(this.state.formValues.nid);
               this.postFieldCollection(this.state.formValues.field_collection, this.state.formValues.nid);
               // Navigate back to main content screen
-              this.setState({'submitting': false, 'formSubmitted': true}, () => {
+              this.setState({'submitting': false}, () => {
                 this.clearOfflineNode(this.state.formValues.nid);
-                // this.props.navigation.navigate('NodeListing', {
-                //   contentType: this.props.contentType,
-                //   contentTypeLabel: 'Test Label',
-                //   updateMessage: 'Content updated.'
-                // })
+                this.props.navigation.navigate('NodeListing', {
+                  contentType: this.props.contentType,
+                  contentTypeLabel: 'Test Label',
+                })
               });
 
 
