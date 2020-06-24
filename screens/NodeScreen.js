@@ -120,7 +120,6 @@ class NodeScreen extends React.Component {
   }
 
   showCategory = (field, tid) => {
-    console.log('IN HERE')
     const navigateAction = NavigationActions.navigate({
       routeName: 'Category',
       params: {
@@ -371,6 +370,7 @@ class NodeScreen extends React.Component {
               fieldName={fieldName}
               fieldObject={fieldObject}
               displayModes={this.state.displayModes}
+              viewableFields={this.props.screenProps.displayModes}
               nodes={this.props.screenProps.nodes}
               terms={this.props.screenProps.terms}
               contentType={this.props.navigation.getParam('contentType')}

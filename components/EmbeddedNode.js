@@ -3,6 +3,8 @@ import {Dimensions, StyleSheet, Text, View} from 'react-native';
 import HTML from "react-native-render-html";
 import MapView, {Marker} from "react-native-maps";
 import {FieldCollection} from "./FieldCollection";
+import Colors from "../constants/Colors";
+import NodeTeaser from "./Displays/nodeTeaser";
 
 export class EmbeddedNode extends React.Component {
 
@@ -10,7 +12,6 @@ export class EmbeddedNode extends React.Component {
   // There is a lot of redundancy between this and NodeScreen.js,
   // but basically this is a way to render embedded nodes and their fields.
   // Ultimately we'll want to abstract all the common stuff from this and NodeScreen, but didn't want to break that right now.
-  // @todo figure out how to render field collections
   componentDidMount() {
 
   }
@@ -242,18 +243,34 @@ export class EmbeddedNode extends React.Component {
                   fieldData += ', ';
                 }
                 if (this.props.nodes[nid]) {
-                  fieldData += this.props.nodes[nid].title;
+                  // fieldData += this.props.nodes[nid].title;
+                  renderedNode.push(
+                    <NodeTeaser
+                      condensed={true}
+                      key={`${fieldName}_teaser_${i}`}
+                      node={this.props.screenProps.nodes[nid]}
+                      token={this.props.screenProps.token}
+                      cookie={this.props.screenProps.cookie}
+                      url={this.props.screenProps.siteUrl}
+                      db={this.props.screenProps.db}
+                      terms={this.props.screenProps.terms}
+                      allNodes={this.props.screenProps.nodes}
+                      navigation={this.props.navigation}
+                      editable={false}
+                      editableContentTypes={this.props.screenProps.contentTypes}
+                    />)
                 }
               }
             }
-            if (oneExists) {
-              errorMessage =
-                <Text style={styles.syncError}>In order to view all of the content in this field, in your browser
-                  sync
-                  this item to Mukurtu Mobile.</Text>
-            }
           }
-          renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
+          if (errorMessage.length > 0) {
+            renderedNode.push(<View key={fieldName}>{errorMessage}</View>)
+            // errorMessage =
+            //   <Text style={styles.syncError}>In order to view all of the content in this field, in your browser
+            //     sync
+            //     this item to Mukurtu Mobile.</Text>
+          }
+          // renderedNode.push(<Text key={fieldName + i} style={styles.text}>{fieldData}</Text>)
         }
       }
 
@@ -277,7 +294,7 @@ export class EmbeddedNode extends React.Component {
     return (
       <View style={{flex: 1}}>
         <Text style={styles.nodeTitle}>{node.title}</Text>
-        {renderedNode}
+        <View style={styles.container}>{renderedNode}</View>
       </View>
     );
   }
@@ -290,9 +307,18 @@ const styles = StyleSheet.create({
     fontSize: 20
   },
   label: {
+    marginTop: 6,
     marginBottom: 3,
     color: '#000',
-    fontSize: 18
+    fontSize: 14,
+    textTransform: 'uppercase'
+  },
+  container: {
+    marginHorizontal: 10,
+    marginBottom: 15,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.mediumGray
   }
 });
 
