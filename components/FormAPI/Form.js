@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet, ActivityIndicator} from 'react-native';
+import {View, StyleSheet, ActivityIndicator, TouchableOpacity} from 'react-native';
 import Textfield from './Textfield';
 import Textarea from './Textarea';
 import Radios from './Radios';
@@ -1077,7 +1077,6 @@ export default class FormComponent extends React.Component {
 
             if (typeof fieldArray === 'object' && fieldArray['#type']) {
 
-
               // first determine if field is scald library because in FAPI that is a textfield
               if (fieldArray['#preview_context'] && ['sdl_editor_representation', 'mukurtu_scald_media_assets_edit_'].includes(fieldArray['#preview_context'])) {
                 let chosenImage = null;
@@ -1370,12 +1369,13 @@ export default class FormComponent extends React.Component {
         </View>
         {activityIndicator}
         {generalFormError}
-        <Button
-          title="Save"
+        <TouchableOpacity
+          style={styles.mediaButton}
           onPress={this.saveNode}
-          style={styles.button}
           disabled={!this.state.enabled}
-        />
+        >
+          <Text style={styles.mediaButtonText}>Save</Text>
+        </TouchableOpacity>
       </View>;
     }
 
@@ -1425,4 +1425,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 10
   },
+  mediaButton: {
+    color: Colors.primary,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 3,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft: 10,
+    paddingRight: 10,
+    textAlign: 'center'
+  },
+  mediaButtonText: {
+    color: Colors.primary,
+    textTransform: 'uppercase',
+    textAlign: 'center'
+  }
 });

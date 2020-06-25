@@ -137,7 +137,7 @@ class NodeScreen extends React.Component {
   render() {
     const emptyView = (
       <View style={{flex: 1}}>
-        <ScrollView style={styles.container}>
+        <ScrollView style={styles.container} onScroll={this.props.screenProps.logScrollPosition}>
           <Text key={`empty`} style={styles.text}>There is no content attached
             to this entry.</Text>
         </ScrollView>

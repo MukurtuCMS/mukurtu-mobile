@@ -128,7 +128,7 @@ export default class ConditionalSelect extends React.Component {
 
           childPicker = <RNPickerSelect
             placeholder={childPlaceholder}
-
+            placeholderTextColor="#FFF"
             items={childPickerOptions}
             onValueChange={(itemValue) => {
               this.props.setFormValue(this.props.fieldName, itemValue, i, valueKey);
@@ -147,6 +147,7 @@ export default class ConditionalSelect extends React.Component {
           <Text>{field['#title']} #{i+1}</Text>
           <RNPickerSelect
             placeholder={parentPlaceholder}
+            placeholderTextColor="#FFF"
             items={parentPickerOptions}
             onValueChange={(itemValue) => {
               // this.props.setFormValue(this.props.fieldName, 0, i, valueKey);

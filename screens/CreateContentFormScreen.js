@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
 import {addUser} from '../actions/user';
@@ -163,7 +163,7 @@ class CreateContentFormScreen extends React.Component {
 
     return (
       <View style={{backgroundColor:'#FFFFFF',flex:1, padding: '5%', paddingBottom: 0}}>
-        <KeyboardAwareScrollView style={{backgroundColor:'#FFFFFF',flex:1}}>
+        <KeyboardAwareScrollView style={{backgroundColor:'#FFFFFF',flex:1}} onScroll={this.props.screenProps.logScrollPosition}>
           { nodeForm }
         </KeyboardAwareScrollView>
       </View>

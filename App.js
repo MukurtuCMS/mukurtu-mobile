@@ -40,6 +40,7 @@ export default class App extends React.Component {
     this.saveTaxonomy = this.saveTaxonomy.bind(this);
     this.setNodeSyncMessage = this.setNodeSyncMessage.bind(this);
     this._onRefresh = this._onRefresh.bind(this);
+    this.logScrollPosition = this.logScrollPosition.bind(this);
     this.netEventListener = null;
 
     this.state = {
@@ -68,7 +69,8 @@ export default class App extends React.Component {
       nodeSyncMessages: {},
       refreshing: false,
       editable: {},
-      syncText: ''
+      syncText: '',
+      disableRefresh: false
     };
   }
 
@@ -174,7 +176,8 @@ export default class App extends React.Component {
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
       appVersion: '2020-06-24_1515',
-      refreshing: this.state.refreshing
+      refreshing: this.state.refreshing,
+      logScrollPosition: this.logScrollPosition
     };
     // Not sure if this is necessary any longer, but leaving it just in case.
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
@@ -194,6 +197,7 @@ export default class App extends React.Component {
               refreshing={this.state.refreshing}
               onRefresh={this._onRefresh}
               title={this.state.syncText}
+              enabled={!this.state.disableRefresh}
             />}
           >
 
@@ -1134,6 +1138,18 @@ export default class App extends React.Component {
           this.resetSyncMessage();
         }
       });
+  }
+
+  logScrollPosition(position) {
+    if (position.nativeEvent.contentOffset.y > 20) {
+      if (!this.state.disableRefresh) {
+        this.setState({disableRefresh: true})
+      }
+    } else {
+      if (this.state.disableRefresh) {
+        this.setState({disableRefresh: false})
+      }
+    }
   }
 
   resetSyncMessage() {

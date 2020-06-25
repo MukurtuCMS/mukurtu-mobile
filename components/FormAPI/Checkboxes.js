@@ -5,6 +5,7 @@ import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import ErrorMessage from "./ErrorMessage";
+import HTML from "react-native-render-html";
 
 export default class Checkboxes extends React.Component {
 
@@ -68,10 +69,11 @@ export default class Checkboxes extends React.Component {
     let checkboxes = [];
     for (const [value, label] of Object.entries(field['#options'])) {
       const isChecked = this.determineCheckboxValue(this.props.fieldName, value, valueKey);
+      const title = <View style={{marginLeft: 10}}><HTML html={label} /></View>;
       checkboxes.push(
         <CheckBox
           key={value}
-          title={label}
+          title={title}
           containerStyle={checkboxStyle}
           iconType='material'
           checkedIcon='check-box'

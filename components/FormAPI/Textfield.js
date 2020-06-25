@@ -1,5 +1,5 @@
 import React from 'react';
-import {TextInput, View, Text, StyleSheet} from 'react-native';
+import {TextInput, View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import * as Colors from "../../constants/Colors";
 import FieldDescription from "./FieldDescription";
 import Required from "./Required";
@@ -144,6 +144,13 @@ export default class Textfield extends React.Component {
         defaultValue = field['#default_value']
       }
 
+      // in most cases field['#title'] works, but for a multiple value field within a paragraph (sample sentences),
+      // it was stored elsewhere, so it's passed as a prop.
+      let title = field['#title'];
+      if(this.props.title) {
+        title = this.props.title;
+      }
+
       return (
         <TextInput
           key={i}
@@ -155,6 +162,7 @@ export default class Textfield extends React.Component {
           maxLength={field['#maxlength']}
           onBlur={() => this.onBlur()}
           onFocus={() => this.onFocus()}
+          placeholder={'Enter ' + title}
         />);
 
     }, this);
@@ -165,10 +173,12 @@ export default class Textfield extends React.Component {
       addMoreText = this.props.addMoreText;
     }
     if (this.props.cardinality === -1) {
-      addMoreButton = <Button
-        title={addMoreText}
+      addMoreButton = <TouchableOpacity
+        style={styles.mediaButton}
         onPress={this.addItem.bind(this)}
-      />
+      >
+        <Text style={styles.mediaButtonText}>{addMoreText}</Text>
+      </TouchableOpacity>
     }
 
     // in most cases field['#title'] works, but for a multiple value field within a paragraph (sample sentences),
@@ -245,5 +255,22 @@ const styles = StyleSheet.create({
   },
   viewStyle: {
     marginBottom: 15,
+  },
+  mediaButton: {
+    color: Colors.default.primary,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: Colors.default.primary,
+    borderRadius: 3,
+    paddingTop: 7,
+    paddingBottom: 7,
+    paddingLeft: 10,
+    paddingRight: 10,
+    textAlign: 'center'
+  },
+  mediaButtonText: {
+    color: Colors.default.primary,
+    textTransform: 'uppercase',
+    textAlign: 'center'
   }
 });
