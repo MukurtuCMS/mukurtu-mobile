@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Text, TouchableHighlight, View} from 'react-native';
+import {Image, StyleSheet, Text, TouchableHighlight, View} from 'react-native';
 
 export class PleaseLogin extends React.Component {
 
@@ -24,8 +24,13 @@ export class PleaseLogin extends React.Component {
 
     return (
       <View style={styles.wrapper}>
+        <Text style={styles.titleText}>Welcome to Mukurtu Mobile</Text>
         <Text style={styles.text}>{text}</Text>
         {loginButton}
+        <Image
+          style={styles.image}
+          source={require('../assets/images/logo.png')}
+        />
       </View>
     )
   }
@@ -35,7 +40,9 @@ const styles = StyleSheet.create({
 
   wrapper: {
     padding: 30,
-    textAlign: 'center'
+    textAlign: 'center',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 
   text: {
@@ -59,4 +66,15 @@ const styles = StyleSheet.create({
   loginText: {
     color: 'white',
   },
+  titleText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10
+  },
+  image: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10
+  }
 });

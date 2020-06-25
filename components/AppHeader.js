@@ -1,5 +1,7 @@
 import React from 'react';
-import {View, StyleSheet, Text, Image} from 'react-native';
+import {View, StyleSheet, Text, Image, TouchableOpacity} from 'react-native';
+import Colors from "../constants/Colors";
+import SettingsList from "react-native-settings-list";
 
 export default class AppHeader extends React.Component {
 
@@ -41,10 +43,15 @@ export default class AppHeader extends React.Component {
         <Text>{this.props.url}</Text>
         {pullDownText}
       </View>
-{/*      <Image
-        style={styles.profileIcon}
-        source={require('../assets/images/profileIcon.png')}
-      />*/}
+{/*      <View>
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() =>
+          this.props.navigation.navigate('Login')
+        }>
+          <Text style={styles.loginButtonText}>Login</Text>
+        </TouchableOpacity>
+      </View>*/}
     </View>;
   }
 }
@@ -97,5 +104,23 @@ const styles = StyleSheet.create({
   },
   smallText: {
     fontSize: 12
+  },
+  loginButton: {
+    color: Colors.primary,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 3,
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 6,
+    paddingRight: 6,
+    textAlign: 'center',
+    marginRight: 10
+  },
+  loginButtonText: {
+    color: Colors.primary,
+    textTransform: 'uppercase',
+    textAlign: 'center'
   }
 });
