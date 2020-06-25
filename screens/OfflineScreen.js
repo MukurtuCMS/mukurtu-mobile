@@ -152,7 +152,7 @@ export default class OfflineScreen extends React.Component {
 
     return (
       <View style={styles.container}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} onScroll={this.props.screenProps.logScrollPosition}>
           {nodes}
         </ScrollView>
 

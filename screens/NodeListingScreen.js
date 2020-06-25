@@ -424,7 +424,7 @@ export default class HomeScreen extends React.Component {
     }
 
     return (
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} onScroll={this.props.screenProps.logScrollPosition}>
         <View>
           <View style={styles.searchInputContainer}>
             <Ionicons name="md-search" size={32} style={styles.searchIcon}/>

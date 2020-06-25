@@ -51,7 +51,7 @@ export default function CategoryScreen({navigation, screenProps}) {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} onScroll={this.props.screenProps.logScrollPosition}>
       {list.map((item) =>
         <NodeTeaser
           showType={true}
