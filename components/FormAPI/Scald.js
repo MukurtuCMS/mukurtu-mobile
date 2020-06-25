@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, Picker, View, Text, StyleSheet, Button, Platform} from 'react-native';
+import {Image, Picker, View, Text, StyleSheet, Button, Platform, TouchableOpacity} from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker'
@@ -13,6 +13,7 @@ import {FontAwesome} from "@expo/vector-icons";
 import NetInfo from '@react-native-community/netinfo';
 import {Video} from "expo-av";
 import _ from "lodash";
+import Colors from '../../constants/Colors';
 
 // To do on this if we have time:
 // 1. Ensure that if images are removed they're removed from drupal side.
@@ -472,24 +473,28 @@ export default class Scald extends React.Component {
         if (allowedMediaTypes.includes('image') || allowedMediaTypes.includes('video')) {
 
           buttons.push(<View key={'roll-btn'} style={styles.mediaButtonWrapper}>
-            <Button
-              title={'Select photo/video'}
-              onPress={() => this._launchCameraRollAsync(i, allowedMediaTypes)}/>
+            <TouchableOpacity
+              style={styles.mediaButton}
+              onPress={() => this._launchCameraRollAsync(i, allowedMediaTypes)}>
+              <Text style={styles.mediaButtonText}>Select photo/video</Text>
+            </TouchableOpacity>
           </View>);
           buttons.push(<View key={'camera-btn'} style={styles.mediaButtonWrapper}>
-            <Button
+            <TouchableOpacity
               style={styles.mediaButton}
-              title={'Take photo/video'}
-              onPress={() => this._launchCameraAsync(i, allowedMediaTypes)}/>
+              onPress={() => this._launchCameraAsync(i, allowedMediaTypes)}>
+              <Text style={styles.mediaButtonText}>Take photo/video</Text>
+            </TouchableOpacity>
           </View>);
 
         }
         if (allowedMediaTypes.includes('audio') || allowedMediaTypes.includes('file')) {
           buttons.push(<View key={'file-btn'} style={styles.mediaButtonWrapper}>
-            <Button
+            <TouchableOpacity
               style={styles.mediaButton}
-              title={'Select audio/document'}
-              onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}/>
+              onPress={() => this._launchDocumentAsync(i, allowedMediaTypes)}>
+              <Text style={styles.mediaButtonText}>Select audio/document</Text>
+            </TouchableOpacity>
           </View>);
         }
 
@@ -532,10 +537,11 @@ export default class Scald extends React.Component {
       addMoreButton =
         <View style={styles.addMoreButtonWrapper}>
 
-          <Button
-            title={addMoreText}
-            onPress={this.addItem.bind(this)}
-          />
+          <TouchableOpacity
+            style={styles.mediaButton}
+            onPress={this.addItem.bind(this)}>
+            <Text style={styles.mediaButtonText}>{addMoreText}</Text>
+          </TouchableOpacity>
         </View>
     }
 
@@ -584,4 +590,21 @@ const styles = StyleSheet.create({
   addMoreButtonWrapper: {
     marginBottom: 35,
   },
+  mediaButton: {
+    color: Colors.primary,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 3,
+    paddingTop: 7,
+    paddingBottom: 7,
+    paddingLeft: 10,
+    paddingRight: 10,
+    textAlign: 'center'
+  },
+  mediaButtonText: {
+    color: Colors.primary,
+    textTransform: 'uppercase',
+    textAlign: 'center'
+  }
 });

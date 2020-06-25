@@ -6,6 +6,7 @@ import FieldDescription from "./FieldDescription";
 import Required from "./Required";
 import ErrorMessage from "./ErrorMessage";
 import {getFirstFieldValue} from "./formUtils";
+import HTML from "react-native-render-html";
 
 export default class Checkbox extends React.Component {
 
@@ -60,12 +61,14 @@ export default class Checkbox extends React.Component {
 
     const isChecked = this.determineCheckedState();
 
+    const title = <View style={{marginLeft: 10}}><HTML html={field['#title']} /></View>;
+
     return <View style={styles.viewStyle}>
       {errorMarkup}
       <FieldDescription description={(this.props.description) ? this.props.description : null} />
       <Required required={this.props.required}/>
       <CheckBox
-        title={field['#title']}
+        title={title}
         checked={isChecked}
         containerStyle={checkboxStyle}
         iconType='material'

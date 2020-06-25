@@ -1,10 +1,11 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {Button} from "react-native-elements";
 import Textfield from "./Textfield";
 import Select2 from "./Select2";
 import Textarea from "./Textarea";
 import _ from 'lodash';
+import Colors from "../../constants/Colors";
 
 export default class Paragraph extends React.Component {
 
@@ -467,12 +468,14 @@ export default class Paragraph extends React.Component {
 
     // Add remove button if this isn't the first one
 
-    let removeButton = <Button
+    let removeButton = <TouchableOpacity
+      style={styles.mediaButton}
       key={`remove-btn-${index}`}
       index={index}
-      title="Remove"
       onPress={() => this.removeParagraph(index)}
-    />;
+    >
+      <Text style={styles.mediaButtonText}>Remove</Text>
+    </TouchableOpacity>;
     paragraphForm.push(removeButton);
 
 
@@ -509,11 +512,13 @@ export default class Paragraph extends React.Component {
     // Add action button
     let paragraphFormButton;
     if (this.props.field['actions'] !== undefined) {
-      paragraphFormButton = <Button
+      paragraphFormButton = <TouchableOpacity
+        style={styles.mediaButton}
         key={'p-buttons'}
-        title={this.props.addMoreText}
         onPress={this.addParagraph.bind(this)}
-      />
+      >
+        <Text style={styles.mediaButtonText}>{this.props.addMoreText}</Text>
+      </TouchableOpacity>
     }
 
     // pointerEvents={'none'}
@@ -548,4 +553,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20
   },
+  mediaButton: {
+    color: Colors.primary,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 3,
+    paddingTop: 7,
+    paddingBottom: 7,
+    paddingLeft: 10,
+    paddingRight: 10,
+    textAlign: 'center'
+  },
+  mediaButtonText: {
+    color: Colors.primary,
+    textTransform: 'uppercase',
+    textAlign: 'center'
+  }
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, Button, Dimensions, ActivityIndicator} from "react-native";
+import {View, Text, Button, Dimensions, ActivityIndicator, StyleSheet, TouchableOpacity} from "react-native";
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
 import FieldDescription from "./FieldDescription";
@@ -85,15 +85,18 @@ export default class LocationComponent extends React.Component {
     }
 
     const setMyLocationButton = (
-      <Button
+      <TouchableOpacity
+        style={styles.mediaButton}
         disabled={this.state.lookingUp}
-        title="Set My Location"
         onPress={() => {
           this.setState({lookingUp: true})
           this._getLocationAsync().then(() => {
             this.setState({lookingUp: false})
           })
-        }}/>);
+        }}>
+        <Text style={styles.mediaButtonText}>Set My Location</Text>
+      </TouchableOpacity>
+        );
 
     const latLng = this.getPropsLocation();
 
@@ -101,7 +104,8 @@ export default class LocationComponent extends React.Component {
       <MapView
         style={{width: Dimensions.get('window').width - 20,
           height: 300,
-          marginBottom: 10}}
+          marginBottom: 10,
+          marginTop: 18}}
         region={{
           latitude: latLng.latitude === 0 ? 37.09024 : latLng.latitude,
           longitude: latLng.longitude === 0 ? -95.712891 : latLng.longitude,
@@ -134,3 +138,23 @@ export default class LocationComponent extends React.Component {
     );
   }
 }
+
+const styles = StyleSheet.create({
+  mediaButton: {
+    color: Colors.primary,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 3,
+    paddingTop: 7,
+    paddingBottom: 7,
+    paddingLeft: 10,
+    paddingRight: 10,
+    textAlign: 'center'
+  },
+  mediaButtonText: {
+    color: Colors.primary,
+    textTransform: 'uppercase',
+    textAlign: 'center'
+  }
+});
