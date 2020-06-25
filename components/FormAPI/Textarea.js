@@ -67,6 +67,7 @@ export default class Textarea extends React.Component {
         maxLength={field['#maxlength']}
         multiline={true}
         numberOfLines={field['#rows']}
+        placeholder={'Enter ' + field['#title']}
       />
     </View>;
   }
@@ -93,8 +94,13 @@ const styles = StyleSheet.create({
   },
   textareaStyle: {
     height: 200,
-    borderColor: 'gray',
-    borderWidth: 1
+    borderColor: Colors.default.mediumGray,
+    borderRadius: 5,
+    borderWidth: 1,
+    marginBottom: 10,
+    padding: 8,
+    fontSize: 20,
+    textAlignVertical: 'top'
   },
   textfieldStyleError: {
     height: 'auto',

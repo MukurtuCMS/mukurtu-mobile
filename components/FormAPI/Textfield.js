@@ -144,6 +144,13 @@ export default class Textfield extends React.Component {
         defaultValue = field['#default_value']
       }
 
+      // in most cases field['#title'] works, but for a multiple value field within a paragraph (sample sentences),
+      // it was stored elsewhere, so it's passed as a prop.
+      let title = field['#title'];
+      if(this.props.title) {
+        title = this.props.title;
+      }
+
       return (
         <TextInput
           key={i}
@@ -155,6 +162,7 @@ export default class Textfield extends React.Component {
           maxLength={field['#maxlength']}
           onBlur={() => this.onBlur()}
           onFocus={() => this.onFocus()}
+          placeholder={'Enter ' + title}
         />);
 
     }, this);

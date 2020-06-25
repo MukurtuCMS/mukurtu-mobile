@@ -201,6 +201,8 @@ export default class Select2 extends React.Component {
       autocompleteFields.push(
         <Autocomplete
           // flatListProps={{ nestedScrollEnabled: true, }}
+          containerStyle={styles.textfieldContainerStyle}
+          inputContainerStyle={styles.textfieldStyle}
           key={`ac-${i}`}
           autoCapitalize="none"
           autoCorrect={false}
@@ -272,8 +274,10 @@ export default class Select2 extends React.Component {
           {selectedFields}
         </View>
         {showForm &&
-        <View style={{height: height}}>
+        <View style={{height: height + 20}}>
           <Autocomplete
+            containerStyle={styles.textfieldContainerStyle}
+            inputContainerStyle={styles.textfieldStyle}
             autoCapitalize="none"
             autoCorrect={false}
             data={sortedOptions}
@@ -359,6 +363,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     marginBottom: 10,
     padding: 8,
+    fontSize: 20,
+  },
+  textfieldContainerStyle: {
+    paddingTop: 8,
+    marginBottom: 10,
     fontSize: 20
   },
   textfieldStyleError: {
@@ -382,6 +391,5 @@ const styles = StyleSheet.create({
   removeSelected: {
     width: 20,
     height: 20,
-
   }
 });
