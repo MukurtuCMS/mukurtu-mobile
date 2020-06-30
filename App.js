@@ -175,7 +175,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2020-06-25_1515',
+      appVersion: '2020-06-30_1015',
       refreshing: this.state.refreshing,
       logScrollPosition: this.logScrollPosition
     };

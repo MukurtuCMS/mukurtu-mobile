@@ -1,5 +1,14 @@
 import React from 'react';
-import {View, Text, Button, Dimensions, ActivityIndicator, StyleSheet, TouchableOpacity} from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  Dimensions,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput
+} from "react-native";
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
 import FieldDescription from "./FieldDescription";
@@ -77,6 +86,18 @@ export default class LocationComponent extends React.Component {
     }
   };
 
+  manualAdjust = (type, value) => {
+    const latLng = this.getPropsLocation();
+    if (type === 'latitude') {
+      latLng.latitude = Number(value);
+    }
+    else {
+      latLng.longitude = Number(value);
+    }
+
+    this.setLocation(latLng);
+  }
+
   render() {
     let text = null;
 
@@ -96,7 +117,7 @@ export default class LocationComponent extends React.Component {
         }}>
         <Text style={styles.mediaButtonText}>Set My Location</Text>
       </TouchableOpacity>
-        );
+    );
 
     const latLng = this.getPropsLocation();
 
@@ -124,16 +145,40 @@ export default class LocationComponent extends React.Component {
     );
 
     return (
-      <View style={{flex: 1 / 2, height: 650}}>
+      <View style={{ marginBottom: 10}}>
         {text}
         <FieldDescription
           description={(this.props.description) ? this.props.description : null}/>
         <Required required={this.props.required}/>
-        <View style={{flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center"}}>
+        <View>
           {setMyLocationButton}
           {this.state.lookingUp && <ActivityIndicator size="small" color={Colors.primary}/>}
         </View>
         {mapView}
+        <View>
+          <Text style={styles.label}>Latitude:</Text>
+          <TextInput
+            keyboardType={'decimal-pad'}
+            autoCapitalize={'none'}
+            autoCompleteType={'off'}
+            autoCorrect={false}
+            style={styles.input}
+            value={latLng.latitude.toString()}
+            onChangeText={(text) => this.manualAdjust('latitude', text)}
+          />
+        </View>
+        <View>
+          <Text style={styles.label}>Longitude:</Text>
+          <TextInput
+            keyboardType={'decimal-pad'}
+            autoCapitalize={'none'}
+            autoCompleteType={'off'}
+            autoCorrect={false}
+            style={styles.input}
+            value={latLng.longitude.toString()}
+            onChangeText={(text) => this.manualAdjust('longitude', text)}
+          />
+        </View>
       </View>
     );
   }
@@ -150,11 +195,27 @@ const styles = StyleSheet.create({
     paddingBottom: 7,
     paddingLeft: 10,
     paddingRight: 10,
-    textAlign: 'center'
+    textAlign: 'center',
+    width: '100%',
   },
   mediaButtonText: {
     color: Colors.primary,
     textTransform: 'uppercase',
     textAlign: 'center'
+  },
+  label: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  input: {
+    height: 40,
+    borderWidth: 1,
+    borderColor: Colors.mediumGray,
+    borderRadius: 5,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+    padding: 8,
+    fontSize: 16
   }
 });

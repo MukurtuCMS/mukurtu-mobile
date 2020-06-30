@@ -104,8 +104,8 @@ export const sanitizeFormValues = (data, screenProps) => {
         // Sanitzie geo fields
         else if(_.has(formValues,[key, lang, 0, 'geom'])) {
           formValues[key][lang] = [{
-            lat: formValues[key][lang][0].lat,
-            lon: formValues[key][lang][0].lon
+            lat: formValues[key][lang][0]['geom'].lat,
+            lon: formValues[key][lang][0]['geom'].lon
           }];
         }
 

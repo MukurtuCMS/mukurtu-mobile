@@ -363,12 +363,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     marginBottom: 10,
     padding: 8,
-    fontSize: 20,
+    // fontSize: 20,
   },
   textfieldContainerStyle: {
     paddingTop: 8,
     marginBottom: 10,
-    fontSize: 20
+    // fontSize: 20
   },
   textfieldStyleError: {
     height: 40,
