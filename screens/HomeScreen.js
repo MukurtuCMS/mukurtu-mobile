@@ -23,6 +23,17 @@ class HomeScreen extends React.Component {
     this.state = {switchValue: false, loggedIn: false, token: false, user: {}, places: '', contentTypes: {}, placeName: '', isConnected: false, db: (screenProps.databaseName) ? SQLite.openDatabase(screenProps.databaseName) : null}
   }
 
+  componentDidMount() {
+    const { navigation } = this.props;
+    this.focusListener = navigation.addListener('didBlur', () => {
+      this.props.screenProps.checkLogin(true);
+    });
+  }
+
+  componentWillUnmount() {
+    this.focusListener.remove();
+  }
+
   render() {
 
 

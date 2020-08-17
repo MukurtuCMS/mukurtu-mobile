@@ -23,6 +23,14 @@ export default class CreateContentScreen extends React.Component {
       this.props.navigation.navigate('Login');
     }
 
+    const { navigation } = this.props;
+    this.focusListener = navigation.addListener('didBlur', () => {
+      this.props.screenProps.checkLogin(true);
+    });
+  }
+
+  componentWillUnmount() {
+    this.focusListener.remove();
   }
 
 

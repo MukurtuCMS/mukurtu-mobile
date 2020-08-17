@@ -41,6 +41,7 @@ export default class App extends React.Component {
     this.setNodeSyncMessage = this.setNodeSyncMessage.bind(this);
     this._onRefresh = this._onRefresh.bind(this);
     this.logScrollPosition = this.logScrollPosition.bind(this);
+    this.checkLogin = this.checkLogin.bind(this);
     this.netEventListener = null;
 
     this.state = {
@@ -177,7 +178,8 @@ export default class App extends React.Component {
       documentDirectory: FileSystem.documentDirectory,
       appVersion: '2020-06-30_1015',
       refreshing: this.state.refreshing,
-      logScrollPosition: this.logScrollPosition
+      logScrollPosition: this.logScrollPosition,
+      checkLogin: this.checkLogin
     };
     // Not sure if this is necessary any longer, but leaving it just in case.
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
@@ -1853,8 +1855,13 @@ export default class App extends React.Component {
   // This checks to see if we're logged in on the site.
   // If we're offline, but we do have authorization token in the db, we'll set login state to false and authorized to true
   // If we have both, both are true.
-  checkLogin() {
+  checkLogin(statusCheck = false) {
     console.log('Check login');
+
+    // Don't perform a status check if there is no connection.
+    if (!this.state.isConnected && statusCheck) {
+      return false;
+    }
 
     // First, get our global db info
     globalDB.transaction(
@@ -1938,6 +1945,11 @@ export default class App extends React.Component {
                           try {
                             // If this uid is not 0, the user is currently authenticated
                             if (responseJson.user.uid !== 0) {
+
+                              // If this is just a status check, we return early.
+                              if (statusCheck) {
+                                return true
+                              }
                               console.log('authenticate');
                               this.setState({
                                 loggedIn: true,
