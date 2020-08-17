@@ -40,6 +40,8 @@ export default class WebviewScreen extends React.Component {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'X-CSRF-Token': this.props.screenProps.token,
+        'Cookie': this.props.screenProps.cookie
       }
     })
       .then((response) => response.text())
@@ -48,7 +50,7 @@ export default class WebviewScreen extends React.Component {
         isLoggedInBrowser = html.includes(' logged-in');
         this.setState({
           isLoggedInBrowser: isLoggedInBrowser,
-          loading: false
+          // loading: false
         });
         // If we're logged in to app but not browser, get one-time login link
         if (this.props.screenProps.loggedIn && !isLoggedInBrowser) {
@@ -74,7 +76,7 @@ export default class WebviewScreen extends React.Component {
 
               this.setState({
                 targetUrl: returnUrl,
-                loading: false
+                // loading: false
               });
 
             })
@@ -102,7 +104,6 @@ export default class WebviewScreen extends React.Component {
   }
 
   render() {
-
     if(!this.props.screenProps.isConnected) {
       return(
         <View style={styles.wrapper}>
@@ -147,9 +148,11 @@ export default class WebviewScreen extends React.Component {
         <UnlockOrientation />
         {activityIndicator}
         <WebView
-          source={{uri: this.state.targetUrl}}
+          source={{uri: this.state.targetUrl +  this.props.navigation.getParam('path', '')}}
           useWebKit={true}
           allowsFullscreenVideo={true}
+          onLoadStart={() => this.setState({loading: true})}
+          onLoad={() => this.setState({loading: false})}
         />
       </View>
     );

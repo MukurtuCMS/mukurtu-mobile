@@ -4,10 +4,10 @@ import {
   Text,
   View,
   ScrollView,
-  Dimensions, TouchableHighlight, TouchableOpacity,
+  Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import {Feather} from '@expo/vector-icons';
-import * as SQLite from 'expo-sqlite';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
 import HTML from 'react-native-render-html';
@@ -26,13 +26,13 @@ import MicroTask from "../components/MicroTask";
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
+    const navNode = navigation.getParam('node');
     return {
       title: `${navigation.getParam('node').title}`,
       headerRight: () => {
         const canEdit = navigation.getParam('canEdit');
-        if (canEdit !== undefined && canEdit) {
-          return (<Feather style={{marginRight: 10}} onPress={() => {
-            const navNode = navigation.getParam('node');
+        return (<View style={{flexDirection: 'row'}}>
+          {canEdit !== undefined && canEdit && <Feather style={{marginRight: 10}} onPress={() => {
             const navigateAction = NavigationActions.navigate({
               routeName: 'EditContentForm',
               params: {
@@ -44,11 +44,23 @@ class NodeScreen extends React.Component {
               key: `node-edit-${navNode.nid}`
             });
             navigation.dispatch(navigateAction);
-          }} name="edit" size={24} color="#000"/>)
-        }
-        else {
-          return null;
-        }
+          }} name="edit" size={24} color="#000"/>}
+          <Feather
+            style={{marginRight: 10}}
+            name="globe"
+            size={24}
+            color="#000"
+            onPress={() => {
+              const webAction = NavigationActions.navigate({
+                routeName: 'Webview',
+                params: {
+                  path: `/node/${navNode.nid}`
+                }
+              });
+              navigation.dispatch(webAction);
+
+            }} />
+        </View>);
       }
     }
   };
