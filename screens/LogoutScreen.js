@@ -3,7 +3,7 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableHighlight,
+  TouchableHighlight, SafeAreaView,
 } from 'react-native';
 import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
@@ -37,7 +37,7 @@ class LogoutScreen extends React.Component {
   render() {
     if (this.props.screenProps.loggedIn) {
       return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
           <Text style={{marginBottom: 20}}>You Are Logged in
             as {this.props.screenProps.user.user.name}</Text>
           <TouchableHighlight
@@ -45,11 +45,11 @@ class LogoutScreen extends React.Component {
             onPress={() => this.handleLogoutClick()}>
             <Text style={styles.loginText}>Log Out</Text>
           </TouchableHighlight>
-        </View>
+        </SafeAreaView>
       )
     }
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <Text style={{marginBottom: 20}}>You Have Been Logged Out</Text>
         <TouchableHighlight
           style={[styles.buttonContainer, styles.loginButton]}
@@ -57,7 +57,7 @@ class LogoutScreen extends React.Component {
           <Text style={styles.loginText}>Log In</Text>
         </TouchableHighlight>
 
-      </View>
+      </SafeAreaView>
     )
 
   }

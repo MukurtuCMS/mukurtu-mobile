@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  SafeAreaView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -72,14 +73,15 @@ class HomeScreen extends React.Component {
       }
     }
     return (
-      <View style={{backgroundColor:'#EFEFF4',flex:1}}>
+      <SafeAreaView style={{flex: 1}}>
         <View style={{backgroundColor:'#EFEFF4',flex:1}}>
-          <SettingsList borderColor='#c8c7cc' defaultItemSize={50}>
-            {list}
-          </SettingsList>
+          <View style={{backgroundColor:'#EFEFF4',flex:1}}>
+            <SettingsList borderColor='#c8c7cc' defaultItemSize={50}>
+              {list}
+            </SettingsList>
+          </View>
         </View>
-      </View>
-
+      </SafeAreaView>
     );
   }
   toggleAuthView() {

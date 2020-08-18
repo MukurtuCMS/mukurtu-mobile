@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -151,12 +152,12 @@ export default class OfflineScreen extends React.Component {
     let i = 0;
 
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} onScroll={this.props.screenProps.logScrollPosition}>
           {nodes}
         </ScrollView>
 
-      </View>
+      </SafeAreaView>
     );
   }
 }

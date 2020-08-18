@@ -6,7 +6,7 @@ import {
   YellowBox,
   ScrollView,
   RefreshControl,
-  Alert, SafeAreaView
+  Alert, SafeAreaView, View
 } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import AppNavigator from './navigation/AppNavigator';
@@ -176,7 +176,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2020-06-30_1015',
+      appVersion: '2020-08-18_1630',
       refreshing: this.state.refreshing,
       logScrollPosition: this.logScrollPosition,
       checkLogin: this.checkLogin
@@ -192,7 +192,7 @@ export default class App extends React.Component {
 
     return (
       <Provider store={store}>
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
           <StatusBar barStyle="dark-content" />
           <ScrollView style={styles.container} contentContainerStyle={{flex: 1}}
             refreshControl={<RefreshControl
@@ -216,7 +216,7 @@ export default class App extends React.Component {
             />
 
           </ScrollView>
-        </SafeAreaView>
+        </View>
 
       </Provider>
     );

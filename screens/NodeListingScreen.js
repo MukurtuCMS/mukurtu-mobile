@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -424,45 +425,47 @@ export default class HomeScreen extends React.Component {
     }
 
     return (
-      <ScrollView style={styles.container} onScroll={this.props.screenProps.logScrollPosition}>
-        <View>
-          <View style={styles.searchInputContainer}>
-            <Ionicons name="md-search" size={32} style={styles.searchIcon}/>
-            <TextInput
-              style={styles.searchInputInner}
-              placeholder="Search"
-              value={this.state.search}
-              onChangeText={(text) => this.setSearchText(text)}
-            />
+      <SafeAreaView style={{flex: 1}}>
+        <ScrollView style={styles.container} onScroll={this.props.screenProps.logScrollPosition}>
+          <View>
+            <View style={styles.searchInputContainer}>
+              <Ionicons name="md-search" size={32} style={styles.searchIcon}/>
+              <TextInput
+                style={styles.searchInputInner}
+                placeholder="Search"
+                value={this.state.search}
+                onChangeText={(text) => this.setSearchText(text)}
+              />
+            </View>
+
+
+            {categoriesList}
+            {keywordsList}
+            {communityList}
+            {collectionList}
+            {message}
+            {
+              filteredContentList.map((node) => (
+                <NodeTeaser
+                  key={i++}
+                  node={node[1]}
+                  viewableFields={this.state.viewableFields}
+                  token={this.props.screenProps.token}
+                  cookie={this.props.screenProps.cookie}
+                  url={this.props.screenProps.siteUrl}
+                  db={this.props.screenProps.db}
+                  terms={this.props.screenProps.terms}
+                  allNodes={this.props.screenProps.nodes}
+                  navigation={this.props.navigation}
+                  editable={this.props.screenProps.editable}
+                  editableContentTypes={this.props.screenProps.contentTypes}
+                />
+              ))
+            }
           </View>
 
-
-          {categoriesList}
-          {keywordsList}
-          {communityList}
-          {collectionList}
-          {message}
-          {
-            filteredContentList.map((node) => (
-              <NodeTeaser
-                key={i++}
-                node={node[1]}
-                viewableFields={this.state.viewableFields}
-                token={this.props.screenProps.token}
-                cookie={this.props.screenProps.cookie}
-                url={this.props.screenProps.siteUrl}
-                db={this.props.screenProps.db}
-                terms={this.props.screenProps.terms}
-                allNodes={this.props.screenProps.nodes}
-                navigation={this.props.navigation}
-                editable={this.props.screenProps.editable}
-                editableContentTypes={this.props.screenProps.contentTypes}
-              />
-            ))
-          }
-        </View>
-
-      </ScrollView>
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 

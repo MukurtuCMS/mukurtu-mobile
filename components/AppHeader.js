@@ -1,5 +1,12 @@
 import React from 'react';
-import {View, StyleSheet, Text, Image, TouchableOpacity} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Image,
+  TouchableOpacity,
+  SafeAreaView
+} from 'react-native';
 import Colors from "../constants/Colors";
 import SettingsList from "react-native-settings-list";
 
@@ -34,25 +41,18 @@ export default class AppHeader extends React.Component {
       />;
     }
 
-    return <View style={styles.container}>
-      <View style={styles.siteIconView}>
-        {siteLogo}
-        <Text style={loginBubbleStyle}></Text>
+    return <SafeAreaView>
+      <View style={styles.container}>
+        <View style={styles.siteIconView}>
+          {siteLogo}
+          <Text style={loginBubbleStyle}></Text>
+        </View>
+        <View style={styles.siteName}>
+          <Text>{this.props.url}</Text>
+          {pullDownText}
+        </View>
       </View>
-      <View style={styles.siteName}>
-        <Text>{this.props.url}</Text>
-        {pullDownText}
-      </View>
-{/*      <View>
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={() =>
-          this.props.navigation.navigate('Login')
-        }>
-          <Text style={styles.loginButtonText}>Login</Text>
-        </TouchableOpacity>
-      </View>*/}
-    </View>;
+    </SafeAreaView>;
   }
 }
 

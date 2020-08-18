@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import PropTypes from 'prop-types'
-import {ScrollView, Text, View, StyleSheet} from "react-native";
+import {ScrollView, Text, View, StyleSheet, SafeAreaView} from "react-native";
 import _ from 'lodash';
 import NodeTeaser from "../components/Displays/nodeTeaser";
 
@@ -51,23 +51,25 @@ export default function CategoryScreen({navigation, screenProps}) {
   }
 
   return (
-    <ScrollView style={styles.container} onScroll={screenProps.logScrollPosition}>
-      {list.map((item) =>
-        <NodeTeaser
-          showType={true}
-          key={item.nid}
-          node={item}
-          token={screenProps.token}
-          cookie={screenProps.cookie}
-          url={screenProps.siteUrl}
-          db={screenProps.db}
-          terms={screenProps.terms}
-          allNodes={screenProps.nodes}
-          navigation={navigation}
-          editable={screenProps.editable}
-          editableContentTypes={screenProps.contentTypes}
-        />)}
-    </ScrollView>
+    <SafeAreaView style={{flex: 1}}>
+      <ScrollView style={styles.container} onScroll={screenProps.logScrollPosition}>
+        {list.map((item) =>
+          <NodeTeaser
+            showType={true}
+            key={item.nid}
+            node={item}
+            token={screenProps.token}
+            cookie={screenProps.cookie}
+            url={screenProps.siteUrl}
+            db={screenProps.db}
+            terms={screenProps.terms}
+            allNodes={screenProps.nodes}
+            navigation={navigation}
+            editable={screenProps.editable}
+            editableContentTypes={screenProps.contentTypes}
+          />)}
+      </ScrollView>
+    </SafeAreaView>
   )
 }
 

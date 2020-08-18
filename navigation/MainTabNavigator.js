@@ -138,6 +138,14 @@ export default createBottomTabNavigator({
 }, {
   tabBarOptions: {
     adaptive: true,
-    safeAreaInset: {bottom: 'never'},
+    style: {
+      paddingTop: Platform.OS === 'ios' ? 0 : 0,
+      marginBottom: Platform.OS === 'ios' ? 0 : 10,
+
+    },
+    labelStyle: {
+      alignSelf: "center"
+    },
+    // safeAreaInset: {bottom: 'never'},
   }
 });

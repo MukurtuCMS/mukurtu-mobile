@@ -5,7 +5,7 @@ import {
   View,
   ScrollView,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity, SafeAreaView
 } from 'react-native';
 import {Feather} from '@expo/vector-icons';
 import MapView from "react-native-maps";
@@ -616,8 +616,7 @@ class NodeScreen extends React.Component {
 
 
     return renderedNode.length > 0 ? (
-      <View style={{flex: 1}}>
-        <UnlockOrientation />
+      <SafeAreaView style={{flex: 1}}>
         <ScrollView style={styles.container}>
           {/*<Text>{this.state.media_text}</Text>*/}
           {star}
@@ -625,7 +624,7 @@ class NodeScreen extends React.Component {
             {renderedNode}
           </View>
         </ScrollView>
-      </View>
+      </SafeAreaView>
     ) : emptyView;
   }
 }

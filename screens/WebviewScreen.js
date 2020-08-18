@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  ActivityIndicator,
+  ActivityIndicator, SafeAreaView,
   StyleSheet,
   Text,
   View
@@ -9,7 +9,6 @@ import { WebView } from 'react-native-webview';
 import Validator from 'validator';
 import {Overlay} from "react-native-elements";
 import {PleaseLogin} from "../components/PleaseLogin";
-import UnlockOrientation from "../components/UnlockOrientation";
 
 
 export default class WebviewScreen extends React.Component {
@@ -144,17 +143,22 @@ export default class WebviewScreen extends React.Component {
     }
 
     return (
-      <View style={styles.container}>
-        <UnlockOrientation />
+      <SafeAreaView style={styles.container}>
+
         {activityIndicator}
         <WebView
-          source={{uri: this.state.targetUrl +  this.props.navigation.getParam('path', '')}}
+          source={{
+            uri: this.state.targetUrl +  this.props.navigation.getParam('path', ''),
+            headers: {
+              Cookie: this.props.screenProps.cookie
+            }
+          }}
           useWebKit={true}
           allowsFullscreenVideo={true}
           onLoadStart={() => this.setState({loading: true})}
           onLoad={() => this.setState({loading: false})}
         />
-      </View>
+      </SafeAreaView>
     );
   }
 }

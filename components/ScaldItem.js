@@ -178,7 +178,7 @@ export class ScaldItem extends React.Component {
         // Adjust height of player if it's audio
         let videoHeight = 300;
         if(this.state.audio) {
-          videoHeight = 45;
+          videoHeight = 50;
         }
         renderedItem =  <Video
           source={{uri: this.state.video}}

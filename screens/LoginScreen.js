@@ -4,7 +4,7 @@ import {
   Text,
   View,
   TextInput,
-  TouchableHighlight,
+  TouchableHighlight, SafeAreaView,
 } from 'react-native';
 import {connect} from 'react-redux';
 import {addPlace} from '../actions/place';
@@ -236,72 +236,74 @@ class LoginScreen extends React.Component {
     }
 
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={{flex: 1}}>
+        <View style={styles.container}>
 
-        <View style={styles.errorTextStyle}>
-          <Text>{nameEmpty}</Text>
+          <View style={styles.errorTextStyle}>
+            <Text>{nameEmpty}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            {showError}
+            <TextInput
+              autoCapitalize={'none'}
+              style={styles.inputs}
+              placeholder="Username"
+              underlineColorAndroid='transparent'
+              placeholderTextColor="#464646"
+              value={this.state.name}
+              onChangeText={(name) => this.setState({name})}/>
+          </View>
+
+
+          <View style={styles.errorTextStyle}>
+            <Text >{passwordEmpty}</Text>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputs}
+              placeholder="Password"
+              secureTextEntry={true}
+              underlineColorAndroid='transparent'
+              placeholderTextColor="#464646"
+              onChangeText={(password) => this.setState({password})}/>
+          </View>
+
+          <View style={styles.errorTextStyle}>
+            <Text>{urlInvalid}</Text>
+          </View>
+
+
+          <View style={styles.inputContainer}>
+
+            <TextInput
+              autoCapitalize={'none'}
+              autoCorrect={false}
+              style={styles.inputs}
+              placeholder="Url"
+              underlineColorAndroid='transparent'
+              placeholderTextColor="#464646"
+              value={this.state.url}
+              onChangeText={
+                (url) => {
+                  this.setState({url});
+                  this.setState({'urlInvalid': false})
+                }
+              }/>
+          </View>
+
+          <View style={styles.errorTextStyle}>
+            <Text>{loginError}</Text>
+          </View>
+
+          <TouchableHighlight
+            style={[styles.buttonContainer, styles.loginButton]}
+            onPress={() => this.onClickListener('login')}>
+            <Text style={styles.loginText}>Login</Text>
+          </TouchableHighlight>
+
         </View>
-        <View style={styles.inputContainer}>
-          {showError}
-          <TextInput
-            autoCapitalize={'none'}
-            style={styles.inputs}
-            placeholder="Username"
-            underlineColorAndroid='transparent'
-            placeholderTextColor="#464646"
-            value={this.state.name}
-            onChangeText={(name) => this.setState({name})}/>
-        </View>
-
-
-        <View style={styles.errorTextStyle}>
-          <Text >{passwordEmpty}</Text>
-        </View>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.inputs}
-            placeholder="Password"
-            secureTextEntry={true}
-            underlineColorAndroid='transparent'
-            placeholderTextColor="#464646"
-            onChangeText={(password) => this.setState({password})}/>
-        </View>
-
-        <View style={styles.errorTextStyle}>
-          <Text>{urlInvalid}</Text>
-        </View>
-
-
-        <View style={styles.inputContainer}>
-
-          <TextInput
-            autoCapitalize={'none'}
-            autoCorrect={false}
-            style={styles.inputs}
-            placeholder="Url"
-            underlineColorAndroid='transparent'
-            placeholderTextColor="#464646"
-            value={this.state.url}
-            onChangeText={
-              (url) => {
-                this.setState({url});
-                this.setState({'urlInvalid': false})
-              }
-            }/>
-        </View>
-
-        <View style={styles.errorTextStyle}>
-          <Text>{loginError}</Text>
-        </View>
-
-        <TouchableHighlight
-          style={[styles.buttonContainer, styles.loginButton]}
-          onPress={() => this.onClickListener('login')}>
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableHighlight>
-
-      </View>
+      </SafeAreaView>
     );
   }
 }
