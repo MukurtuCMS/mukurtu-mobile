@@ -3,6 +3,7 @@ import {Dimensions, StyleSheet, Text, View} from 'react-native';
 import HTML from "react-native-render-html";
 import {ScaldItem} from "./ScaldItem";
 import _ from 'lodash';
+import * as Linking from "expo-linking";
 
 export class ParagraphView extends React.Component {
 
@@ -28,6 +29,9 @@ export class ParagraphView extends React.Component {
               key={`${key}-${index}`}
               html={line.value}
               imagesMaxWidth={Dimensions.get('window').width}
+              onLinkPress={(event, url) => {
+                Linking.openURL(url);
+              }}
             />);
           });
           renderedItem.push(

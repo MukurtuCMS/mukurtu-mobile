@@ -5,7 +5,7 @@ import {
   View,
   ScrollView,
   Dimensions,
-  TouchableOpacity,
+  TouchableOpacity
 } from 'react-native';
 import {Feather} from '@expo/vector-icons';
 import MapView from "react-native-maps";
@@ -23,6 +23,7 @@ import {NavigationActions} from "react-navigation";
 import UnlockOrientation from "../components/UnlockOrientation";
 import Colors from "../constants/Colors";
 import MicroTask from "../components/MicroTask";
+import * as Linking from 'expo-linking';
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
@@ -301,9 +302,13 @@ class NodeScreen extends React.Component {
         if (isObject) {
           for (let i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<HTML
-              tagsStyles={tagsStyles} key={`${fieldName}_html_${i}`}
+              tagsStyles={tagsStyles}
+              key={`${fieldName}_html_${i}`}
               html={node[fieldName][lang][i].safe_value}
-              imagesMaxWidth={Dimensions.get('window').width}/>)
+              imagesMaxWidth={Dimensions.get('window').width}
+              onLinkPress={(event, url) => {
+                Linking.openURL(url);
+              }}/>)
           }
         }
       }

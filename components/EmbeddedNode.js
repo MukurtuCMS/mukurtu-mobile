@@ -6,6 +6,7 @@ import {FieldCollection} from "./FieldCollection";
 import Colors from "../constants/Colors";
 import NodeTeaser from "./Displays/nodeTeaser";
 import MicroTask from "./MicroTask";
+import * as Linking from "expo-linking";
 
 export class EmbeddedNode extends React.Component {
 
@@ -126,8 +127,13 @@ export class EmbeddedNode extends React.Component {
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
             renderedNode.push(<HTML
-              tagsStyles={tagsStyles}  key={fieldName + i} html={node[fieldName][lang][i].safe_value}
-              imagesMaxWidth={Dimensions.get('window').width}/>)
+              tagsStyles={tagsStyles}
+              key={fieldName + i}
+              html={node[fieldName][lang][i].safe_value}
+              imagesMaxWidth={Dimensions.get('window').width}
+              onLinkPress={(event, url) => {
+                Linking.openURL(url);
+              }}/>)
           }
         }
       }
