@@ -12,6 +12,7 @@ import {FontAwesome} from '@expo/vector-icons';
 import NodeTeaser from "../components/Displays/nodeTeaser";
 import * as Colors from "../constants/Colors"
 import {Ionicons} from '@expo/vector-icons';
+import {get} from 'lodash';
 
 
 export default class HomeScreen extends React.Component {
@@ -237,6 +238,10 @@ export default class HomeScreen extends React.Component {
     if (this.state.collectionSelected !== '0') {
       filteredContentList = filteredContentList.filter(node => this.filterCategory(node[1].field_collection, this.state.collectionSelected, 'nid'));
     }
+
+    filteredContentList = filteredContentList.filter(node => {
+      return !this.props.screenProps.skipInBrowse.includes(node[0].toString());
+    });
 
     return filteredContentList;
   };

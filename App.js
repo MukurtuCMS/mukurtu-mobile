@@ -71,6 +71,7 @@ export default class App extends React.Component {
       refreshing: false,
       editable: {},
       syncText: '',
+      skipInBrowse: [],
       disableRefresh: false
     };
   }
@@ -179,7 +180,8 @@ export default class App extends React.Component {
       appVersion: '2020-08-18_1630',
       refreshing: this.state.refreshing,
       logScrollPosition: this.logScrollPosition,
-      checkLogin: this.checkLogin
+      checkLogin: this.checkLogin,
+      skipInBrowse: this.state.skipInBrowse
     };
     // Not sure if this is necessary any longer, but leaving it just in case.
     if (this.state.user !== null && typeof this.state.user === 'object' && typeof this.state.user.user === 'object') {
@@ -1607,7 +1609,13 @@ export default class App extends React.Component {
             acc[cur] = nodes[cur].editable;
             return acc;
           }, {});
-          this.setState({'editable': editableNodes});
+
+          const skipInBrowse = Object.keys(nodes).filter(id => nodes[id].skip_in_browse_view);
+
+          this.setState({
+            'editable': editableNodes,
+            'skipInBrowse': skipInBrowse
+          });
 
 
           subPromises.push(Object.keys(nodes).map((key, index) => {
