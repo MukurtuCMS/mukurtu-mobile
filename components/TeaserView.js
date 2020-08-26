@@ -87,15 +87,15 @@ const styles = StyleSheet.create({
   meta: {
     flexDirection: 'row',
     marginBottom: 3,
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginRight: 35
   },
   metaTitle: {
-    fontSize: 11,
-    textTransform: 'uppercase',
+    fontSize: 13,
     fontWeight: 'bold',
     paddingRight: 3
   },
   metaValue: {
-    fontSize: 13,
+    fontSize: 13
   }
 });

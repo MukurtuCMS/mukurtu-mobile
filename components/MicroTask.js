@@ -1,7 +1,7 @@
 import React from 'react'
 import {StyleSheet, Text, View} from "react-native";
 import _ from 'lodash';
-import NodeTeaser from "./Displays/nodeTeaser";
+import TeaserDisplay from "./Displays/TeaserDisplay";
 
 export default function MicroTask({screenProps, taskId, navigation}) {
   const {fieldCollectionsData} = screenProps;
@@ -24,19 +24,15 @@ export default function MicroTask({screenProps, taskId, navigation}) {
   const targetIds = _.get(fieldCollectionsData, [taskId, 'field_related_content', 'und'], []);
   targetIds.map((value, index) => {
     relatedContent.push(
-      <NodeTeaser
-        condensed={true}
+      <TeaserDisplay
         key={`micro_task_rc_${index}`}
         node={screenProps.nodes[value.target_id]}
-        token={screenProps.token}
-        cookie={screenProps.cookie}
-        url={screenProps.siteUrl}
-        db={screenProps.db}
         terms={screenProps.terms}
         allNodes={screenProps.nodes}
         navigation={navigation}
-        editable={false}
-        editableContentTypes={screenProps.contentTypes}/>
+        editableContentTypes={screenProps.viewableTypes}
+        db={screenProps.db}
+      />
     );
   })
 

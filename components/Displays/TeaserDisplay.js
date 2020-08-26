@@ -5,7 +5,7 @@ import {NavigationActions} from "react-navigation";
 import {get, has} from 'lodash';
 import * as FileSystem from "expo-file-system";
 
-export default function TeaserDisplay({node, navigation, editableContentTypes, terms, db}) {
+export default function TeaserDisplay({node, navigation, editableContentTypes, terms, db, allNodes}) {
   const [imageUrl, setImageUrl] = useState('');
   let sid = null;
   let icon = '';
@@ -63,19 +63,34 @@ export default function TeaserDisplay({node, navigation, editableContentTypes, t
     case 'dictionary_word':
       icon = 'book-open';
       break;
-    case 'digital_heritage':
+    case 'digital_heritage': {
       icon = 'feather';
       sid = get(node, ['field_media_asset', 'und', 0, 'sid'], null);
       loadImage(sid);
-      meta = [{title: 'Community', value: 'Community 1'}, {title: 'Category', value: 'General, Historic, Photographs'}]
+
+      const communityId = get(node, ['field_community_ref', 'und', 0, 'nid']);
+      if (communityId !== undefined && allNodes[communityId] !== undefined) {
+        meta.push({title: 'Community', value: allNodes[communityId].title});
+      }
+
+      const catIds = get(node, ['field_category', 'en'], []);
+      const categories = catIds.map(cat => {
+        return terms[cat.tid] !== undefined ? terms[cat.tid].name : null;
+      })
+      const cleanCategories = categories.filter(Boolean)
+      if (cleanCategories.length > 0) {
+        meta.push({title: 'Category', value: cleanCategories.join(', ')
+        })
+      }
+
       break;
+    }
     case 'person':
       icon = 'user';
       sid = get(node, ['field_media_asset', 'und', 0, 'sid'], null);
       loadImage(sid);
       break;
     case 'word_list': {
-      console.log(node.field_collection_summary);
       icon = 'list';
       sid = get(node, ['field_collection_image', 'und', 0, 'sid'], null);
       loadImage(sid);
@@ -103,5 +118,6 @@ TeaserDisplay.propTypes = {
   node: PropTypes.object.isRequired,
   navigation: PropTypes.object.isRequired,
   editableContentTypes: PropTypes.object.isRequired,
-  terms: PropTypes.object.isRequired
+  terms: PropTypes.object.isRequired,
+  allNodes: PropTypes.object.isRequired
 }
