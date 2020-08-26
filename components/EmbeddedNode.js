@@ -1,12 +1,11 @@
 import React from 'react';
-import {Dimensions, StyleSheet, Text, View} from 'react-native';
-import HTML from "react-native-render-html";
+import {StyleSheet, Text, View} from 'react-native';
 import MapView, {Marker} from "react-native-maps";
 import {FieldCollection} from "./FieldCollection";
 import Colors from "../constants/Colors";
 import NodeTeaser from "./Displays/nodeTeaser";
 import MicroTask from "./MicroTask";
-import * as Linking from "expo-linking";
+import TextArea from "./TextArea";
 
 export class EmbeddedNode extends React.Component {
 
@@ -122,18 +121,16 @@ export class EmbeddedNode extends React.Component {
       }
 
       if (fieldObject.view_mode_properties.type === 'text_default') {
-        let tagsStyles = { p: { marginTop: 0 }};
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (var i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML
-              tagsStyles={tagsStyles}
+            renderedNode.push(<TextArea
               key={fieldName + i}
+              terms={this.props.screenProps.terms}
+              navigation={this.props.navigation}
               html={node[fieldName][lang][i].safe_value}
-              imagesMaxWidth={Dimensions.get('window').width}
-              onLinkPress={(event, url) => {
-                Linking.openURL(url);
-              }}/>)
+              nodes={this.props.screenProps.nodes}
+            />)
           }
         }
       }

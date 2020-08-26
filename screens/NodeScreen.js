@@ -10,7 +10,6 @@ import {
 import {Feather} from '@expo/vector-icons';
 import MapView from "react-native-maps";
 import {Marker} from "react-native-maps";
-import HTML from 'react-native-render-html';
 import {Star} from "../components/Star";
 import {ScaldItem} from "../components/ScaldItem";
 import {ParagraphView} from "../components/ParagraphView";
@@ -20,10 +19,9 @@ import {ScaldSwipe} from '../components/ScaldSwipe';
 import {FieldCollection} from "../components/FieldCollection";
 import _ from 'lodash';
 import {NavigationActions} from "react-navigation";
-import UnlockOrientation from "../components/UnlockOrientation";
 import Colors from "../constants/Colors";
 import MicroTask from "../components/MicroTask";
-import * as Linking from 'expo-linking';
+import TextArea from "../components/TextArea";
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
@@ -297,18 +295,16 @@ class NodeScreen extends React.Component {
       }
 
       if (fieldObject.view_mode_properties.type === 'text_default') {
-        let tagsStyles = {p: {marginTop: 0}};
         const isObject = Object.prototype.toString.call(node[fieldName]) === '[object Object]';
         if (isObject) {
           for (let i = 0; i < node[fieldName][lang].length; i++) {
-            renderedNode.push(<HTML
-              tagsStyles={tagsStyles}
+            renderedNode.push(<TextArea
               key={`${fieldName}_html_${i}`}
+              terms={this.props.screenProps.terms}
+              navigation={this.props.navigation}
               html={node[fieldName][lang][i].safe_value}
-              imagesMaxWidth={Dimensions.get('window').width}
-              onLinkPress={(event, url) => {
-                Linking.openURL(url);
-              }}/>)
+              nodes={this.props.screenProps.nodes}
+            />)
           }
         }
       }
@@ -451,6 +447,7 @@ class NodeScreen extends React.Component {
               key={`${fieldName}_paragraph_${i}`}
               contentType={this.props.navigation.getParam('contentType')}
               documentDirectory={this.props.screenProps.documentDirectory}
+              navigation={this.props.navigation}
             />
           );
         }

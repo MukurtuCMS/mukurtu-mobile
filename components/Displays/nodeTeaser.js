@@ -149,6 +149,7 @@ export default class NodeTeaser extends React.Component {
                 pid={node[key]['und']['0']['value']}
                 viewableFields={this.props.viewableFields}
                 fieldName={key}
+                navigation={this.props.navigation}
               />
             </View>
           )

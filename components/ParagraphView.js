@@ -1,9 +1,8 @@
 import React from 'react';
-import {Dimensions, StyleSheet, Text, View} from 'react-native';
-import HTML from "react-native-render-html";
+import {StyleSheet, Text, View} from 'react-native';
 import {ScaldItem} from "./ScaldItem";
 import _ from 'lodash';
-import * as Linking from "expo-linking";
+import TextArea from "./TextArea";
 
 export class ParagraphView extends React.Component {
 
@@ -21,18 +20,15 @@ export class ParagraphView extends React.Component {
 
         // Text values
         if (fieldKeys.includes('value')) {
-          let tagsStyles = {p: {marginTop: 0}};
           let textLines = [];
           thisParagraphData[key]['und'].forEach((line, index) => {
-            textLines.push(<HTML
-              tagsStyles={tagsStyles}
+            textLines.push(<TextArea
+              terms={terms}
+              navigation={this.props.navigation}
               key={`${key}-${index}`}
               html={line.value}
-              imagesMaxWidth={Dimensions.get('window').width}
-              onLinkPress={(event, url) => {
-                Linking.openURL(url);
-              }}
-            />);
+              nodes={nodes}
+            />)
           });
           renderedItem.push(
             <View key={`text-${key}`}>
