@@ -22,6 +22,7 @@ import {NavigationActions} from "react-navigation";
 import Colors from "../constants/Colors";
 import MicroTask from "../components/MicroTask";
 import TextArea from "../components/TextArea";
+import Link from "../components/Link";
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
@@ -587,6 +588,20 @@ class NodeScreen extends React.Component {
                 />);
             }
           }
+        }
+      }
+
+      if (fieldObject.view_mode_properties.type === 'link_default') {
+        let items = node[fieldName][lang];
+        for (let i = 0; i < items.length; i++) {
+          renderedNode.push(
+            <Link
+              key={`${fieldName}_link_${i}`}
+              navigation={this.props.navigation}
+              link={node[fieldName][lang][i]}
+              terms={this.props.terms}
+              nodes={this.props.screenProps.nodes}
+            />)
         }
       }
 
