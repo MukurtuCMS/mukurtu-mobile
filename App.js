@@ -20,6 +20,7 @@ import AppHeader from "./components/AppHeader";
 import * as FileSystem from "expo-file-system";
 import NetInfo from '@react-native-community/netinfo';
 import {sanitizeFormValues} from "./components/FormAPI/formUtils";
+import AsyncStorage from '@react-native-community/async-storage';
 import _ from 'lodash';
 
 
@@ -177,7 +178,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2020-08-26_1545',
+      appVersion: '2020-08-28_1345',
       refreshing: this.state.refreshing,
       logScrollPosition: this.logScrollPosition,
       checkLogin: this.checkLogin,
@@ -900,8 +901,21 @@ export default class App extends React.Component {
               nodesState[nid] = node;
               editableState[nid] = array.rows._array[i].editable;
             }
-            this.setState({'nodes': nodesState});
-            this.setState({'editable': editableState});
+            this.setState({
+              'nodes': nodesState,
+              'editable': editableState
+            });
+
+            try {
+              AsyncStorage.getItem('@mukurtu_skip_browse')
+                .then((val) => {
+                  const skipValues = val != null ? JSON.parse(val) : [];
+                  this.setState({'skipInBrowse': skipValues});
+                });
+            }
+            catch (e) {
+              console.log('Could not read from asyncStorage', e);
+            }
 
             this.state.db.transaction(
               tx => {
@@ -1611,6 +1625,12 @@ export default class App extends React.Component {
           }, {});
 
           const skipInBrowse = Object.keys(nodes).filter(id => nodes[id].skip_in_browse_view);
+          try {
+            AsyncStorage.setItem('@mukurtu_skip_browse', JSON.stringify(skipInBrowse));
+          }
+          catch (e) {
+            console.log('Error saving in asyncStorage', e);
+          }
 
           this.setState({
             'editable': editableNodes,
