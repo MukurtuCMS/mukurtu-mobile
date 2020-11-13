@@ -1,5 +1,5 @@
 import React from 'react'
-import {TextField} from 'react-native-material-textfield'
+// import {TextField} from 'react-native-material-textfield'
 import t from 'tcomb-form-native/lib'
 import {DocumentPicker} from 'expo';
 import {

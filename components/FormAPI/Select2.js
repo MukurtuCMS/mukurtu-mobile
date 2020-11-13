@@ -244,7 +244,7 @@ export default class Select2 extends React.Component {
     }
 
     const sortedOptions = this.findFilm(this.state.q, options);
-    height = (sortedOptions.length * 26) + 40;
+    height = (sortedOptions.length * 40) + 35;
     if(this.state.heightReset === true) {
       height = 40;
     }

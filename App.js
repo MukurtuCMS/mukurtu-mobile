@@ -3,7 +3,7 @@ import {
   Platform,
   StatusBar,
   StyleSheet,
-  YellowBox,
+  LogBox,
   ScrollView,
   RefreshControl,
   Alert, SafeAreaView, View
@@ -80,34 +80,9 @@ export default class App extends React.Component {
 
   componentDidMount() {
 
-
-    // YellowBox.ignoreWarnings(['Setting a timer']);
-    // YellowBox.ignoreWarnings(['Network request failed']);
-    // YellowBox.ignoreWarnings(['Each child in a list']);
-    // YellowBox.ignoreWarnings(['Failed prop type']);
-    YellowBox.ignoreWarnings([
-      'Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
-      'Warning: componentWillMount has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
-      'Remote debugger',
-      'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation',
-      'Warning: DatePicker'
-    ]);
-
-    console.ignoredYellowBox = [
-      'Warning: componentWillReceiveProps',
-      'Warning: componentWillMount',
-      'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation',
-      'Warning: DatePickerIOS'
-    ];
-
     this.netEventListener = NetInfo.addEventListener(state => {
       this.handleConnectivityChange(state.isConnected);
     });
-
-
-    // console.disableYellowBox = true;
-    //
-    // var self = this;
 
     // First, create global tables if they don't exist.
     ManageTables.createGlobalTables()
@@ -178,7 +153,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2020-10-13_1300',
+      appVersion: '2020-10-13_1630',
       refreshing: this.state.refreshing,
       logScrollPosition: this.logScrollPosition,
       checkLogin: this.checkLogin,
