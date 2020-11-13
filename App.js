@@ -3,7 +3,7 @@ import {
   Platform,
   StatusBar,
   StyleSheet,
-  YellowBox,
+  LogBox,
   ScrollView,
   RefreshControl,
   Alert, SafeAreaView, View
@@ -85,7 +85,7 @@ export default class App extends React.Component {
     // YellowBox.ignoreWarnings(['Network request failed']);
     // YellowBox.ignoreWarnings(['Each child in a list']);
     // YellowBox.ignoreWarnings(['Failed prop type']);
-    YellowBox.ignoreWarnings([
+    LogBox.ignoreLogs([
       'Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
       'Warning: componentWillMount has been renamed, and is not recommended for use. See https://fb.me/react-async-component-lifecycle-hooks for details.',
       'Remote debugger',
