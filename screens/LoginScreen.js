@@ -136,7 +136,7 @@ class LoginScreen extends React.Component {
               return fetch(this.state.url + '/app/user/login.json', data)
             })
             .then((response) => response.json())
-            .then((responseJson) => {
+            .then(async (responseJson) => {
 
               // this._handleSiteUrlUpdate(this.state.url, responseJson.user.uid, true);
               // Pass the token from the user, not our initial token.
@@ -148,24 +148,26 @@ class LoginScreen extends React.Component {
               cookie = responseJson.session_name + '=' + responseJson.sessid;
               user = JSON.stringify(responseJson);
 
-              return axios(this.state.url + '/services/session/token', {
+              const response = await axios(this.state.url + '/services/session/token', {
                 method: 'GET',
                 headers: {
                   'Accept': 'application/json',
                   'Content-Type': 'application/json',
-                  // 'X-CSRF-Token': responseJson.token,
                   'Cookie': cookie
                 }
               });
+
+              const token = responseJson.token;
+              return {response, token}
 
               // this._handleLoginStatusUpdate(responseJson.token, responseJson.session_name + '=' + responseJson.sessid, url, JSON.stringify(responseJson));
               // this.props.navigation.navigate('Home')
             })
             // .then((response) => response.blob())
-            .then((response) => {
+            .then(({response, token}) => {
 
               if (response.status === 200) {
-                this._handleLoginStatusUpdate(response.data, cookie, url, user);
+                this._handleLoginStatusUpdate(token, cookie, url, user);
               }
             })
             .catch((error) => {
