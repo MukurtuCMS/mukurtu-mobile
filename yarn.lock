@@ -8061,10 +8061,9 @@ react-native-autocomplete-input@^4.0.0:
   resolved "https://registry.yarnpkg.com/react-native-autocomplete-input/-/react-native-autocomplete-input-4.2.0.tgz#fcfc3d2f19134d4c3394a4e6a5aae13d8c4c9129"
   integrity sha512-bLZ9FO3NwcqYY3r6hefEEC4VW45L97kXuCyAqKXW1SJkkG/pGcen6zLq3SMFgoQuG3ryrO/ohz7gme7hFwzjoQ==
 
-react-native-datepicker@^1.7.2:
+react-native-datepicker@bkoether/react-native-datepicker:
   version "1.7.2"
-  resolved "https://registry.yarnpkg.com/react-native-datepicker/-/react-native-datepicker-1.7.2.tgz#58d0822591a0ac9b32aba082650222a0ee29669d"
-  integrity sha1-WNCCJZGgrJsyq6CCZQIioO4pZp0=
+  resolved "https://codeload.github.com/bkoether/react-native-datepicker/tar.gz/afb11682b5397d526ceebc1d0c74d4cab05d4544"
   dependencies:
     moment "^2.22.0"
 

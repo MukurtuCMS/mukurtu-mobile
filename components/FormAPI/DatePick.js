@@ -143,10 +143,12 @@ export default class DatePick extends React.Component {
               marginLeft: 36
             },
             datePicker: {
-              backgroundColor: colorScheme === 'dark' ? '#222' : 'white'
+              backgroundColor: colorScheme === 'dark' ? '#222' : 'white',
+              justifyContent: 'center'
             },
             datePickerCon: {
-              backgroundColor: colorScheme === 'dark' ? '#333' : 'white'
+              backgroundColor: colorScheme === 'dark' ? '#333' : 'white',
+              justifyContent: 'center'
             }
             // ... You can check the source to find the other keys.
           }}
