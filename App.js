@@ -153,7 +153,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2020-11-16_2300',
+      appVersion: '2021-02-01_1115',
       refreshing: this.state.refreshing,
       logScrollPosition: this.logScrollPosition,
       checkLogin: this.checkLogin,
@@ -1903,11 +1903,6 @@ export default class App extends React.Component {
 
                     // There might be multiple databases, so we just get the first one
                     if (array.rows.length > 0) {
-                      // Now, if we're not connected but do have user info, we set our status to authorized so that content can be created/viewed
-                      // if(!this.state.connected) {
-                      //   this.setState({'authorized': true});
-                      //   return;
-                      // }
                       let index = array.rows.length - 1;
 
                       // If we are connected, check to see if we're authorized
@@ -1916,6 +1911,21 @@ export default class App extends React.Component {
                       // Now we need to get our cookie
                       let cookie = user.session_name + '=' + user.sessid;
                       let token = user.token;
+
+                      // Now, if we're not connected but do have user info, we set our status to authorized so that content can be created/viewed
+                      if(!this.state.isConnected) {
+                        console.log('Device offline. Using local user data.');
+                        this.setState({
+                          loggedIn: true,
+                          authorized: true,
+                          user: user,
+                          cookie: cookie,
+                          token: token
+                        }, () => {
+                          this.retrieveEverythingFromDb()
+                        });
+                        return true;
+                      }
 
                       // let databaseName = this.state.siteUrl.replace(/\./g, '_') + '_' + user.uid;
                       // let db = SQLite.openDatabase(dbname);
@@ -1944,7 +1954,6 @@ export default class App extends React.Component {
                         })
                         .then((responseJson) => {
                           // Who knows what COULD come back here depending on drupal site, connection. So let's try catch
-                          console.log('test');
                           try {
                             // If this uid is not 0, the user is currently authenticated
                             if (responseJson.user.uid !== 0) {
