@@ -17,10 +17,11 @@ export default class WebviewScreen extends React.Component {
     const {navigation, screenProps} = this.props;
 
     this.state = {
-      targetUrl: this.props.screenProps.siteUrl,
+      targetUrl: '',
       isLoggedInBrowser: false,
       lastVisitedUrl: null,
-      loading: true
+      loading: true,
+      lastPropsPath: ''
     };
   }
 
@@ -130,8 +131,14 @@ export default class WebviewScreen extends React.Component {
 
     }
 
+    const propsPath = this.props.navigation.getParam('path', '');
+    let webUrl = this.props.screenProps.siteUrl + propsPath;
+    if (this.state.targetUrl.length > 0 && propsPath === this.state.lastPropsPath) {
+      webUrl = this.state.targetUrl;
+    }
+
     // If it's an invalid URL or the user is not logged in, don't open browser
-    if (!Validator.isURL(this.state.targetUrl) || !this.props.screenProps.loggedIn) {
+    if (!this.props.screenProps.loggedIn) {
       return (
 
         <PleaseLogin
@@ -148,13 +155,22 @@ export default class WebviewScreen extends React.Component {
         {activityIndicator}
         <WebView
           source={{
-            uri: this.state.targetUrl +  this.props.navigation.getParam('path', ''),
+            uri: webUrl,
             headers: {
               Cookie: this.props.screenProps.cookie
             }
           }}
           useWebKit={true}
           allowsFullscreenVideo={true}
+          onShouldStartLoadWithRequest={(request) => {
+            // If we have an invalid url don't go there. Stops pop-ups.
+            if (!Validator.isURL(request.url)) return false;
+            // If we're loading the current URI, allow it to load
+            if (request.url === webUrl) return true;
+            // We're loading a new URL -- change state first
+            this.setState({targetUrl: request.url, lastPropsPath: propsPath})
+            return false;
+          }}
           onLoadStart={() => this.setState({loading: true})}
           onLoad={() => this.setState({loading: false})}
         />
