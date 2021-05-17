@@ -30,6 +30,7 @@ export default class FormComponent extends React.Component {
       cookie: null,
       token: null,
       formSubmitted: false,
+      submittedOffline: false,
       formErrors: null,
       submitting: false,
       enabled: true,
@@ -654,7 +655,8 @@ export default class FormComponent extends React.Component {
             (success) => {
               this.setState({
                 formSubmitted: true,
-                submitting: false
+                submitting: false,
+                submittedOffline: true
               })
             },
             (success, error) => {
@@ -1334,7 +1336,17 @@ export default class FormComponent extends React.Component {
             onPress={this.resetForm}
           />
         </View>
-      } else {
+      }
+      else if (this.props.screenProps.isConnected && this.state.submittedOffline) {
+        formDisplay = (<View>
+          <Text>The content you created offline might not be synced yet. Please "pull down" to synchronize your content.</Text>
+          <Button
+            title="Submit Another"
+            onPress={this.resetForm}
+          />
+        </View>)
+      }
+      else {
         formDisplay = <View>
           <Text>Your content has been submitted successfully.</Text>
           <Text style={{paddingVertical: 20}}><Text style={{fontWeight: 'bold'}}>Please note:</Text> If you added references to your content such as
