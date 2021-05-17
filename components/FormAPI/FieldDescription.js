@@ -12,7 +12,9 @@ export default class FieldDescription extends React.Component {
     if (this.props.description) {
       description.push(<Text
         key={0}
-        style={styles.descriptionStyle}>{this.props.description.replace(/<[^>]*>?/gm, '')}</Text>);
+        style={styles.descriptionStyle}>
+        {this.props.description}
+      </Text>);
     }
     return <View>
       {description}
