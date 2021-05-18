@@ -164,6 +164,7 @@ class CreateContentFormScreen extends React.Component {
     return (
       <View style={{backgroundColor:'#FFFFFF',flex:1, padding: '5%', paddingBottom: 0}}>
         <KeyboardAwareScrollView
+          keyboardShouldPersistTaps={'handled'}
           style={{backgroundColor:'#FFFFFF',flex:1}}
           extraScrollHeight={200}
           onScroll={this.props.screenProps.logScrollPosition}>

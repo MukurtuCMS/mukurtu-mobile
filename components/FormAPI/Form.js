@@ -9,6 +9,7 @@ import Select from './Select';
 import DatePick from './DatePick';
 import Scald from './Scald';
 import Select2 from './Select2';
+import TagSelect from './TagSelect';
 import Paragraph from './Paragraph';
 import ConditionalSelect from './ConditionalSelect';
 import Location from './Location';
@@ -1208,7 +1209,7 @@ export default class FormComponent extends React.Component {
 
               }
               else if (fieldArray['#type'] === 'select' && fieldName === 'field_mukurtu_terms') {
-                form[i].push(<Select2
+                form[i].push(<TagSelect
                   formValues={this.state.formValues}
                   fieldName={fieldName}
                   field={fieldArray}
@@ -1255,7 +1256,7 @@ export default class FormComponent extends React.Component {
                   description={description}
                 />);
               } else if (fieldArray['#type'] === 'select2_hidden') {
-                form[i].push(<Select2
+                form[i].push(<TagSelect
                   formValues={this.state.formValues}
                   fieldName={fieldName}
                   field={fieldArray}
