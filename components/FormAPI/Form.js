@@ -47,6 +47,7 @@ export default class FormComponent extends React.Component {
     this.enableSubmit = this.enableSubmit.bind(this);
     this.disableSubmit = this.disableSubmit.bind(this);
     this.componentActive = this.componentActive.bind(this);
+    this.checkRequired = this.checkRequired.bind(this);
   }
 
   componentDidMount() {
@@ -87,8 +88,6 @@ export default class FormComponent extends React.Component {
     this.setState({selectedIndex})
   }
 
-
-
   disableSubmit() {
     this.setState({'enabled': false});
   }
@@ -96,7 +95,6 @@ export default class FormComponent extends React.Component {
   enableSubmit() {
     this.setState({'enabled': true});
   }
-
 
   setFormValue(newFieldName, newValue, valueKey, lang = 'und', error = null, index = '0') {
 
@@ -636,8 +634,30 @@ export default class FormComponent extends React.Component {
     }
   }
 
+  checkRequired(data, required) {
+    let requiredErrors = {};
+    required.forEach((value, key) => {
+      if (data[key] === undefined) {
+        requiredErrors[key] = `${value} field is required.`;
+      }
+    })
 
-  saveNode() {
+    if (Object.keys(requiredErrors).length > 0) {
+      this.setState({
+        formErrors: requiredErrors
+      })
+      return false;
+    }
+
+    return true;
+
+  }
+
+  saveNode(requiredFields = []) {
+    if (!this.checkRequired(this.state.formValues, requiredFields)) {
+      return;
+    }
+
     if (!this.props.screenProps.isConnected) {
 
       // Generate a random ID for this, so that we can keep track of it until it's submitted and has a node ID
@@ -947,6 +967,7 @@ export default class FormComponent extends React.Component {
     let buttonGroup = [];
     let description = null;
     const {selectedIndex} = this.state;
+    const requiredFields = new Map();
 
 
     // iterate through groups
@@ -1077,6 +1098,9 @@ export default class FormComponent extends React.Component {
 
             // Set required values
             let required = fieldArray['#required'];
+            if (required) {
+              requiredFields.set(fieldName, fieldArray?.['#title'] ?? '');
+            }
 
             if (typeof fieldArray === 'object' && fieldArray['#type']) {
 
@@ -1384,7 +1408,7 @@ export default class FormComponent extends React.Component {
         {generalFormError}
         <TouchableOpacity
           style={styles.mediaButton}
-          onPress={this.saveNode}
+          onPress={() => this.saveNode(requiredFields)}
           disabled={!this.state.enabled}
         >
           <Text style={styles.mediaButtonText}>Save</Text>
