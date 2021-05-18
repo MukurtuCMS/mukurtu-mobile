@@ -83,7 +83,6 @@ class FilesNotSanitized extends Component {
 FilesNotSanitized.transformer =
   {
     format(value) {
-      console.log(value);
       return value || []
     },
 

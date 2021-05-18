@@ -534,7 +534,7 @@ export default class App extends React.Component {
 
 
         if (fieldName === 'field_lesson_micro_tasks') {
-          console.log('here');
+
         }
 
         // // If there are referenced nodes, we need to retrieve them to get their titles
@@ -1406,7 +1406,6 @@ export default class App extends React.Component {
                   // nodes, but our state setting is different here
                   const sanitizedValues = sanitizeFormValues(formValues, {formFields: this.state.formFields});
                   if (formValues.nid) {
-                    console.log('here');
                     const token = this.state.token;
                     const cookie = this.state.cookie;
                     const data = {
@@ -1448,7 +1447,6 @@ export default class App extends React.Component {
                       });
                   }
                   else {
-                    console.log('there');
                     fetch(this.state.siteUrl + '/app/node.json', {
                       method: 'POST',
                       mode: 'cors',
@@ -1473,7 +1471,6 @@ export default class App extends React.Component {
                         return response.json();
                       })
                       .then((responseJson) => {
-                        console.log('ok');
 
                         if (responseJson.hasOwnProperty('nid')) {
                           this.updateSyncedNids(responseJson.nid);
@@ -1700,7 +1697,6 @@ export default class App extends React.Component {
                     let currentFormFieldsState = this.state.formFields;
                     currentFormFieldsState[url.machineName] = response;
                     this.setState({'formFields': currentFormFieldsState});
-                    console.log('done with this promise')
                   })
                   .catch(error => {
                     console.log('error with this promise')
@@ -1753,7 +1749,6 @@ export default class App extends React.Component {
                     );
                   })
                   .catch((error) => {
-                    console.log('error 1');
                     console.log(error);
                   })
                 );
@@ -1792,7 +1787,6 @@ export default class App extends React.Component {
             }
           })
           .catch((error) => {
-            console.log('error 2');
             console.log(error);
           });
 
@@ -1818,7 +1812,6 @@ export default class App extends React.Component {
             }
           })
           .catch((error) => {
-            console.log('error 3');
             console.log(error);
           });
 
@@ -1859,8 +1852,6 @@ export default class App extends React.Component {
   // If we're offline, but we do have authorization token in the db, we'll set login state to false and authorized to true
   // If we have both, both are true.
   checkLogin(statusCheck = false) {
-    console.log('Check login');
-
     // Don't perform a status check if there is no connection.
     if (!this.state.isConnected && statusCheck) {
       return false;
@@ -1944,10 +1935,6 @@ export default class App extends React.Component {
                         }
                       };
 
-                      // Append http to this. Might need to save original protocol to db
-                      // data.url = 'http://' + this.state.siteUrl + '/app/system/connect';
-                      console.log('checking connect');
-                      console.log(this.state.siteUrl);
                       fetch(this.state.siteUrl + '/app/system/connect', data)
                         .then((response) => {
                           return response.json()

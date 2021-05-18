@@ -89,7 +89,6 @@ export class ScaldItem extends React.Component {
                     this.setState({'video': result.uri})
                   } else {
                     console.log('error retrieving scald')
-                    console.log(result);
                   }
                 });
             }
@@ -100,7 +99,6 @@ export class ScaldItem extends React.Component {
                     this.setState({'data': result});
                   } else {
                     console.log('error retrieving scald')
-                    console.log(result);
                   }
                 });
             }

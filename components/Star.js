@@ -109,12 +109,9 @@ export class Star extends React.Component {
             [JSON.stringify(submissionArray)],
             function (t) {
               let a;
-              console.log(t);
             },
             function (e, t) {
               let v;
-              console.log(e);
-              console.log(t);
             }
           );
         }

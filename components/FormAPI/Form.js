@@ -1000,7 +1000,7 @@ export default class FormComponent extends React.Component {
 
 
           if (fieldName === 'field_mukurtu_terms') {
-            console.log('terms');
+            // console.log('terms');
           }
 
           if (fieldArray['#type'] !== undefined) {
