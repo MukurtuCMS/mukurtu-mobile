@@ -8,7 +8,6 @@ import Checkbox from './Checkbox';
 import Select from './Select';
 import DatePick from './DatePick';
 import Scald from './Scald';
-import Select2 from './Select2';
 import TagSelect from './TagSelect';
 import Paragraph from './Paragraph';
 import ConditionalSelect from './ConditionalSelect';
@@ -637,7 +636,12 @@ export default class FormComponent extends React.Component {
   checkRequired(data, required) {
     let requiredErrors = {};
     required.forEach((value, key) => {
-      if (data[key] === undefined) {
+      let fieldData = data[key];
+      if (_.isObjectLike(fieldData)) {
+        fieldData = data[key]?.und ?? (data[key]?.en ?? []);
+      }
+
+      if (_.isEmpty(fieldData)) {
         requiredErrors[key] = `${value} field is required.`;
       }
     })

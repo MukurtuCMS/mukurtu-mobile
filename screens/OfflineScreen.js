@@ -108,6 +108,19 @@ export default class OfflineScreen extends React.Component {
     })
   }
 
+  removeNode = (nid) => {
+    this.props.screenProps.db.transaction(
+      tx => {
+        tx.executeSql('delete from saved_offline where id = ?', [nid],
+          () => {
+            const newQueue = this.state.nodes.filter(node => node.id !== nid);
+            this.setState({
+              nodes: newQueue
+            })
+          })
+      });
+  }
+
   render() {
     // console.log(this.state.nodes);
     if (this.state.nodes.length < 1) {
@@ -131,21 +144,33 @@ export default class OfflineScreen extends React.Component {
       //   warning = '#dc3545'
       // }
       let message;
-      if (node.message) {
-        message = <Text style={{'color': '#dc3545'}}>{node.message}</Text>
+      let errorMessage = null;
+      if (this.props.screenProps.nodeSyncMessages[node.id]) {
+        errorMessage = this.props.screenProps.nodeSyncMessages[node.id].message;
+      }
+      if (errorMessage) {
+        message = <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+          <TouchableOpacity style={styles.removeButton} onPress={() => this.removeNode(node.id)}>
+            <Text style={styles.removeButtonText}>Remove from queue</Text>
+          </TouchableOpacity>
+        </View>
       }
       nodes.push(
-        <TouchableOpacity key={i} onPress={() => this.editNode(node.blob, node.id)}>
-          <View style={styles.listWrapper}>
-            <View style={styles.innerWrapper}>
-              <Text style={styles.listTextHeader}>{node.blob.title}</Text>
-              {message}
-            </View>
-            <View style={styles.editWrapper}>
-              <Feather name="edit" size={24} color="gray"/>
-            </View>
+        <View key={i} style={styles.listWrapper}>
+          <View style={styles.innerWrapper}>
+            <Text style={styles.listTextHeader}>{node.blob.title}</Text>
+            {message}
           </View>
-        </TouchableOpacity>
+          <View style={styles.editWrapper}>
+            <TouchableOpacity
+              key={i}
+              onPress={() => this.editNode(node.blob, node.id)}>
+              <Feather name="edit" size={26} color="gray"/>
+            </TouchableOpacity>
+          </View>
+        </View>
+
       )
     }
 
@@ -178,12 +203,11 @@ const styles = StyleSheet.create({
   },
   innerWrapper: {
     flex: 1,
-    flexDirection: 'column',
-    flexWrap: 'wrap',
   },
   editWrapper: {
     flexShrink: 0,
-    paddingTop: 5
+    paddingTop: 5,
+    flexDirection: 'row',
   },
   listTextHeader: {
     fontSize: 20
@@ -198,4 +222,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingBottom: 20
   },
+  errorContainer: {flexDirection: 'row', marginTop: 15},
+  errorText: {'color': '#dc3545', flex: 1},
+  removeButton: {
+    backgroundColor: 'red',
+    borderRadius: 4,
+    flexGrow: 0,
+    width: 70,
+    padding: 5,
+    marginRight: -24,
+    marginLeft: 5,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  removeButtonText: {color: '#fff', textAlign: 'center'},
+
 });
