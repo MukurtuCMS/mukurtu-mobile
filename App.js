@@ -697,9 +697,22 @@ export default class App extends React.Component {
       .then((response) => {
         return response.data;
       })
-      .then((atom) => {
+      .then(async (atom) => {
 
         this.setState({'syncText': 'Retrieving Media ' + atom.title});
+
+        // Check for the timestamp of what we have locally.
+        let shouldDownload = true;
+        const atomSearch = await this.queryDB('SELECT * FROM atom WHERE sid = ?', [atom.sid]);
+        if (atomSearch.length > 0) {
+          const localAtom = JSON.parse(atomSearch[0].entity);
+          const remoteAtomTime = atom.base_entity?.timestamp ?? 0;
+          const localAtomTime = localAtom?.base_entity?.timestamp ?? 0;
+
+          if (remoteAtomTime <= localAtomTime) {
+            shouldDownload = false;
+          }
+        }
 
         state.db.transaction(
           tx => {
@@ -711,9 +724,14 @@ export default class App extends React.Component {
           }
         );
 
-        return atom;
+        return shouldDownload ? atom : false;
       })
       .then((atom) => {
+
+        // If no atom was returned we assume that no newer version is available.
+        if (!atom) {
+          return;
+        }
 
         // Skip further processing for remote media items
         const remoteProvider = ['scald_youtube', 'scald_soundcloud', 'scald_vimeo', 'scald_dailymotion'];
