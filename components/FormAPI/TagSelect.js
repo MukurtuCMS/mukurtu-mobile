@@ -14,12 +14,20 @@ import ErrorMessage from "./ErrorMessage";
 import {getFieldLanguage, getFieldValueCount} from "./formUtils";
 import RNPickerSelect from "react-native-picker-select";
 import {FontAwesome} from '@expo/vector-icons';
-import {camelCase} from "lodash"
 
 const placeholder = {
   label: 'Select existing item...',
   value: '',
 };
+
+const getNewItem = (value) => {
+  return {
+    label: value,
+    value,
+    key: value,
+    text: value
+  }
+}
 
 
 const TagSelect = ({field, required, formValues, fieldName, setFormValue, parentIndex, formErrors}) => {
@@ -39,7 +47,7 @@ const TagSelect = ({field, required, formValues, fieldName, setFormValue, parent
   }
 
   // TODO: Enable once adding new is figured out.
-  const allowAdd = false; //!!field['#select2']['allow_add_onfly'] ?? false;
+  const allowAdd = !!field['#select2']['allow_add_onfly'] ?? false;
 
   const options = useMemo(() => {
     if (field['#select2']['data'] != null) {
@@ -77,14 +85,25 @@ const TagSelect = ({field, required, formValues, fieldName, setFormValue, parent
       let defaultValues = [];
       if (Array.isArray(currentValues)) {
         defaultValues = currentValues.map(item => {
-          return options.find(option => {
+          const selected =  options.find(option => {
             return option.value == item[fieldKeys.valueKey]
           })
+
+          if (selected === undefined) {
+            return getNewItem(item[fieldKeys.valueKey]);
+          }
+          return selected;
+
         });
       }
       else {
         defaultValues = Object.values(currentValues).map(item => {
-          return options.find(option => option.value == item)
+          const selected = options.find(option => option.value == item);
+          if (selected === undefined) {
+            return getNewItem(item);
+          }
+          return selected;
+
         })
       }
 
@@ -105,7 +124,7 @@ const TagSelect = ({field, required, formValues, fieldName, setFormValue, parent
     if (!isNew && currentSelect === '') return;
     if (isNew && newItem === '') return;
 
-    const searchKey = isNew ? 'new__' + camelCase(newItem) : currentSelect;
+    const searchKey = isNew ? newItem : currentSelect;
 
     const exist = selection.find(element => element.key === searchKey);
     if (!exist) {
