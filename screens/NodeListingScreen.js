@@ -13,12 +13,14 @@ import NodeTeaser from "../components/Displays/nodeTeaser";
 import * as Colors from "../constants/Colors"
 import {Ionicons} from '@expo/vector-icons';
 import {get} from 'lodash';
+import CustomBackButton from '../components/CustomBackButton';
 
 
 export default class HomeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
     return {
-      title: navigation.getParam('contentTypeLabel')
+      title: navigation.getParam('contentTypeLabel'),
+      headerLeft: () => <CustomBackButton navigation={navigation}/>
     }
   };
 

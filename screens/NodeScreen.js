@@ -23,12 +23,14 @@ import Colors from "../constants/Colors";
 import MicroTask from "../components/MicroTask";
 import TextArea from "../components/TextArea";
 import Link from "../components/Link";
+import CustomBackButton from '../components/CustomBackButton';
 
 class NodeScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
     const navNode = navigation.getParam('node');
     return {
       title: `${navigation.getParam('node').title}`,
+      headerLeft: () => <CustomBackButton navigation={navigation}/>,
       headerRight: () => {
         const canEdit = navigation.getParam('canEdit');
         return (<View style={{flexDirection: 'row'}}>

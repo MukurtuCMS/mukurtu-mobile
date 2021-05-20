@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import {Feather} from "@expo/vector-icons"
+import CustomBackButton from '../components/CustomBackButton';
 
 export default class OfflineScreen extends React.Component {
   constructor(props) {
@@ -18,8 +19,11 @@ export default class OfflineScreen extends React.Component {
     };
   }
 
-  static navigationOptions = {
-    title: 'Queued Content'
+  static navigationOptions = ({navigation}) => {
+    return {
+      title: 'Queued Content',
+      headerLeft: () => <CustomBackButton navigation={navigation}/>
+    }
   };
 
   componentDidMount() {
