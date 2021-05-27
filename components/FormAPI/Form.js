@@ -17,6 +17,7 @@ import FieldCollectionForm from "./FieldCollectionForm";
 import Colors from "../../constants/Colors";
 import {sanitizeFormValues} from './formUtils';
 import _ from 'lodash';
+import LinkField from './LinkField';
 
 
 export default class FormComponent extends React.Component {
@@ -633,6 +634,16 @@ export default class FormComponent extends React.Component {
     }
   }
 
+  setLinkFormValues({fieldName, values, lang = 'und'}) {
+    this.setState((state) => {
+      const newValues = {
+        [lang]: values
+      }
+      state.formValues[fieldName] = newValues;
+      return state;
+    });
+  }
+
   checkRequired(data, required) {
     let requiredErrors = {};
     required.forEach((value, key) => {
@@ -1028,9 +1039,6 @@ export default class FormComponent extends React.Component {
           }
 
 
-          if (fieldName === 'field_mukurtu_terms') {
-            // console.log('terms');
-          }
 
           if (fieldArray['#type'] !== undefined) {
 
@@ -1046,6 +1054,10 @@ export default class FormComponent extends React.Component {
 
 
               if (fieldArray['#type'] === undefined && fieldArray[0] !== undefined) {
+                const innerTitle =  fieldArray[0]?.["#title"] ?? "";
+                if (innerTitle.length === 0) {
+                  fieldArray[0]["#title"] = fieldArray["#title"]
+                }
 
                 fieldArray = fieldArray[0];
 
@@ -1298,7 +1310,21 @@ export default class FormComponent extends React.Component {
                   required={required}
                   description={description}
                 />);
-              } else if (fieldArray['#columns'] !== undefined) {
+              }
+              else if (fieldArray['#type'] === 'link_field') {
+                form[i].push(<LinkField
+                  formValues={this.state.formValues}
+                  fieldName={fieldName}
+                  field={fieldArray}
+                  key={fieldName}
+                  cardinality={originalFieldArray['und']?.['#cardinality'] ?? 1}
+                  setFormValue={this.setLinkFormValues.bind(this)}
+                  formErrors={this.state.formErrors}
+                  required={required}
+                  description={description}
+                />);
+              }
+              else if (fieldArray['#columns'] !== undefined) {
                 form[i].push(<Textfield
                   formValues={this.state.formValues}
                   fieldName={fieldName}
