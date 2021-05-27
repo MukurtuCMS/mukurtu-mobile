@@ -1006,6 +1006,10 @@ export default class FormComponent extends React.Component {
 
           var fieldArray = childrenFields[k];
 
+          if (fieldArray['#skip_on_mobile'] ?? false) {
+            continue;
+          }
+
           if (fieldName === undefined && fieldArray['#name'] !== undefined) {
             fieldName = fieldArray['#name'];
           }
