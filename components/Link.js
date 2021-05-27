@@ -19,7 +19,7 @@ export default function Link({link, navigation, nodes, terms}) {
     }
   }
 
-  const onLinkPress = () => {
+  const onLinkPress = async () => {
     if (nid != null) {
       const navigateAction = NavigationActions.navigate({
         routeName: 'Node',
@@ -34,7 +34,14 @@ export default function Link({link, navigation, nodes, terms}) {
       navigation.dispatch(navigateAction);
     }
     else {
-      Linking.openURL(link.url);
+      let prefix  = 'http://';
+      if (link.url.startsWith('http') ||
+        link.url.startsWith('mailto') ||
+        link.url.startsWith('tel') ||
+        link.url.startsWith('sms')) {
+        prefix  = '';
+      }
+      await Linking.openURL(`${prefix}${link.url}`);
     }
   }
 
