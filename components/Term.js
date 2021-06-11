@@ -18,7 +18,7 @@ export class Term extends React.Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-CSRF-Token': this.props.token,
-        'Cookie': this.props.cookie,
+        //'Cookie': this.props.cookie,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': 0

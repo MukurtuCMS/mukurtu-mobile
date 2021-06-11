@@ -129,7 +129,7 @@ export class Star extends React.Component {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'X-CSRF-Token': token,
-          'Cookie': cookie
+         // 'Cookie': cookie
         },
         redirect: 'follow',
         referrer: 'no-referrer',

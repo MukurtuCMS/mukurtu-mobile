@@ -3,12 +3,13 @@
     "name": "mukurtu-mobile",
     "description": "A very interesting project.",
     "slug": "mukurtu-mobile",
-    "privacy": "public",
+    "owner": "washington_state_university_libraries",
+    "privacy": "unlisted",
     "platforms": [
       "ios",
       "android"
     ],
-    "version": "1.0.4",
+    "version": "3.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "splash": {
@@ -23,10 +24,10 @@
       "**/*"
     ],
     "ios": {
-      "bundleIdentifier": "com.kanopi.mukurtu-mobile",
+      "bundleIdentifier": "com.map2app.Mukurtu-Mobile",
       "buildNumber": "5",
       "supportsTablet": true,
-      "usesIcloudStorage": true,
+      "usesIcloudStorage": false,
       "infoPlist": {
         "UIUserInterfaceStyle": "Light",
         "UIBackgroundModes": [

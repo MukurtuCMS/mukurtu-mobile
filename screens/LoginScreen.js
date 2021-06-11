@@ -153,7 +153,7 @@ class LoginScreen extends React.Component {
                 headers: {
                   'Accept': 'application/json',
                   'Content-Type': 'application/json',
-                  'Cookie': cookie
+                  //'Cookie': cookie
                 }
               });
 

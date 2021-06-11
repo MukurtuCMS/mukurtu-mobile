@@ -187,11 +187,12 @@ const buildFetchData = (method = 'GET', state) => {
   const cookie = state.cookie;
   const data = {
     method: method,
+    //credentials: 'include',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       'X-CSRF-Token': token,
-      'Cookie': cookie,
+      //'Cookie': cookie,
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
       'Expires': 0

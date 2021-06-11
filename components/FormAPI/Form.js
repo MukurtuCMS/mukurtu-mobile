@@ -725,7 +725,7 @@ export default class FormComponent extends React.Component {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'X-CSRF-Token': token,
-            'Cookie': cookie
+            //'Cookie': cookie
           },
           redirect: 'follow',
           referrer: 'no-referrer',
@@ -815,7 +815,7 @@ export default class FormComponent extends React.Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-CSRF-Token': this.props.screenProps.token,
-        'Cookie': this.props.screenProps.cookie
+        //'Cookie': this.props.screenProps.cookie
       },
       redirect: 'follow',
       referrer: 'no-referrer',
@@ -922,7 +922,7 @@ export default class FormComponent extends React.Component {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'X-CSRF-Token': token,
-            'Cookie': cookie
+            //'Cookie': cookie
           },
           redirect: 'follow',
           referrer: 'no-referrer',

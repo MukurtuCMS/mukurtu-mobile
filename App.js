@@ -153,7 +153,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2021-02-01_1115',
+      appVersion: '2021-05-26_wsu_may_revisions_v3',
       refreshing: this.state.refreshing,
       logScrollPosition: this.logScrollPosition,
       checkLogin: this.checkLogin,
@@ -382,7 +382,7 @@ export default class App extends React.Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-CSRF-Token': token,
-        'Cookie': cookie,
+        //'Cookie': cookie,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': 0
@@ -1230,7 +1230,7 @@ export default class App extends React.Component {
               'Accept': 'application/json',
               'Content-Type': 'multipart/form-data',
               'X-CSRF-Token': this.state.token,
-              'Cookie': this.state.cookie
+              //'Cookie': this.state.cookie
             }
           });
           let fid = fileUpload.data[0].fid;
@@ -1244,7 +1244,7 @@ export default class App extends React.Component {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
               'X-CSRF-Token': this.state.token,
-              'Cookie': this.state.cookie
+              //'Cookie': this.state.cookie
             },
             redirect: 'follow',
             referrer: 'no-referrer',
@@ -1434,7 +1434,7 @@ export default class App extends React.Component {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                         'X-CSRF-Token': token,
-                        'Cookie': cookie
+                        //'Cookie': cookie
                       },
                       redirect: 'follow',
                       referrer: 'no-referrer',
@@ -1474,7 +1474,7 @@ export default class App extends React.Component {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                         'X-CSRF-Token': this.state.token,
-                        'Cookie': this.state.cookie
+                        //'Cookie': this.state.cookie
                       },
                       redirect: 'follow',
                       referrer: 'no-referrer',
@@ -1552,7 +1552,7 @@ export default class App extends React.Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-CSRF-Token': this.state.token,
-        'Cookie': this.state.cookie
+        //'Cookie': this.state.cookie
       },
       redirect: 'follow',
       referrer: 'no-referrer',
@@ -1928,7 +1928,7 @@ export default class App extends React.Component {
                           loggedIn: true,
                           authorized: true,
                           user: user,
-                          cookie: cookie,
+                          //cookie: cookie,
                           token: token
                         }, () => {
                           this.retrieveEverythingFromDb()
@@ -1942,11 +1942,12 @@ export default class App extends React.Component {
                       // Now we check our connection
                       let data = {
                         method: 'POST',
+                        //credentials: 'omit',
                         headers: {
                           'Accept': 'application/json',
                           'Content-Type': 'application/json',
                           'X-CSRF-Token': token,
-                          'Cookie': cookie,
+                          //'Cookie': cookie,
                           'Cache-Control': 'no-cache, no-store, must-revalidate',
                           'Pragma': 'no-cache',
                           'Expires': 0
@@ -1974,7 +1975,7 @@ export default class App extends React.Component {
                                 isConnected: true,
                                 authorized: true,
                                 user: user,
-                                cookie: cookie,
+                                //cookie: cookie,
                                 token: token
                               }, () => {
                                 this.retrieveEverythingFromDb()
@@ -1998,6 +1999,7 @@ export default class App extends React.Component {
                           }
                         })
                         .catch((error) => {
+                          console.log("checkloginError");
                           this.setState({
                             loggedIn: false,
                             authorized: false,

@@ -129,7 +129,7 @@ export default class Scald extends React.Component {
             'Accept': 'application/json',
             'Content-Type': 'multipart/form-data',
             'X-CSRF-Token': this.props.token,
-            'Cookie': this.props.cookie
+            //'Cookie': this.props.cookie
           },
           onUploadProgress: (progressEvent) => {
             let percentCompleted = progressEvent.loaded / progressEvent.total;
@@ -154,7 +154,7 @@ export default class Scald extends React.Component {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'X-CSRF-Token': this.props.token,
-            'Cookie': this.props.cookie
+            //'Cookie': this.props.cookie
           },
           redirect: 'follow',
           referrer: 'no-referrer',

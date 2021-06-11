@@ -33,7 +33,7 @@ export default class WebviewScreen extends React.Component {
 
     let isLoggedInBrowser = false;
 
-    let url = this.props.screenProps.siteUrl;
+ /*    let url = this.props.screenProps.siteUrl;
     fetch(url, {
       method: 'GET',
       credentials: 'include',
@@ -90,7 +90,7 @@ export default class WebviewScreen extends React.Component {
         this.setState({
           loading: false
         });
-      });
+      }); */
 
     const { navigation } = this.props;
     this.focusListener = navigation.addListener('didBlur', () => {
@@ -157,12 +157,14 @@ export default class WebviewScreen extends React.Component {
           source={{
             uri: webUrl,
             headers: {
-              Cookie: this.props.screenProps.cookie
+              //Cookie: this.props.screenProps.cookie
             }
           }}
+         // mixedContentMode={'always'}
           useWebKit={true}
           allowsFullscreenVideo={true}
-          onShouldStartLoadWithRequest={(request) => {
+          allowsInlineMediaPlayback={true}
+          /*onShouldStartLoadWithRequest={(request) => {
             // If we have an invalid url don't go there. Stops pop-ups.
             if (!Validator.isURL(request.url)) return false;
             // If we're loading the current URI, allow it to load
@@ -170,9 +172,11 @@ export default class WebviewScreen extends React.Component {
             // We're loading a new URL -- change state first
             this.setState({targetUrl: request.url, lastPropsPath: propsPath})
             return false;
-          }}
+          }}*/
           onLoadStart={() => this.setState({loading: true})}
           onLoad={() => this.setState({loading: false})}
+          // If a site takes longer than ten seconds to load, don't block the UI any more.
+          useEffect={() => setTimeout(() => { this.setState({ loading: false }); }, 10000)}
         />
       </SafeAreaView>
     );
