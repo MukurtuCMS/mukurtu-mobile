@@ -211,7 +211,7 @@ export default class Scald extends React.Component {
 
       const copyFile = await FileSystem.copyAsync({
         from: value.uri,
-        to: this.props.documentDirectory + filename
+        to: this.props.documentDirectory + encodeURIComponent(filename)
       });
 
       const tmpSid = Math.floor(Math.random() * 100000000);
