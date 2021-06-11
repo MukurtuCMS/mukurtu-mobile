@@ -86,6 +86,7 @@ export default class ConditionalSelect extends React.Component {
 
 
     let numItems = fieldValues != null ? Object.keys(fieldValues).length : 0;
+    let valuesToMatch = numItems;
     let showButton = numItems > 0;
     numItems = numItems > 0 ? numItems : 1;
     // console.log({numItems});
@@ -101,6 +102,15 @@ export default class ConditionalSelect extends React.Component {
         if (options.hasOwnProperty(key)) {
           if (selectedVal != null && options[key][selectedVal] != null) {
             parentVal = key
+
+            // We've matched one existing field value to the available
+            // options in the select control.
+            valuesToMatch--;
+          }
+
+          // The empty selection counts as a match.
+          if (selectedVal == null) {
+            valuesToMatch--;
           }
         }
       }
@@ -172,6 +182,12 @@ export default class ConditionalSelect extends React.Component {
       );
     }
 
+    // If we haven't matched EVERY existing field value
+    // to an availble option, DON'T render the control.
+    // Otherwise we have guaranteed data loss on save.
+    if (valuesToMatch > 0) {
+      return (null);
+    }
     return <View style={styles.viewStyle}>
       <Text style={styles.titleTextStyle}>{field['#title']}</Text>
       <FieldDescription description={(this.props.description) ? this.props.description : null}/>
