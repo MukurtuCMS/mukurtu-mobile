@@ -621,12 +621,14 @@ export default class FormComponent extends React.Component {
       }
 
       if (offline) {
+        // Record the atoms for later upload.
         const ref = `${fieldName}.${index}`;
-        if (newFormValues['_tmp_atom'] != null && newFormValues['_tmp_atom'][ref] != null) {
-          newFormValues['_tmp_atom'][ref] = value;
-        }
-        else {
+        if (newFormValues['_tmp_atom'] == null || newFormValues['_tmp_atom'] === undefined) {
+          // Initialize the object with the first offline atom.
           newFormValues['_tmp_atom'] = {[ref]: value};
+        } else {
+          // Object already exists, record the current atom.
+          newFormValues['_tmp_atom'][ref] = value;
         }
       }
       // Object.assign(formValues, values);
