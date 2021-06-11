@@ -105,6 +105,12 @@ export default class Scald extends React.Component {
     this.props.disableSubmit();
     const online = await NetInfo.fetch().then(state => state.isConnected);
     let filename = type === 'document' ? value.name : value.uri.split('/').pop();
+
+    // Rename mov to mp4 for Mukurtu support.
+    const extension = filename.split('.').pop();
+    if (extension == 'mov') {
+      filename = filename.replace(/\.mov$/, '.mp4')
+    }
     // let indexState = this.state[index];
     // indexState['overriden'] = true;
     // this.setState({
