@@ -97,7 +97,6 @@ export default class FormComponent extends React.Component {
   }
 
   setFormValue(newFieldName, newValue, valueKey, lang = 'und', error = null, index = '0') {
-
     if (this.state.formValues) {
       const formValues = this.state.formValues;
       if (newFieldName === 'title') {
@@ -280,7 +279,12 @@ export default class FormComponent extends React.Component {
       // },
 
       Object.assign(formValues, values);
-      if (deleteIndex !== undefined) {
+
+      if (
+        deleteIndex !== undefined &&
+        formValues[paragraphFieldName] !== undefined &&
+        formValues[paragraphFieldName].und !== undefined
+      ) {
         _.pullAt(formValues[paragraphFieldName].und, deleteIndex);
       }
 
@@ -650,8 +654,23 @@ export default class FormComponent extends React.Component {
     let requiredErrors = {};
     required.forEach((value, key) => {
       let fieldData = data[key];
+
+      // Some fields are strings (e.g., titles).
+      if (_.isString(fieldData) && fieldData.length > 0) {
+        return;
+      }
+
+      // Check object fields.
       if (_.isObjectLike(fieldData)) {
         fieldData = data[key]?.und ?? (data[key]?.en ?? []);
+      } else {
+        // Didn't find anything, is this field a paragraph?
+        if (data["paragraphs"] !== undefined) {
+          fieldData = data["paragraphs"][key];
+          if (_.isObjectLike(fieldData)) {
+            fieldData = data["paragraphs"][key]?.und ?? (data["paragraphs"][key]?.en ?? []);
+          }
+        }
       }
 
       if (_.isEmpty(fieldData)) {
