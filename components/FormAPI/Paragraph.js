@@ -79,8 +79,35 @@ export default class Paragraph extends React.Component {
   removeParagraph(index) {
     // let currentIndex = this.state.numberOfForms;
     const {fieldName, lang} = this.props;
-    const newFormValues = JSON.parse(JSON.stringify(this.state.subformValues));
-    _.pullAt(newFormValues[fieldName][lang], index);
+    let formValues = JSON.parse(JSON.stringify(this.state.subformValues));
+    let newFormValues = JSON.parse(JSON.stringify(this.state.subformValues));
+
+    // Clear out all the specific field values.
+    delete newFormValues[fieldName][lang];
+    newFormValues[fieldName][lang] = {};
+
+    // Don't crash if somebody calls this on the wrong index.
+    if (
+      !_.isEmpty(formValues) &&
+      formValues[fieldName] !== undefined &&
+      formValues[fieldName][lang] !== undefined &&
+      formValues[fieldName][lang][index] !== undefined
+    ) {
+      // Copy 0 to the index we want to remove.
+      for (let i = 0; i < index; i++) {
+        if (formValues[fieldName][lang][i] !== undefined) {
+          newFormValues[fieldName][lang][i] = formValues[fieldName][lang][i];
+        }
+      }
+
+      // Re-index index to n.
+      for (let i = index; i < this.state.numberOfForms; i++) {
+        if (formValues[fieldName][lang][i+1] !== undefined) {
+          newFormValues[fieldName][lang][i] = formValues[fieldName][lang][i+1];
+        }
+      }
+    }
+
     // this.props.setFormValue(this.props.fieldName, newFormValues);
     // console.log({newFormValues});
 
@@ -476,6 +503,7 @@ export default class Paragraph extends React.Component {
     >
       <Text style={styles.mediaButtonText}>Remove</Text>
     </TouchableOpacity>;
+
     paragraphForm.push(removeButton);
 
 
