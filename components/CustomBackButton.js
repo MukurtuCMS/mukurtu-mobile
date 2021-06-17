@@ -1,4 +1,5 @@
 import React from 'react';
+import { Alert } from "react-native";
 import {HeaderBackButton} from 'react-navigation-stack';
 
 /**
@@ -7,6 +8,34 @@ import {HeaderBackButton} from 'react-navigation-stack';
  */
 export default class CustomBackButton extends React.Component {
 
+  unsavedEditFormAlert() {
+    const routeName = this.props.navigation.state["routeName"];
+
+    // Fail to normal back button behavior if we have no route.
+    if (routeName === undefined) {
+      this.backFunction();
+      return;
+    }
+
+    // If we do have a route, use normal back button behavior
+    // if we're not on the edit/create form.
+    if (routeName != "EditContentForm" && routeName != "CreateContentForm") {
+      this.backFunction();
+      return;
+    }
+
+    // Display the unsaved changes alert.
+    Alert.alert(
+    "Discard unsaved changes?",
+    "Leaving this form will discard any unsaved changes.",
+    [
+      {
+        text: "Cancel",
+        style: "cancel"
+      },
+      { text: "Discard", onPress: () => this.backFunction() }
+    ]
+  )};
 
   backFunction() {
     if (typeof this.props.navigation.getParam('customBackScreen') === 'string') {
@@ -20,6 +49,7 @@ export default class CustomBackButton extends React.Component {
   render() {
     return <HeaderBackButton
       onPress={() => {
+        //this.unsavedEditFormAlert();
         this.backFunction()
       }}
       tintColor='black'
