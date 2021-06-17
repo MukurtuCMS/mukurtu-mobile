@@ -153,7 +153,7 @@ export default class App extends React.Component {
       editable: this.state.editable,
       db: this.state.db,
       documentDirectory: FileSystem.documentDirectory,
-      appVersion: '2021-05-26_wsu_may_revisions_v3',
+      appVersion: '2021-05-26_wsu_may_revisions_v7',
       refreshing: this.state.refreshing,
       logScrollPosition: this.logScrollPosition,
       checkLogin: this.checkLogin,
@@ -439,6 +439,22 @@ export default class App extends React.Component {
         return response.json();
       })
       .then((node) => {
+        // Existing nodes were getting stickied/promoted by default.
+        // This is a quick and dirty fix so we can get this app
+        // released. I assume it's probably a type issue (string/boolean)
+        // and string "0" is not FALSE in PHP land...
+        // We don't want people modifying sticky/promote flags in the app
+        // anyway.
+        if (node["status"] !== undefined) {
+          delete node["status"];
+        }
+        if (node["sticky"] !== undefined) {
+          delete node["sticky"];
+        }
+        if (node["promote"] !== undefined) {
+          delete node["promote"];
+        }
+
         this.setState({'syncText': 'Retrieving content: ' + node.title});
 
         this.state.db.transaction(
@@ -1036,9 +1052,7 @@ export default class App extends React.Component {
                                                                   );
                                                                 }
                                                               );
-
                                                             }
-
                                                           },
                                                           (success, error) => {
                                                             console.log(error);
@@ -1054,7 +1068,6 @@ export default class App extends React.Component {
                                                 );
                                               }
                                             );
-
                                           },
                                           (success, error) => {
                                             console.log(error);
@@ -1062,8 +1075,6 @@ export default class App extends React.Component {
                                         );
                                       }
                                     );
-
-
                                   },
                                   (success, error) => {
                                     console.log(error);
@@ -1071,8 +1082,6 @@ export default class App extends React.Component {
                                 );
                               }
                             );
-
-
                           },
                           (success, error) => {
                             console.log(error);
@@ -1080,8 +1089,6 @@ export default class App extends React.Component {
                         );
                       }
                     );
-
-
                   },
                   (success, error) => {
                     console.log(error);
@@ -1089,8 +1096,6 @@ export default class App extends React.Component {
                 );
               }
             );
-
-
           },
           (success, error) => {
             console.log(error);
