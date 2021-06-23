@@ -74,13 +74,13 @@ class LoginScreen extends React.Component {
   onClickListener = (viewId) => {
 
     if (this.state.name !== '') {
-      var name = this.state.name.toLowerCase().trim();
+      var name = this.state.name.trim();
     }
     else {
       this.setState({'nameEmpty': true});
     }
     if (this.state.password !== false) {
-      var pass = this.state.password.toLowerCase().trim();
+      var pass = this.state.password.trim();
     }
     else {
       this.setState({'passwordEmpty': true});

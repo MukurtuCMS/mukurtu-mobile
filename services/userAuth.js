@@ -3,8 +3,8 @@ import FormData from 'FormData';
 export const userAuth = (name, pass, url) => {
   var formData = new FormData();
 
-  name = name.toLowerCase().trim();
-  pass = pass.toLowerCase().trim();
+  name = name.trim();
+  pass = pass.trim();
   url = url.toLowerCase().trim();
 
   formData.append('username', name);
