@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "mukurtu-mobile",
-    "description": "A very interesting project.",
+    "description": "A mobile app used to view and create content for Mukurtu CMS.",
     "slug": "mukurtu-mobile",
     "owner": "washington_state_university_libraries",
     "privacy": "unlisted",
@@ -25,7 +25,7 @@
     ],
     "ios": {
       "bundleIdentifier": "com.map2app.Mukurtu-Mobile",
-      "buildNumber": "5",
+      "buildNumber": "8",
       "supportsTablet": true,
       "usesIcloudStorage": false,
       "infoPlist": {
