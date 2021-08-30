@@ -3,6 +3,7 @@ import {View, Text, StyleSheet} from 'react-native';
 import {Button} from "react-native-elements";
 import Textfield from "./Textfield";
 import Select2 from "./Select2";
+import TagSelect from './TagSelect';
 
 export default class FieldCollectionForm extends React.Component {
 
@@ -223,7 +224,7 @@ export default class FieldCollectionForm extends React.Component {
 
       if (subfield !== undefined && subfield['#columns'] !== undefined) {
         if (subfield['#columns']['0'] !== undefined && subfield['#columns']['0'] === 'tid') {
-          FieldCollectionForm.push(<Select2
+          FieldCollectionForm.push(<TagSelect
             index={index}
             formValues={currentFormValues}
             fieldName={fieldName}
