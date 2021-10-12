@@ -159,7 +159,7 @@ export default class Textfield extends React.Component {
           onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, this.props.index, i)}
           value={value}
           defaultValue={defaultValue}
-          maxLength={field['#maxlength']}
+          maxLength={parseInt(field['#maxlength'])}
           onBlur={() => this.onBlur()}
           onFocus={() => this.onFocus()}
           placeholder={'Enter ' + title}

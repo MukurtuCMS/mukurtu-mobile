@@ -669,11 +669,29 @@ export default class App extends React.Component {
   }
 
 
-  insertContentType = (response, machineName) => {
+  insertContentType = async (response, machineName) => {
+    // Save content type definition as a file as the size of this data can be very large.
+    try {
+      const fileDir = `${FileSystem.documentDirectory}type_definitions`;
+      const dirInfo = await FileSystem.getInfoAsync(fileDir);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(fileDir);
+      }
+      const filePath = `${fileDir}/${machineName}.json`;
+      FileSystem.writeAsStringAsync(filePath, JSON.stringify(response))
+        .then(() => {
+          console.log(`Definition for ${machineName} saved as file.`);
+        })
+    }
+    catch (error) {
+      console.log(error);
+    }
+
+    // Only save machine name for content type. Blob data is saved in file above.
     this.state.db.transaction(
       tx => {
         tx.executeSql('replace into content_type (machine_name, blob) values (?, ?)',
-          [machineName, JSON.stringify(response)],
+          [machineName, ''],
           (success) => () => {
             console.log('success');
             return 'success'
@@ -938,15 +956,22 @@ export default class App extends React.Component {
 
                     this.state.db.transaction(
                       tx => {
-                        tx.executeSql('select * from content_type',
+                        tx.executeSql('select machine_name from content_type',
                           [],
-                          (success, array) => {
-                            console.log('content TYPE retrieved');
+                          async (success, array) => {
                             let formFieldsState = {};
                             for (let i = 0; i < array.rows._array.length; i++) {
                               let machineName = array.rows._array[i]['machine_name'];
-                              let formFields = JSON.parse(array.rows._array[i]['blob']);
-                              formFieldsState[machineName] = formFields;
+                              const fileDir = `${FileSystem.documentDirectory}type_definitions/${machineName}.json`;
+                              try {
+                                const typeFile = await FileSystem.readAsStringAsync(fileDir);
+                                let formFields = JSON.parse(typeFile);
+                                formFieldsState[machineName] = formFields;
+                                console.log(`${machineName} type definition read.`);
+                              }
+                              catch (error) {
+                                console.error(error);
+                              }
                             }
                             this.setState({'formFields': formFieldsState});
                           },
