@@ -64,7 +64,7 @@ export default class Textarea extends React.Component {
         onChangeText={(text) => this.props.setFormValue(this.props.fieldName, text, valueKey, lang, formErrorString, index)}
         value={value}
         defaultValue={field['#default_value']}
-        maxLength={parseInt(field['#maxlength'])}
+        maxLength={field['#maxlength'] ? parseInt(field['#maxlength']) : undefined}
         multiline={true}
         numberOfLines={field['#rows']}
         placeholder={'Enter ' + field['#title']}
