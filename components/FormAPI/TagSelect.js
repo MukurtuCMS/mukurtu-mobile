@@ -189,6 +189,7 @@ const TagSelect = ({field, required, formValues, fieldName, setFormValue, parent
         <View style={styles.pickerRow}>
           <View style={{flex: 1}}>
             <RNPickerSelect
+              useNativeAndroidPickerStyle={false}
               placeholder={placeholder}
               items={options}
               onValueChange={val => val !== currentSelect && setCurrentSelect(val)}
@@ -318,6 +319,7 @@ const pickerSelectStyles = StyleSheet.create({
     paddingRight: 30, // to ensure the text is never behind the icon
     marginBottom: 10,
     textTransform: 'uppercase',
+    color: 'black'
   },
   buttonContainer: {
     flexWrap: 'wrap',

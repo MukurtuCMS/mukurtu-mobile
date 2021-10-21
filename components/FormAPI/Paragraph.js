@@ -6,6 +6,7 @@ import Select2 from "./Select2";
 import Textarea from "./Textarea";
 import _ from 'lodash';
 import Colors from "../../constants/Colors";
+import TagSelect from './TagSelect';
 
 export default class Paragraph extends React.Component {
 
@@ -449,7 +450,7 @@ export default class Paragraph extends React.Component {
         if (subfield['#columns']['0'] !== undefined && (subfield['#columns']['0'] === 'tid' || subfield['#columns']['0'] === 'target_id')) {
           // Need to go one level deeper for select items
           const selectFormValues = _.get(currentFormValues, [parentField, lang, index], {});
-          paragraphForm.push(<Select2
+          paragraphForm.push(<TagSelect
             parentIndex={index}
             formValues={selectFormValues}
             fieldName={fieldName}
